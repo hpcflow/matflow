@@ -1,0 +1,20 @@
+doc: 
+  - >
+    Demonstration of modifying a volume element by applying a perturbation to its orientations.
+
+tasks:
+  - schema: generate_microstructure_seeds_from_random
+    inputs:
+      VE_size: [1, 1, 1]
+      num_grains: 4
+      phase_label: Al
+
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [8, 8, 8]
+  
+  - schema: modify_VE_spread_orientations # underscore to separate the levels of the task schema objective/method
+    inputs:
+      phases: [Al]
+      stddev_degrees: [0.01]
