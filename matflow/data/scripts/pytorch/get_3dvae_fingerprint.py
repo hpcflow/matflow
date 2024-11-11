@@ -1,13 +1,14 @@
 import numpy as np
 import torch
 from lightning.pytorch import seed_everything
+import damask
 
 from lvae3d.models.ResNetVAE_3Deu import ResNet18_3DVAEeu
 from lvae3d.LightningVAETrainers import VAETrainerAlpha
 from lvae3d.util.MetadataDicts import MetadataAlpha
 
 
-def get_3dvae_fingerprint(volume_element, checkpoint_path, metadata_path):
+def get_3dvae_fingerprint(volume_element, checkpoint_path, metadata_path, family):
     """Get fingerprint from PyTorch tensor of normalised Euler angles.
 
     Parameters
@@ -31,6 +32,7 @@ def get_3dvae_fingerprint(volume_element, checkpoint_path, metadata_path):
     oris = convert_ori_rep(volume_element['orientations'])
     assert not oris['euler_degrees']
     euler_angles = oris['eulers']
+    euler_angles = damask.Orientation(rotation=damask.Rotation.from_Euler_angles(euler_angles), family=family).reduced.as_Euler_angles()
     euler_angles /= np.pi * np.array([2, 1, 2])
 
     grain_image = volume_element['element_material_idx'][:]

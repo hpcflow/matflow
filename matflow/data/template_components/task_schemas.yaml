@@ -4,6 +4,7 @@
     - parameter: volume_element
     - parameter: checkpoint_path
     - parameter: metadata_path
+    - parameter: family
   outputs:
     - parameter: fingerprint
   actions:
@@ -623,7 +624,7 @@
           script: <<script:damask/high_concurrency/write_input_files.py>>
       abortable: true
       commands:
-        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
+        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
           stdout: stdout.log
           stderr: stderr.log
       output_file_parsers:
