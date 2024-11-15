@@ -1,23 +1,31 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import enum
 from pathlib import Path
-from typing import Optional
+from typing_extensions import Self
 
 import numpy as np
+from numpy.typing import NDArray, ArrayLike
 import zarr
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 
 
-class EulerDefinition(enum.Enum):
-    def __new__(cls, value, rotation_order, doc=None):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.rotation_order = rotation_order
-        obj.__doc__ = doc
-        return obj
+@dataclass
+class _EulerDefinition:
+    _value: int
+    rotation_order: str
+    __doc__: str
 
+
+class EulerDefinition(_EulerDefinition, enum.Enum):
+    #: Convention typically used in crystallography.
     BUNGE = (0, "ZXZ", "Convention typically used in crystallography.")
+
+    @property
+    def value(self) -> int:
+        #: The value of the status.
+        return self._value
 
 
 class QuatOrder(enum.Enum):
@@ -37,16 +45,28 @@ class QuatOrder(enum.Enum):
 
 
 class OrientationRepresentationType(enum.Enum):
+    """
+    How the orientation is represented.
+    """
+    #: Representation is a quaternion.
     QUATERNION = 0
+    #: Representation is by Euler angles.
     EULER = 1
 
 
 @dataclass
 class OrientationRepresentation(ParameterValue):
+    """
+    A representation descriptor of an orientation.
+    """
+    #: How the orientation is represented.
     type: OrientationRepresentationType
-    euler_definition: Optional[EulerDefinition] = None
-    euler_is_degrees: Optional[bool] = None
-    quat_order: Optional[QuatOrder] = None
+    #: For Euler angles, how the angles are applied.
+    euler_definition: EulerDefinition | None = None
+    #: For Euler angles, whether the angles are in degrees or radians.
+    euler_is_degrees: bool | None = None
+    #: For quaternions, what is the order of the scalar wrt the vector.
+    quat_order: QuatOrder | None = None
 
     def __post_init__(self):
         self.type = get_enum_by_name_or_val(OrientationRepresentationType, self.type)
@@ -80,9 +100,9 @@ class LatticeDirection(enum.Enum):
 class UnitCellAlignment(ParameterValue):
     _typ = "unit_cell_alignment"
 
-    x: Optional[LatticeDirection] = None
-    y: Optional[LatticeDirection] = None
-    z: Optional[LatticeDirection] = None
+    x: LatticeDirection | None = None
+    y: LatticeDirection | None = None
+    z: LatticeDirection | None = None
 
     def __post_init__(self):
         self.x = get_enum_by_name_or_val(LatticeDirection, self.x)
@@ -113,11 +133,14 @@ class UnitCellAlignment(ParameterValue):
 class Orientations(ParameterValue):
     _typ = "orientations"
 
+    #: Orientation data
     data: np.ndarray
+    #: Alignment of the unit cell.
     unit_cell_alignment: UnitCellAlignment
+    #: How the orientation data is represented.
     representation: OrientationRepresentation
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not isinstance(self.representation, OrientationRepresentation):
             self.representation = OrientationRepresentation(**self.representation)
 
@@ -172,12 +195,16 @@ class Orientations(ParameterValue):
         ]
 
     @classmethod
-    def from_JSON_like(cls, data, ori_format):
+    def from_JSON_like(cls, data: ArrayLike, ori_format) -> Self:
         """For custom initialisation via YAML or JSON."""
+        # FIXME: no parameter: ori_format
         return cls(data=np.asarray(data), ori_format=ori_format)
 
     @classmethod
-    def from_random(cls, number):
+    def from_random(cls, number: int) -> Self:
+        """
+        Generate random orientation data.
+        """
         return cls(
             data=cls.quat_sample_random(number),
             unit_cell_alignment=UnitCellAlignment.from_hex_convention_DAMASK(),
@@ -190,15 +217,19 @@ class Orientations(ParameterValue):
     @classmethod
     def from_file(
         cls,
-        path,
-        representation,
-        unit_cell_alignment,
-        number=None,
-        start_index=0,
-        delimiter=" ",
-    ):
+        path: str,
+        representation: dict,
+        unit_cell_alignment: UnitCellAlignment,
+        *,
+        number: int | None = None,
+        start_index: int = 0,
+        delimiter: str = " ",
+    ) -> Self:
+        """
+        Load orientation data from a text file.
+        """
         rep = OrientationRepresentation(**representation)
-        data = []
+        data: list[list[float]] = []
         with Path(path).open("rt") as fh:
             for idx, line in enumerate(fh):
                 line = line.strip()
@@ -216,7 +247,7 @@ class Orientations(ParameterValue):
         )
 
     @staticmethod
-    def quat_sample_random(number):
+    def quat_sample_random(number: int) -> NDArray:
         """Generate random uniformly distributed unit quaternions.
 
         Parameters
@@ -235,7 +266,7 @@ class Orientations(ParameterValue):
         """
 
         rand_nums = np.random.random((number, 3))
-        quats = np.array(
+        return np.array(
             [
                 np.sqrt(1 - rand_nums[:, 0]) * np.sin(2 * np.pi * rand_nums[:, 1]),
                 np.sqrt(1 - rand_nums[:, 0]) * np.cos(2 * np.pi * rand_nums[:, 1]),
@@ -243,5 +274,3 @@ class Orientations(ParameterValue):
                 np.sqrt(rand_nums[:, 0]) * np.cos(2 * np.pi * rand_nums[:, 2]),
             ]
         ).T
-
-        return quats

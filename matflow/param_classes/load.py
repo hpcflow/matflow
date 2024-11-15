@@ -4,9 +4,11 @@ from dataclasses import dataclass
 import enum
 
 import logging
-from typing import Dict, List, Optional, Union
+from typing import Any, cast
+from typing_extensions import Final, Self
 
 import numpy as np
+from numpy.typing import ArrayLike
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 
@@ -16,17 +18,27 @@ from matflow.param_classes.utils import masked_array_from_list
 logger = logging.getLogger(__name__)
 
 
-class StrainRateMode(enum.Enum):
-    def __new__(cls, value, symbol, doc=None):
-        obj = object.__new__(cls)
-        obj._value_ = value
-        obj.symbol = symbol
-        obj.__doc__ = doc
-        return obj
+@dataclass
+class _StrainRateMode:
+    """
+    Model of the state of a :py:class:`StrainRateMode`.
+    """
+    _value: int
+    symbol: str
+    __doc__: str
 
+
+class StrainRateMode(_StrainRateMode, enum.Enum):
+    #: Deformation gradient rate.
     DEF_GRAD_RATE = (0, "F_rate", "Deformation gradient rate.")
-    VEL_GRAD = (1, "L", "Velocity gradient.")
+    #: Velocity gradient.
+    VEL_GRAD = (1, "L", "elocity gradient.")
+    #: Velocity gradient approximation.
     VEL_GRAD_APPROX = (2, "L_approx", "Velocity gradient approximation.")
+
+    @property
+    def value(self) -> int:
+        return self._value
 
 
 class LoadStep(ParameterValue):
@@ -35,9 +47,7 @@ class LoadStep(ParameterValue):
     Parameters
     ----------
     direction
-        # TODO
-    rotation
-        # TODO
+        Direction or directions in which loading is done.
     total_time : float or int
         Total simulation time.
     num_increments
@@ -55,17 +65,19 @@ class LoadStep(ParameterValue):
         By default, 1, meaning results are written out every increment.
     """
 
+    _DIR_IDX: Final[tuple[str, ...]] = ("x", "y", "z")
+
     def __init__(
         self,
         total_time: float,
         num_increments: int,
-        direction: Optional[str] = None,
-        normal_direction: Optional[str] = None,
-        target_def_grad: Optional[np.typing.ArrayLike] = None,
-        target_def_grad_rate: Optional[np.typing.ArrayLike] = None,
-        target_vel_grad: Optional[np.typing.ArrayLike] = None,
-        stress: Optional[np.typing.ArrayLike] = None,
-        dump_frequency: Optional[int] = 1,
+        direction: str | None = None,
+        normal_direction: str | None = None,
+        target_def_grad: ArrayLike | None = None,
+        target_def_grad_rate: ArrayLike | None = None,
+        target_vel_grad: ArrayLike | None = None,
+        stress: ArrayLike | None = None,
+        dump_frequency: int = 1,
     ) -> None:
         self.total_time = total_time
         self.num_increments = num_increments
@@ -78,8 +90,8 @@ class LoadStep(ParameterValue):
         self.dump_frequency = dump_frequency
 
         # assigned if constructed via a helper class method:
-        self._method_name = None
-        self._method_args = None
+        self._method_name: str | None = None
+        self._method_args: dict[str, Any] | None = None
 
         self._validate()
 
@@ -162,15 +174,15 @@ class LoadStep(ParameterValue):
             return self.target_vel_grad
 
     @property
-    def method_name(self):
+    def method_name(self) -> str | None:
         return self._method_name
 
     @property
-    def method_args(self):
+    def method_args(self) -> dict[str, Any] | None:
         return self._method_args
 
     @property
-    def type(self):
+    def type(self) -> str | None:
         """More user-friendly access to method name."""
         return self._method_name
 
@@ -190,7 +202,7 @@ class LoadStep(ParameterValue):
         )
 
     @classmethod
-    def example_uniaxial(cls):
+    def example_uniaxial(cls) -> Self:
         """A non-parametrisable example uniaxial load step."""
         time = 100
         incs = 200
@@ -211,13 +223,13 @@ class LoadStep(ParameterValue):
     @classmethod
     def uniaxial(
         cls,
-        total_time: float,
+        total_time: float | int,
         num_increments: int,
         direction: str,
-        target_def_grad_rate: Optional[float] = None,
-        target_def_grad: Optional[float] = None,
-        dump_frequency: Optional[int] = 1,
-    ) -> LoadStep:
+        target_def_grad_rate: float | None = None,
+        target_def_grad: float | None = None,
+        dump_frequency: int = 1,
+    ) -> Self:
         """
         Generate a uniaxial load step.
 
@@ -259,9 +271,8 @@ class LoadStep(ParameterValue):
         else:
             def_grad_val = target_def_grad
 
-        dir_idx = ["x", "y", "z"]
         try:
-            loading_dir_idx = dir_idx.index(direction)
+            loading_dir_idx = cls._DIR_IDX.index(direction)
         except ValueError:
             msg = (
                 f'Loading direction "{direction}" not allowed. It should be one of "x", '
@@ -288,20 +299,19 @@ class LoadStep(ParameterValue):
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
-        obj._method_name = _method_name
-        obj._method_args = _method_args
+        obj._method_name, obj._method_args = _method_name, _method_args
         return obj
 
     @classmethod
     def biaxial(
         cls,
-        total_time: float,
+        total_time: int | float,
         num_increments: int,
         direction: str,
-        target_def_grad: Optional[float] = None,
-        target_def_grad_rate: Optional[float] = None,
-        dump_frequency: Optional[int] = 1,
-    ) -> LoadStep:
+        target_def_grad: float | None = None,
+        target_def_grad_rate: float | None = None,
+        dump_frequency: int = 1,
+    ) -> Self:
         """
         Generate a biaxial load step.
 
@@ -346,12 +356,10 @@ class LoadStep(ParameterValue):
         else:
             def_grad_val = target_def_grad
 
-        dir_idx = ["x", "y", "z"]
-        load_dir_idx = []
+        load_dir_idx: list[int] = []
         for load_dir in direction:
             try:
-                loading_dir_idx = dir_idx.index(load_dir)
-                load_dir_idx.append(loading_dir_idx)
+                load_dir_idx.append(cls._DIR_IDX.index(load_dir))
             except ValueError:
                 msg = (
                     f'Loading direction "{load_dir}" not allowed. Both loading directions '
@@ -359,8 +367,8 @@ class LoadStep(ParameterValue):
                 )
                 raise ValueError(msg)
 
-        zero_stress_dir = list(set(dir_idx) - set(direction))[0]
-        zero_stress_dir_idx = dir_idx.index(zero_stress_dir)
+        zero_stress_dir = next(iter(set(cls._DIR_IDX).difference(direction)))
+        zero_stress_dir_idx = cls._DIR_IDX.index(zero_stress_dir)
 
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
         stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.ones((3, 3)))
@@ -381,21 +389,20 @@ class LoadStep(ParameterValue):
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
-        obj._method_name = _method_name
-        obj._method_args = _method_args
+        obj._method_name, obj._method_args = _method_name, _method_args
         return obj
 
     @classmethod
     def plane_strain(
         cls,
-        total_time,
-        num_increments,
-        direction,
-        target_def_grad: Optional[float] = None,
-        target_def_grad_rate: Optional[float] = None,
-        dump_frequency: Optional[int] = 1,
-        strain_rate_mode: Optional[Union[StrainRateMode, str]] = None,
-    ) -> LoadStep:
+        total_time: int | float,
+        num_increments: int,
+        direction: str,
+        target_def_grad: float | None = None,
+        target_def_grad_rate: float | None = None,
+        dump_frequency: int = 1,
+        strain_rate_mode: StrainRateMode | str | None = None,
+    ) -> Self:
         """Generate a plane-strain load step.
 
         Parameters
@@ -433,23 +440,23 @@ class LoadStep(ParameterValue):
 
         # Validation:
         msg = "Specify either `target_def_grad_rate` or `target_def_grad`."
-        if all([t is None for t in [target_def_grad_rate, target_def_grad]]):
+        if all(t is None for t in [target_def_grad_rate, target_def_grad]):
             raise ValueError(msg)
-        if all([t is not None for t in [target_def_grad_rate, target_def_grad]]):
+        if all(t is not None for t in [target_def_grad_rate, target_def_grad]):
             raise ValueError(msg)
 
         if strain_rate_mode is None:
-            strain_rate_mode = StrainRateMode.DEF_GRAD_RATE
+            mode = StrainRateMode.DEF_GRAD_RATE
         else:
-            strain_rate_mode = get_enum_by_name_or_val(StrainRateMode, strain_rate_mode)
+            mode = get_enum_by_name_or_val(StrainRateMode, strain_rate_mode)
 
         if (
-            strain_rate_mode in (StrainRateMode.VEL_GRAD, StrainRateMode.VEL_GRAD_APPROX)
+            mode in (StrainRateMode.VEL_GRAD, StrainRateMode.VEL_GRAD_APPROX)
             and target_def_grad_rate is None
         ):
             msg = (
                 f"`target_def_grad_rate` must be specified for `strain_rate_mode` "
-                f"{strain_rate_mode!r}"
+                f"{mode!r}"
             )
             raise ValueError(msg)
 
@@ -458,10 +465,9 @@ class LoadStep(ParameterValue):
         else:
             def_grad_val = target_def_grad
 
-        dir_idx = ["x", "y", "z"]
         loading_dir, zero_strain_dir = direction
         try:
-            loading_dir_idx = dir_idx.index(loading_dir)
+            loading_dir_idx = cls._DIR_IDX.index(loading_dir)
         except ValueError:
             msg = (
                 f'Loading direction "{loading_dir}" not allowed. It should be one of '
@@ -469,37 +475,37 @@ class LoadStep(ParameterValue):
             )
             raise ValueError(msg)
 
-        if zero_strain_dir not in dir_idx:
+        if zero_strain_dir not in cls._DIR_IDX:
             msg = (
                 f'Zero-strain direction "{zero_strain_dir}" not allowed. It should be '
                 f'one of "x", "y" or "z".'
             )
             raise ValueError(msg)
 
-        zero_stress_dir = list(set(dir_idx) - {loading_dir, zero_strain_dir})[0]
-        zero_stress_dir_idx = dir_idx.index(zero_stress_dir)
+        zero_stress_dir = next(iter(set(cls._DIR_IDX).difference([loading_dir, zero_strain_dir])))
+        zero_stress_dir_idx = cls._DIR_IDX.index(zero_stress_dir)
 
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
         stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.ones((3, 3)))
 
         dg_arr[loading_dir_idx, loading_dir_idx] = def_grad_val
 
-        if strain_rate_mode is StrainRateMode.VEL_GRAD:
+        if mode is StrainRateMode.VEL_GRAD:
             # When using L with mixed BCs, each row must be either L or P:
             dg_arr.mask[zero_stress_dir_idx] = True
             stress_arr.mask[zero_stress_dir_idx] = False
 
-        elif strain_rate_mode is StrainRateMode.VEL_GRAD_APPROX:
+        elif mode is StrainRateMode.VEL_GRAD_APPROX:
             dg_arr = dg_arr.data  # No need for a masked array
             # Without mixed BCs, we can get volume conservation with Trace(L) = 0:
             dg_arr[zero_stress_dir_idx, zero_stress_dir_idx] = -def_grad_val
             stress_arr = None
 
-        elif strain_rate_mode is StrainRateMode.DEF_GRAD_RATE:
+        elif mode is StrainRateMode.DEF_GRAD_RATE:
             dg_arr.mask[zero_stress_dir_idx, zero_stress_dir_idx] = True
             stress_arr.mask[zero_stress_dir_idx, zero_stress_dir_idx] = False
 
-        if strain_rate_mode in (StrainRateMode.VEL_GRAD, StrainRateMode.VEL_GRAD_APPROX):
+        if mode in (StrainRateMode.VEL_GRAD, StrainRateMode.VEL_GRAD_APPROX):
             def_grad = None
             def_grad_rate = None
             vel_grad = dg_arr
@@ -518,20 +524,19 @@ class LoadStep(ParameterValue):
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
-        obj._method_name = _method_name
-        obj._method_args = _method_args
+        obj._method_name, obj._method_args = _method_name, _method_args
         return obj
 
     @classmethod
     def planar_2D(
         cls,
-        total_time: Union[int, float],
+        total_time: int | float,
         num_increments: int,
         normal_direction: str,
-        target_def_grad=None,
-        target_def_grad_rate=None,
-        dump_frequency=1,
-    ) -> LoadStep:
+        target_def_grad: float | None = None,
+        target_def_grad_rate: float | None = None,
+        dump_frequency: int = 1,
+    ) -> Self:
         """Generate a planar 2D load case normal to the x-, y-, or z-direction.
 
         Parameters
@@ -569,11 +574,8 @@ class LoadStep(ParameterValue):
         }
 
         # Validation:
-        msg = "Specify either `target_def_grad_rate` or `target_def_grad`."
-        if all([t is None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
-        if all([t is not None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
+        if sum(t is not None for t in [target_def_grad_rate, target_def_grad]) != 1:
+            raise ValueError("Specify either `target_def_grad_rate` or `target_def_grad`.")
         if target_def_grad_rate is not None:
             def_grad_vals = target_def_grad_rate
         else:
@@ -586,17 +588,16 @@ class LoadStep(ParameterValue):
         elif isinstance(def_grad_vals, np.ndarray):
             def_grad_vals = def_grad_vals.flatten()
 
-        dir_idx = ["x", "y", "z"]
         try:
-            normal_dir_idx = dir_idx.index(normal_direction)
+            normal_dir_idx = cls._DIR_IDX.index(normal_direction)
         except ValueError:
-            msg = (
+            raise ValueError(
                 f"Normal direction {normal_direction!r} not allowed. It should be one of "
                 f'"x", "y" or "z".'
             )
-            raise ValueError(msg)
 
-        loading_col_idx = list({0, 1, 2} - {normal_dir_idx})
+        loading_col_idx = [0, 1, 2]
+        loading_col_idx.remove(normal_dir_idx)
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
         stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
 
@@ -628,20 +629,19 @@ class LoadStep(ParameterValue):
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
-        obj._method_name = _method_name
-        obj._method_args = _method_args
+        obj._method_name, obj._method_args = _method_name, _method_args
         return obj
 
     @classmethod
     def random_2D(
         cls,
-        total_time: Union[int, float],
+        total_time: int | float,
         num_increments: int,
         normal_direction: str,
-        target_def_grad_rate: float = None,
-        target_def_grad: float = None,
+        target_def_grad_rate: float | None = None,
+        target_def_grad: float | None = None,
         dump_frequency: int = 1,
-    ) -> LoadStep:
+    ) -> Self:
         """Get a random 2D planar load case.
 
         Parameters
@@ -683,11 +683,11 @@ class LoadStep(ParameterValue):
     @classmethod
     def random_3D(
         cls,
-        total_time,
-        num_increments,
-        target_def_grad,
-        dump_frequency=1,
-    ) -> LoadStep:
+        total_time: int | float,
+        num_increments: int,
+        target_def_grad: float,
+        dump_frequency: int = 1,
+    ) -> Self:
         _method_name = "random_3D"
         _method_args = {
             "total_time": total_time,
@@ -730,8 +730,7 @@ class LoadStep(ParameterValue):
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
-        obj._method_name = _method_name
-        obj._method_args = _method_args
+        obj._method_name, obj._method_args = _method_name, _method_args
         return obj
 
     @classmethod
@@ -745,67 +744,61 @@ class LoadStep(ParameterValue):
         direction: str,
         waveform: str = "sine",
         dump_frequency=1,
-    ) -> List[LoadStep]:
-        dir_idx = ["x", "y", "z"]
+    ) -> list[Self]:
         try:
-            loading_dir_idx = dir_idx.index(direction)
+            loading_dir_idx = cls._DIR_IDX.index(direction)
         except ValueError:
-            msg = (
+            raise ValueError(
                 f'Loading direction "{direction}" not allowed. It should be one of "x", '
-                f'"y" or "z".'
+                f'"y" or "z".'                
             )
-            raise ValueError(msg)
 
         cycle_time = 1 / cycle_frequency
 
-        if waveform.lower() == "sine":
-            sig_mean = (max_stress + min_stress) / 2
-            sig_diff = max_stress - min_stress
-
-            A = 2 * np.pi / cycle_time
-            time = (
-                np.linspace(0, 2 * np.pi, num=num_increments_per_cycle, endpoint=True) / A
-            )
-            sig = (sig_diff / 2) * np.sin(A * time) + sig_mean
-
-            time_per_inc = cycle_time / num_increments_per_cycle
-
-            stress_mask = np.ones((sig.size, 3, 3))
-            stress_mask[:, [0, 1, 2], [0, 1, 2]] = 0
-            stress_arr = np.ma.masked_array(
-                data=np.zeros((sig.size, 3, 3)),
-                mask=stress_mask,
-            )
-            stress_arr[:, loading_dir_idx, loading_dir_idx] = sig
-
-            dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
-
-            cycle = []
-            for time_idx, _ in enumerate(time):
-                cycle.append(
-                    {
-                        "num_increments": 1,
-                        "total_time": time_per_inc,
-                        "stress": stress_arr[time_idx],
-                        "target_def_grad": dg_arr,
-                        "dump_frequency": dump_frequency,
-                    }
-                )
-
-            out = []
-            for cycle_idx in range(num_cycles):
-                cycle_i = copy.deepcopy(cycle)
-                if cycle_idx != num_cycles - 1:
-                    # intermediate cycle; remove repeated increment:
-                    cycle_i = cycle_i[:-1]
-                out.extend(cycle_i)
-
-            out = [cls(**i) for i in out]
-
-        else:
+        if waveform.lower() != "sine":
             raise NotImplementedError('Only waveform "sine" is currently allowed.')
 
-        return out
+        sig_mean = (max_stress + min_stress) / 2
+        sig_diff = max_stress - min_stress
+
+        A = 2 * np.pi / cycle_time
+        time = (
+            np.linspace(0, 2 * np.pi, num=num_increments_per_cycle, endpoint=True) / A
+        )
+        sig = (sig_diff / 2) * np.sin(A * time) + sig_mean
+
+        time_per_inc = cycle_time / num_increments_per_cycle
+
+        stress_mask = np.ones((sig.size, 3, 3))
+        stress_mask[:, [0, 1, 2], [0, 1, 2]] = 0
+        stress_arr = np.ma.masked_array(
+            data=np.zeros((sig.size, 3, 3)),
+            mask=stress_mask,
+        )
+        stress_arr[:, loading_dir_idx, loading_dir_idx] = sig
+
+        dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
+
+        cycle: list[dict[str, Any]] = []
+        for time_idx, _ in enumerate(time):
+            cycle.append(
+                {
+                    "num_increments": 1,
+                    "total_time": time_per_inc,
+                    "stress": stress_arr[time_idx],
+                    "target_def_grad": dg_arr,
+                    "dump_frequency": dump_frequency,
+                }
+            )
+
+        out: list[dict[str, Any]] = []
+        for cycle_idx in range(num_cycles):
+            cycle_i = copy.deepcopy(cycle)
+            if cycle_idx != num_cycles - 1:
+                # intermediate cycle; remove repeated increment:
+                cycle_i = cycle_i[:-1]
+            out.extend(cycle_i)
+        return [cls(**i) for i in out]
 
 
 @dataclass
@@ -815,12 +808,13 @@ class LoadCase(ParameterValue):
 
     _typ = "load_case"
 
-    steps: List[LoadStep]
+    steps: list[LoadStep]
 
     def __post_init__(self):
         for step_idx in range(len(self.steps)):
-            if not isinstance(self.steps[step_idx], LoadStep):
-                step_i = copy.deepcopy(self.steps[step_idx])  # don't mutate
+            step = self.steps[step_idx]
+            if not isinstance(step, LoadStep):
+                step_i = copy.deepcopy(cast(dict, step))  # don't mutate
                 _method_name = step_i.pop("_method_name", None)
                 _method_args = step_i.pop("_method_args", None)
                 self.steps[step_idx] = LoadStep(**step_i)
@@ -828,22 +822,22 @@ class LoadCase(ParameterValue):
                 self.steps[step_idx]._method_args = _method_args
 
     @property
-    def num_steps(self):
+    def num_steps(self) -> int:
         return len(self.steps)
 
     @property
-    def type(self):
+    def type(self) -> str | None | list[str | None]:
         if self.num_steps == 1:
             return self.steps[0].type
         else:
             return self.types
 
     @property
-    def types(self):
+    def types(self) -> list[str | None]:
         return [i.type for i in self.steps]
 
     @classmethod
-    def uniaxial(cls, **kwargs) -> LoadCase:
+    def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
 
         See `LoadStep.uniaxial` for argument documentation.
@@ -852,7 +846,7 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.uniaxial(**kwargs)])
 
     @classmethod
-    def biaxial(cls, **kwargs) -> LoadCase:
+    def biaxial(cls, **kwargs) -> Self:
         """A single-step biaxial load case.
 
         See `LoadStep.biaxial` for argument documentation.
@@ -861,7 +855,7 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.biaxial(**kwargs)])
 
     @classmethod
-    def plane_strain(cls, **kwargs) -> LoadCase:
+    def plane_strain(cls, **kwargs) -> Self:
         """A single-step plane-strain load case.
 
         See `LoadStep.plane_strain` for argument documentation.
@@ -870,7 +864,7 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.plane_strain(**kwargs)])
 
     @classmethod
-    def planar_2D(cls, **kwargs) -> LoadCase:
+    def planar_2D(cls, **kwargs) -> Self:
         """A single-step planar 2D load case.
 
         See `LoadStep.planar_2D` for argument documentation.
@@ -879,7 +873,7 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.planar_2D(**kwargs)])
 
     @classmethod
-    def random_2D(cls, **kwargs) -> LoadCase:
+    def random_2D(cls, **kwargs) -> Self:
         """A single-step random 2D load case.
 
         See `LoadStep.random_2D` for argument documentation.
@@ -888,7 +882,7 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.random_2D(**kwargs)])
 
     @classmethod
-    def random_3D(cls, **kwargs) -> LoadCase:
+    def random_3D(cls, **kwargs) -> Self:
         """A single-step random 3D load case.
 
         See `LoadStep.random_3D` for argument documentation.
@@ -897,19 +891,19 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.random_3D(**kwargs)])
 
     @classmethod
-    def uniaxial_cyclic(cls, **kwargs) -> LoadCase:
+    def uniaxial_cyclic(cls, **kwargs) -> Self:
         """Uniaxial cyclic loading.
 
         See `LoadStep.uniaxial_cyclic` for argument documentation."""
         return cls(steps=LoadStep.uniaxial_cyclic(**kwargs))
 
     @classmethod
-    def example_uniaxial(cls) -> LoadCase:
+    def example_uniaxial(cls) -> Self:
         """A non-parametrisable example single-step uniaxial load case."""
         return cls(steps=[LoadStep.example_uniaxial()])
 
     @classmethod
-    def multistep(cls, steps: List[Union[Dict, LoadStep]]) -> LoadCase:
+    def multistep(cls, steps: list[dict | LoadStep]) -> Self:
         """A load case with multiple steps.
 
         Parameters
@@ -920,15 +914,14 @@ class LoadCase(ParameterValue):
             classmethod will be invoked with the remainder of the `dict` items.
 
         """
-        step_objs = []
+        step_objs: list[LoadStep] = []
         for step_i in steps:
             if isinstance(step_i, LoadStep):
                 step_objs.append(step_i)
             else:
                 # assume a dict
                 step_i = copy.deepcopy(step_i)  # don't mutate
-                step_i_type = step_i.pop("type", None)
-                if step_i_type:
+                if (step_i_type := step_i.pop("type", None)):
                     # assume a LoadStep class method:
                     try:
                         method = getattr(LoadStep, step_i_type)
@@ -937,11 +930,12 @@ class LoadCase(ParameterValue):
                             f"No `LoadStep` method named {step_i_type!r} for load step "
                             f"specification {step_i!r}."
                         )
-                    steps = method(**step_i)
-                    if not isinstance(steps, list):
+                    steps: LoadStep | list[LoadStep] = method(**step_i)
+                    if isinstance(steps, LoadStep):
+                        step_objs.append(steps)
+                    else:
                         # in the general case, multiple `LoadStep`s might be generated:
-                        steps = [steps]
-                    step_objs.extend(steps)
+                        step_objs.extend(steps)
                 else:
                     step_objs.append(LoadStep(**step_i))
 

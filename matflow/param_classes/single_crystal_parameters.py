@@ -1,17 +1,42 @@
+from __future__ import annotations
 import copy
+from typing_extensions import TypedDict
 
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_in_container, set_in_container
 from matflow.param_classes.orientations import Orientations
 
 
+class Perturbation(TypedDict):
+    """
+    A single perturbation to apply.
+    """
+    #: Where to apply it to.
+    path: list[str | int]
+    #: The multiplicative perturbation to apply.
+    multiplicative: float
+
+
 class SingleCrystalParameters(ParameterValue):
+    """
+    Parameter relating to the phases in a single crystal.
+    """
     _typ = "single_crystal_parameters"
 
-    def __init__(self, phases, perturbations=None):
+    def __init__(
+        self,
+        phases: dict[str, dict[str, list[float]]],
+        perturbations: Perturbation | list[Perturbation] | None = None
+    ):
         self._base = phases
-        self._perturbations = perturbations
-        self._phases = None  # assigned (perturbations applied) on first access
+        if perturbations is not None:
+            self._perturbations = (
+                perturbations if isinstance(perturbations, list) else [perturbations]
+            )
+        else:
+            self._perturbations = []
+        # assigned (perturbations applied) on first access
+        self._phases: dict[str, dict[str, list[float]]] | None = None
 
     def __getitem__(self, name):
         """Dict-like retrieval of the parameters for a given phase, with perturbations
@@ -28,11 +53,11 @@ class SingleCrystalParameters(ParameterValue):
         return self.__class__(phases=self.phases)
 
     @property
-    def base(self):
+    def base(self) -> dict[str, dict[str, list[float]]]:
         return self._base
 
     @property
-    def phases(self):
+    def phases(self) -> dict[str, dict[str, list[float]]]:
         if not self._phases:
             phases = copy.deepcopy(self._base)
 
@@ -50,5 +75,5 @@ class SingleCrystalParameters(ParameterValue):
         return self._phases
 
     @property
-    def perturbations(self):
+    def perturbations(self) -> list[Perturbation]:
         return self._perturbations
