@@ -27,7 +27,7 @@ jobs:
           key: ${{ runner.os }}-sphinx-${{ env.PYTHON_VERSION }}-venv-${{ hashFiles('**/poetry.lock') }}
       - name: Install Dependencies
         run: |
-          poetry install --without dev,pyinstaller
+          poetry install --without pyinstaller
       - name: Configure Problem Matcher
         run: echo "::add-matcher::.github/problem-matchers/sphinx.json"
         # See: https://github.com/actions/toolkit/blob/main/docs/problem-matchers.md
