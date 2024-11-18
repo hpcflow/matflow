@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import enum
 from pathlib import Path
-from typing_extensions import Self
+from typing_extensions import ClassVar, Self
 
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
@@ -14,17 +14,23 @@ from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 @dataclass
 class _EulerDefinition:
     _value: int
+    #: The order to apply Euler rotations.
     rotation_order: str
     __doc__: str
 
 
 class EulerDefinition(_EulerDefinition, enum.Enum):
+    """
+    How to apply Euler angles.
+    """
     #: Convention typically used in crystallography.
     BUNGE = (0, "ZXZ", "Convention typically used in crystallography.")
 
     @property
     def value(self) -> int:
-        #: The value of the status.
+        """
+        The index of the enumeration value.
+        """
         return self._value
 
 
@@ -39,8 +45,9 @@ class QuatOrder(enum.Enum):
     [1] http://dream3d.bluequartz.net/Help/Filters/OrientationAnalysisFilters/ConvertQuaternion/
 
     """
-
+    #: Scalar first.
     SCALAR_VECTOR = 0
+    #: Vector first.
     VECTOR_SCALAR = 1
 
 
@@ -58,6 +65,17 @@ class OrientationRepresentationType(enum.Enum):
 class OrientationRepresentation(ParameterValue):
     """
     A representation descriptor of an orientation.
+
+    Parameters
+    ----------
+    type
+        How the orientation is represented.
+    euler_definition
+        For Euler angles, how the angles are applied.
+    euler_is_degrees
+        For Euler angles, whether the angles are in degrees or radians.
+    quat_order
+        For quaternions, what is the order of the scalar wrt the vector.
     """
     #: How the orientation is represented.
     type: OrientationRepresentationType
@@ -83,25 +101,77 @@ class OrientationRepresentation(ParameterValue):
         )
         self.quat_order = get_enum_by_name_or_val(QuatOrder, self.quat_order)
 
+    @classmethod
+    def euler(
+        cls,
+        is_degrees: bool = False,
+        definition: EulerDefinition = EulerDefinition.BUNGE
+    ) -> Self:
+        """
+        Make a representation of an orientation that uses Euler angles.
+
+        Parameters
+        ----------
+        is_degrees
+            Whether the angles are in degrees or radians.
+        definition
+            How the angles are applied.
+        """
+        return cls(OrientationRepresentationType.EULER, definition, is_degrees)
+    
+    @classmethod
+    def quaternion(cls, order: QuatOrder = QuatOrder.SCALAR_VECTOR) -> Self:
+        """
+        Make a representation of an orientation that uses quaternions.
+
+        Parameters
+        ----------
+        order
+            What is the order of the scalar wrt the vector.
+        """
+        return cls(OrientationRepresentationType.QUATERNION, quat_order=order)
+
 
 class LatticeDirection(enum.Enum):
-    # real-space directions:
+    """
+    Lattice directions for unit cells.
+    """
+    #: Real-space A.
     A = 0
+    #: Real-space B.
     B = 1
+    #: Real-space C.
     C = 2
 
-    # reciprocal-space directions
+    #: Reciprocal-space A*.
     A_STAR = 3
+    #: Reciprocal-space B*.
     B_STAR = 4
+    #: Reciprocal-space C*.
     C_STAR = 5
 
 
 @dataclass
 class UnitCellAlignment(ParameterValue):
-    _typ = "unit_cell_alignment"
+    """
+    A description of the alignment of a unit cell.
 
+    Parameters
+    ----------
+    x: str | LatticeDirection
+        The direction of the X component.
+    y: str | LatticeDirection
+        The direction of the Y component.
+    z: str | LatticeDirection
+        The direction of the Z component.
+    """
+    _typ: ClassVar[str] = "unit_cell_alignment"
+
+    #: The direction of the X component.
     x: LatticeDirection | None = None
+    #: The direction of the Y component.
     y: LatticeDirection | None = None
+    #: The direction of the Z component.
     z: LatticeDirection | None = None
 
     def __post_init__(self):
@@ -111,6 +181,10 @@ class UnitCellAlignment(ParameterValue):
 
     @classmethod
     def from_hex_convention_DAMASK(cls):
+        """
+        Generate a unit cell alignment from Damask's default convention for hexagonal
+        symmetry.
+        """
         # TODO: check!
         return cls(x=LatticeDirection.A, y=LatticeDirection.B_STAR, z=LatticeDirection.C)
 
@@ -120,7 +194,6 @@ class UnitCellAlignment(ParameterValue):
         symmetry.
 
         Tested using this command in MTEX: `crystalSymmetry("hexagonal").alignment`
-
         """
         return cls(
             x=LatticeDirection.A_STAR,
@@ -131,7 +204,19 @@ class UnitCellAlignment(ParameterValue):
 
 @dataclass
 class Orientations(ParameterValue):
-    _typ = "orientations"
+    """
+    A description of the orientations of some data.
+
+    Parameters
+    ----------
+    data
+        The orientation data.
+    unit_cell_alignment
+        The alignment of the unit cell.
+    representation
+        The orientation representation descriptor.
+    """
+    _typ: ClassVar[str] = "orientations"
 
     #: Orientation data
     data: np.ndarray
@@ -151,10 +236,11 @@ class Orientations(ParameterValue):
     def save_from_HDF5_group(cls, group, param_id: int, workflow):
         """Save orientation data from an HDF5 group to a persistent workflow.
 
+        Note
+        ----
         We avoid loading the data into memory all at once by firstly generating an
         `Orientations` object with a small data array, and then copying from the HDF5
         group directly into the newly created Zarr group.
-
         """
 
         repr_type = int(group.attrs.get("representation_type")[0])
@@ -204,6 +290,11 @@ class Orientations(ParameterValue):
     def from_random(cls, number: int) -> Self:
         """
         Generate random orientation data.
+
+        Parameter
+        ---------
+        number
+            The number of orientations to generate.
         """
         return cls(
             data=cls.quat_sample_random(number),
@@ -227,6 +318,24 @@ class Orientations(ParameterValue):
     ) -> Self:
         """
         Load orientation data from a text file.
+
+        Parameters
+        ----------
+        path
+            Path to the file to load from.
+        representation
+            Description of how the orientation data is arranged.
+        unit_cell_alignment
+            How the unit cell is aligned.
+        number
+            Number of orientations to read from the file.
+        start_index
+            The line number of the file that the orientations start at.
+            Allows skipping headers.
+        delimiter
+            The delimiter separating values in the file.
+            Defaults to space, but commas and tabs are also sensible
+            (and correspond to CSV and TSV files respectively).
         """
         rep = OrientationRepresentation(**representation)
         data: list[list[float]] = []
@@ -248,7 +357,8 @@ class Orientations(ParameterValue):
 
     @staticmethod
     def quat_sample_random(number: int) -> NDArray:
-        """Generate random uniformly distributed unit quaternions.
+        """
+        Generate random uniformly distributed unit quaternions.
 
         Parameters
         ----------
@@ -257,7 +367,7 @@ class Orientations(ParameterValue):
 
         Returns
         -------
-        quats : ndarray of shape (number, 4)
+        quats : ndarray, shape (number, 4)
 
         References
         ----------

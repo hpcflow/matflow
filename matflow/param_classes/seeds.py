@@ -1,10 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from typing_extensions import Self
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import NDArray, ArrayLike
 from hpcflow.sdk.core.parameters import ParameterValue
 from matflow.param_classes.orientations import Orientations
 
@@ -32,11 +33,14 @@ class MicrostructureSeeds(ParameterValue):
         self.position = np.asarray(self.position)
         if not self.orientations:
             self.orientations = Orientations.from_random(number=self.num_seeds)
-        elif not isinstance(self.orientations, Orientations):
-            self.orientations = Orientations(**self.orientations)
 
     @classmethod
-    def from_JSON_like(cls, position, orientations=None, **kwargs):
+    def from_JSON_like(
+        cls,
+        position: ArrayLike,
+        orientations: dict | None = None,
+        **kwargs
+    ) -> Self:
         """For custom initialisation via YAML or JSON."""
         # TODO: is this needed?
         if orientations:
@@ -50,6 +54,16 @@ class MicrostructureSeeds(ParameterValue):
         """
         return self.position.shape[0]
 
+    @staticmethod
+    def __normalize_orientations(
+        orientations: Orientations | dict[str, Any] | None
+    ) -> Orientations | None:
+        if orientations is None:
+            return None
+        if isinstance(orientations, dict):
+            return Orientations(**orientations)
+        return orientations
+
     @classmethod
     def from_random(
         cls,
@@ -58,10 +72,23 @@ class MicrostructureSeeds(ParameterValue):
         phase_label: str,
         *,
         random_seed: int | None = None,
-        orientations: Orientations | None = None,
+        orientations: Orientations | dict[str, Any] | None = None,
     ) -> Self:
         """
         Generate a random microstructure.
+
+        Parameters
+        ----------
+        num_seeds
+            The number of seeds for the microstructure.
+        box_size
+            The size of box containing the microstructure.
+        phase_label
+            Label for the microstructure.
+        random_seed
+            Seed for the random number generator.
+        orientations
+            Orientation information. If omitted, random.
         """
         # TODO: ensure unique seeds points wrt to grid cells
         box_size = np.asarray(box_size)
@@ -71,7 +98,7 @@ class MicrostructureSeeds(ParameterValue):
             position=position,
             box_size=box_size,
             phase_label=phase_label,
-            orientations=orientations,
+            orientations=cls.__normalize_orientations(orientations),
             random_seed=random_seed,
         )
 
@@ -88,6 +115,24 @@ class MicrostructureSeeds(ParameterValue):
     ) -> Self:
         """
         Load a microstructure definition from a text file.
+
+        Parameters
+        ----------
+        path
+            Path to the file to load from.
+        box_size
+            The size of box containing the microstructure.
+        phase_label
+            Label for the microstructure.
+        number
+            Number of seeds to read from the file.
+        start_index
+            The line number of the file that the seeds start at.
+            Allows skipping headers.
+        delimiter
+            The delimiter separating values in the file.
+            Defaults to space, but commas and tabs are also sensible
+            (and correspond to CSV and TSV files respectively).
         """
         data: list[list[float]] = []
         with Path(path).open("rt") as fh:
@@ -109,6 +154,10 @@ class MicrostructureSeeds(ParameterValue):
     def show(self) -> None:
         """
         Plot the microstructure.
+
+        Note
+        ----
+        Requires matplotlib to be installed and configured. 
         """
         from matplotlib import pyplot as plt
 

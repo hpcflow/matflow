@@ -1,6 +1,6 @@
 from __future__ import annotations
 import copy
-from typing_extensions import TypedDict
+from typing_extensions import Self, TypedDict
 
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_in_container, set_in_container
@@ -20,6 +20,13 @@ class Perturbation(TypedDict):
 class SingleCrystalParameters(ParameterValue):
     """
     Parameter relating to the phases in a single crystal.
+
+    Parameters
+    ----------
+    phases
+        The data used to create the bulk phases.
+    perturbations
+        The perturbations to apply to the phases.
     """
     _typ = "single_crystal_parameters"
 
@@ -38,7 +45,7 @@ class SingleCrystalParameters(ParameterValue):
         # assigned (perturbations applied) on first access
         self._phases: dict[str, dict[str, list[float]]] | None = None
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> dict[str, list[float]]:
         """Dict-like retrieval of the parameters for a given phase, with perturbations
         applied."""
         return self.phases[name]
@@ -48,16 +55,22 @@ class SingleCrystalParameters(ParameterValue):
         out["phases"] = out.pop("base")
         return out
 
-    def as_base(self):
+    def as_base(self) -> Self:
         """Return a copy where `base` includes the perturbations."""
         return self.__class__(phases=self.phases)
 
     @property
     def base(self) -> dict[str, dict[str, list[float]]]:
+        """
+        The initial data used to create the bulk phases.
+        """
         return self._base
 
     @property
     def phases(self) -> dict[str, dict[str, list[float]]]:
+        """
+        The data used to create the bulk phases, with perturbations applied.
+        """
         if not self._phases:
             phases = copy.deepcopy(self._base)
 
@@ -76,4 +89,7 @@ class SingleCrystalParameters(ParameterValue):
 
     @property
     def perturbations(self) -> list[Perturbation]:
+        """
+        The perturbations to apply to the phases.
+        """
         return self._perturbations
