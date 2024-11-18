@@ -42,12 +42,37 @@
       doc: Voxelated volume element
       condition: { value.type.equal_to: dict }
 - type: CTF_file_path
+  _validation:
+    - path: []
+      doc: Path to CTF code archive for Matlab.
+      condition:
+        value.type.equal_to: str
 - type: ODF_mat_file_path
+  _validation:
+    - path: []
+      doc: Path to ODF material file.
+      condition:
+        value.type.equal_to: str
 - type: specimen_symmetry
 - type: EBSD_phase
+  _validation:
+    - path: []
+      doc: Electron backscatter diffraction phase.
+      condition:
+        value.type.equal_to: str
 - type: EBSD_reference_frame_transformation
+  _validation:
+    - path: []
+      doc: Electron backscatter diffraction transformation.
+      condition:
+        value.type.equal_to: str
 - type: EBSD_rotation
 - type: num_orientations
+  _validation:
+    - path: []
+      doc: Number of orientations.
+      condition:
+        value.type.equal_to: int
 - type: orientations
 - type: homog_label
   _validation:
@@ -64,7 +89,9 @@
       condition:
         value.type.equal_to: str
 - type: VE_response
+  # Viscoelastic response ? Volume element ?
 - type: VE_response_data
+  # Viscoelastic response ? Volume element ?
 - type: load_case
 - type: homogenization
 - type: damask_phases
@@ -92,7 +119,17 @@
       condition:
         value.type.equal_to: str
 - type: compile
+  _validation:
+    - path: []
+      doc: Whether to compile.
+      condition:
+        value.type.equal_to: bool
 - type: dump_path
+  _validation:
+    - path: []
+      doc: Where to write dump data. 
+      condition:
+        value.type.equal_to: str
 - type: yield_point # vol-avg equivalent plastic strain
 - type: yield_function_name
 - type: yield_point_criteria
@@ -100,3 +137,23 @@
 - type: fit_yield_initial_parameters
 - type: fit_yield_opt_parameters
 - type: fitted_yield_functions
+- type: CSV_file_path
+  _validation:
+    - path: []
+      doc: Path to CSV file.
+      condition:
+        value.type.equal_to: str
+- type: scaling_factor
+  _validation:
+    - path: []
+      doc: Scaling factor.
+      condition:
+        or:
+          value.type.equal_to: int
+          value.type.equal_to: float
+- type: transform_type
+  _validation:
+    - path: []
+      doc: Transformation type.
+      condition:
+        value.type.equal_to: str
