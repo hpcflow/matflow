@@ -1,0 +1,684 @@
+template_components:
+  task_schemas:
+    - objective: sample_direct_MC
+      inputs:
+        - parameter: dimension
+      outputs:
+        - parameter: x
+      actions:
+        - script: <<script:uq/sample_direct_MC.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: evaluate_yield_stress_limit_state
+      inputs:
+        - parameter: x # required to ensure group defined on input x (not needed by this task)
+        - parameter: threshold_yield_stress
+        - parameter: yield_stress
+      outputs:
+        - parameter: g
+      actions:
+        - script: <<script:uq/evaluate_yield_stress_limit_state.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: collate_results
+      inputs:
+        - parameter: g
+          group: all
+        - parameter: x
+          group: all
+        - parameter: all_g
+          group: all
+          default_value: null
+        - parameter: all_x
+          group: all
+          default_value: null
+        - parameter: all_accept
+          group: all
+          default_value: null
+        - parameter: p_0
+      outputs:
+        - parameter: chain_seeds
+        - parameter: chain_g
+        - parameter: threshold
+        - parameter: num_chains
+        - parameter: num_failed
+        - parameter: level_pf
+        - parameter: level_cov
+        - parameter: pf
+        - parameter: is_finished
+        - parameter: accept_rate
+      actions:
+        - script: <<script:uq/collate_results.py>>
+          script_data_in:
+            g: { format: direct, all_iterations: true }
+            "*": direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: initialise_markov_chains
+      inputs:
+        - parameter: chain_index
+        - parameter: chain_seeds
+        - parameter: chain_g
+      outputs:
+        - parameter: x
+        - parameter: g
+        - parameter: all_x
+        - parameter: all_g
+        - parameter: all_accept
+      actions:
+        - script: <<script:uq/initialise_markov_chains.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: generate_next_state
+      inputs:
+        - parameter: x
+        - parameter: prop_std
+      outputs:
+        - parameter: x
+      actions:
+        - script: <<script:uq/generate_next_state.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: increment_chain
+      inputs:
+        - parameter: x
+        - parameter: g
+        - parameter: all_x
+        - parameter: all_g
+        - parameter: all_accept
+        - parameter: threshold
+      outputs:
+        - parameter: x
+        - parameter: g
+        - parameter: all_x
+        - parameter: all_g
+        - parameter: all_accept
+      actions:
+        - script: <<script:uq/increment_chain.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: increment_chain_inner
+      inputs:
+        - parameter: x
+        - parameter: g
+        - parameter: threshold
+        - parameter: all_x
+        - parameter: all_g
+        - parameter: all_x_inner
+          default_value: null
+        - parameter: all_g_inner
+          default_value: null
+      outputs:
+        - parameter: x
+        - parameter: all_x_inner
+        - parameter: all_g_inner
+      actions:
+        - script: <<script:uq/increment_chain_inner.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: python_env
+
+    - objective: generate_volume_element
+      method: from_voronoi_random_variates
+      inputs:
+        - parameter: x # random variates
+        - parameter: VE_grid_size
+        - parameter: VE_size
+        - parameter: phase_label
+        - parameter: homog_label
+          default_value: SX
+        - parameter: scale_morphology
+          default_value: null
+        - parameter: scale_update_size
+          default_value: true
+      outputs:
+        - parameter: volume_element
+      actions:
+        - script: <<script:damask/generate_volume_element_voronoi_variates.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+  meta_task_schemas:
+    - objective: system_analysis_32
+      inputs:
+        - parameter: x
+      outputs:
+        - parameter: g
+    - objective: system_analysis_16
+      inputs:
+        - parameter: x
+      outputs:
+        - parameter: g
+
+loops:
+  - name: inner_markov_chain # [inner MC state loop]
+    tasks: [4, 5, 6]
+    num_iterations: 4
+
+  - name: outer_markov_chain # [outer MC state loop]
+    tasks: [4, 5, 6, 7, 8]
+    num_iterations: 9 # num_states - 1: (1 / p_0) - 1
+
+  - name: levels # [outer loop]
+    tasks: [2, 3, 4, 5, 6, 7, 8]
+    num_iterations: 2
+    termination_task: 2
+    termination:
+      path: outputs.is_finished
+      condition: { value.equal_to: true }
+
+resources:
+  any:
+    scheduler_args:
+      options:
+        --time: 00:20:00
+        --partition: sapphire
+    combine_scripts: true
+
+environments:
+  python_env:
+    poetry_env: true
+  damask_parse_env:
+    poetry_env: true
+
+meta_tasks:
+  system_analysis_32:
+    - schema: generate_volume_element_from_voronoi_random_variates
+      inputs:
+        VE_grid_size: [32, 32, 32]
+        VE_size: [1, 1, 1]
+        phase_label: Mg
+    - schema: simulate_VE_loading_damask
+      resources:
+        any:
+          combine_scripts: false
+        main:
+          num_cores: 8
+          scheduler_args:
+            options:
+              --time: 00:20:00
+              --partition: sapphire
+              --exclude: cpu-r-37 # singularity doesn't work on this node
+      inputs:
+        load_case::uniaxial:
+          total_time: 5
+          num_increments: 40
+          direction: x
+          target_def_grad_rate: 1.0e-3
+          dump_frequency: 2
+        homogenization:
+          SX:
+            mechanical: { type: "pass" }
+            N_constituents: 1
+        damask_phases:
+          Mg:
+            lattice: hP
+            c/a: 1.62350 # from Tromans 2011, Elastic Anisotropy of HCP Metal Crystals and Polycrystals
+            rho: 1740.0
+            mechanical:
+              output: [F, P, F_p]
+              elastic:
+                type: Hooke
+                C_11: 59.3e9
+                C_12: 25.7e9
+                C_13: 21.4e9
+                C_33: 61.5e9
+                C_44: 16.4e9
+              plastic:
+                type: phenopowerlaw
+                references:
+                  - F. Wang et al., Acta Materialia 80:77-93, 2014, https://doi.org/10.1016/j.actamat.2014.07.048
+                output: [xi_sl, xi_tw]
+                N_sl: [3, 3, 6, 0, 6] # basal, prism, 1. pyr<a>, -, 2. pyr<c+a>
+                N_tw: [6, 0, 6] # tension, -, compression
+                xi_0_sl: [10.e+6, 55.e+6, 60.e+6, 0., 60.e+6]
+                xi_inf_sl: [40.e+6, 135.e+6, 150.e+6, 0., 150.e+6]
+                xi_0_tw: [40.e+6, 0., 60.e+6]
+                a_sl: 2.25
+                dot_gamma_0_sl: 0.001
+                dot_gamma_0_tw: 0.001
+                n_sl: 20
+                n_tw: 20
+                f_sat_sl-tw: 10.0
+                h_0_sl-sl: 500.0e+6
+                h_0_tw-tw: 50.0e+6
+                h_0_tw-sl: 150.0e+6
+                h_sl-sl: [
+                    +1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    +1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    +1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+                h_tw-tw: [
+                    +1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+                h_tw-sl: [
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    +1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                  ] # unused entries are indicated by -1.0
+                h_sl-tw: [
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    +1.0,
+                    -1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+        damask_post_processing:
+          - name: add_stress_Cauchy
+            args: { P: P, F: F }
+            opts: { add_Mises: true }
+          - name: add_strain
+            args: { F: F_p, t: V, m: 0 }
+            opts: { add_Mises: true }
+        VE_response_data:
+          phase_data:
+            - field_name: sigma_vM
+              phase_name: Mg
+              out_name: vol_avg_equivalent_stress
+              transforms: [{ mean_along_axes: 1 }]
+            - field_name: epsilon_V^0(F_p)_vM
+              phase_name: Mg
+              out_name: vol_avg_equivalent_plastic_strain
+              transforms: [{ mean_along_axes: 1 }]
+        calculate_yield_stress:
+          yield_point: 0.002
+        remove_damask_hdf5: true
+    - schema: evaluate_yield_stress_limit_state
+      inputs:
+        threshold_yield_stress: 55.0e+6 # MPa
+      groups:
+        - name: all
+  system_analysis_16:
+    - schema: generate_volume_element_from_voronoi_random_variates
+      inputs:
+        VE_grid_size: [16, 16, 16]
+        VE_size: [1, 1, 1]
+        phase_label: Mg
+    - schema: simulate_VE_loading_damask
+      resources:
+        any:
+          combine_scripts: false
+        main:
+          num_cores: 8
+          scheduler_args:
+            options:
+              --time: 00:20:00
+              --partition: sapphire
+              --exclude: cpu-r-37 # singularity doesn't work on this node
+      inputs:
+        load_case::uniaxial:
+          total_time: 5
+          num_increments: 40
+          direction: x
+          target_def_grad_rate: 1.0e-3
+          dump_frequency: 2
+        homogenization:
+          SX:
+            mechanical: { type: "pass" }
+            N_constituents: 1
+        damask_phases:
+          Mg:
+            lattice: hP
+            c/a: 1.62350 # from Tromans 2011, Elastic Anisotropy of HCP Metal Crystals and Polycrystals
+            rho: 1740.0
+            mechanical:
+              output: [F, P, F_p]
+              elastic:
+                type: Hooke
+                C_11: 59.3e9
+                C_12: 25.7e9
+                C_13: 21.4e9
+                C_33: 61.5e9
+                C_44: 16.4e9
+              plastic:
+                type: phenopowerlaw
+                references:
+                  - F. Wang et al., Acta Materialia 80:77-93, 2014, https://doi.org/10.1016/j.actamat.2014.07.048
+                output: [xi_sl, xi_tw]
+                N_sl: [3, 3, 6, 0, 6] # basal, prism, 1. pyr<a>, -, 2. pyr<c+a>
+                N_tw: [6, 0, 6] # tension, -, compression
+                xi_0_sl: [10.e+6, 55.e+6, 60.e+6, 0., 60.e+6]
+                xi_inf_sl: [40.e+6, 135.e+6, 150.e+6, 0., 150.e+6]
+                xi_0_tw: [40.e+6, 0., 60.e+6]
+                a_sl: 2.25
+                dot_gamma_0_sl: 0.001
+                dot_gamma_0_tw: 0.001
+                n_sl: 20
+                n_tw: 20
+                f_sat_sl-tw: 10.0
+                h_0_sl-sl: 500.0e+6
+                h_0_tw-tw: 50.0e+6
+                h_0_tw-sl: 150.0e+6
+                h_sl-sl: [
+                    +1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    +1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    +1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+                h_tw-tw: [
+                    +1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+                h_tw-sl: [
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    +1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                  ] # unused entries are indicated by -1.0
+                h_sl-tw: [
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    -1.0,
+                    +1.0,
+                    -1.0,
+                    1.0,
+                  ] # unused entries are indicated by -1.0
+        damask_post_processing:
+          - name: add_stress_Cauchy
+            args: { P: P, F: F }
+            opts: { add_Mises: true }
+          - name: add_strain
+            args: { F: F_p, t: V, m: 0 }
+            opts: { add_Mises: true }
+        VE_response_data:
+          phase_data:
+            - field_name: sigma_vM
+              phase_name: Mg
+              out_name: vol_avg_equivalent_stress
+              transforms: [{ mean_along_axes: 1 }]
+            - field_name: epsilon_V^0(F_p)_vM
+              phase_name: Mg
+              out_name: vol_avg_equivalent_plastic_strain
+              transforms: [{ mean_along_axes: 1 }]
+        calculate_yield_stress:
+          yield_point: 0.002
+        remove_damask_hdf5: true
+    - schema: evaluate_yield_stress_limit_state
+      inputs:
+        threshold_yield_stress: 55.0e+6 # MPa
+      groups:
+        - name: all
+
+tasks:
+  - schema: sample_direct_MC
+    inputs:
+      dimension: 120 # 20 grains * (3 seed point dimensions + 3 orientation dimensions)
+    repeats: 100 # num_samples
+  - schema: system_analysis_32
+  - schema: collate_results # [subset loop]
+    inputs:
+      p_0: 0.1
+  - schema: initialise_markov_chains # [subset loop]
+    sequences:
+      - path: inputs.chain_index
+        values::from_range:
+          start: 0
+          stop: 10 # num_chains: num_samples * p_0
+          step: 1
+
+  - schema: generate_next_state # [inner MC loop; outer MC loop] # 6
+    inputs:
+      prop_std: 1.0
+  - schema: system_analysis_16 # [inner MC loop; outer MC loop] # 7,8,9
+  - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does # 10
+
+  - schema: system_analysis_32 # [outer MC loop]
+  - schema: increment_chain # [outer MC loop]
+    groups:
+      - name: all
