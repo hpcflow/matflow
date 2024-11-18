@@ -155,7 +155,7 @@ template_components:
           environments:
             - scope:
                 type: any
-              environment: python_env
+              environment: damask_parse_env
 
     - objective: generate_volume_element
       method: from_voronoi_random_variates
