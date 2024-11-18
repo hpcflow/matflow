@@ -1,3 +1,6 @@
+"""
+Crystal orientation information.
+"""
 from __future__ import annotations
 from dataclasses import dataclass
 import enum
@@ -291,8 +294,8 @@ class Orientations(ParameterValue):
         """
         Generate random orientation data.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         number
             The number of orientations to generate.
         """

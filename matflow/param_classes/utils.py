@@ -1,3 +1,6 @@
+"""
+Miscellaneous utility functions.
+"""
 from __future__ import annotations
 from typing_extensions import TypeIs
 import numpy as np

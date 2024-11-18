@@ -1,3 +1,6 @@
+"""
+Parameters for a single crystal.
+"""
 from __future__ import annotations
 import copy
 from typing_extensions import Self, TypedDict
@@ -11,7 +14,7 @@ class Perturbation(TypedDict):
     """
     A single perturbation to apply.
     """
-    #: Where to apply it to.
+    #: Where to apply the perturbation to.
     path: list[str | int]
     #: The multiplicative perturbation to apply.
     multiplicative: float

@@ -1,3 +1,6 @@
+"""
+Configuration and standard fixtures for PyTest.
+"""
 import pytest
 import matflow as mf
 
