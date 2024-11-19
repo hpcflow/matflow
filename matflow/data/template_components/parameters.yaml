@@ -12,7 +12,7 @@
           - value.is_instance: [list]
           - value.length.in: [2, 3]
     - path: [{ "type": "list_value" }]
-      condition: { value.type.equal_to: float }
+      condition: { value.is_instance: [float] }
 - type: VE_grid_size
   _validation:
     - path: []
@@ -53,7 +53,7 @@
 - type: DIC
   _validation:
     - path: []
-      doc: Digital image correlation descriptor.
+      doc: Digital image correlation data descriptor.
       condition:
         and:
           - value.is_instance: [dict]
@@ -61,7 +61,7 @@
 - type: EBSD
   _validation:
     - path: []
-      doc: Electron backscatter diffraction descriptor.
+      doc: Electron backscatter diffraction data descriptor.
       condition:
         and:
           - value.is_instance: [dict]
@@ -94,19 +94,72 @@
         examples:
           - >
             For a full-field simulation, where there is no mechanical homogenization we
-            typically use the label 'SX'.
+            typically use the label '`SX`'.
       condition: { value.is_instance: [str] }
 - type: VE_response
-  # Viscoelastic response ? Volume element ?
+  _validation:
+    - path: []
+      doc: Volume element response.
+      condition: { value.is_instance: [dict] }
 - type: VE_response_data
-  # Viscoelastic response ? Volume element ?
+  # Volume element ?
+  _validation:
+    - path: []
+      doc: >
+        This parameter is a dictionary of values that are the optional arguments to
+        `damask_parse.read_HDF5_file` (which should be consulted for details).
+        Keys should be one of
+        `"geom_path"`, `"volume_data"`, `"phase_data"`, `"field_data"`, `"grain_data"`,
+        "operations", or `"incremental_data"` (now deprecated).
+      condition:
+        and:
+        - value.is_instance: [dict]
+        - key.in:
+          - "geom_path"
+          - "incremental_data"
+          - "volume_data"
+          - "phase_data"
+          - "field_data"
+          - "grain_data"
+          - "operations"
 - type: load_case
 - type: homogenization
+  _validation:
+    - path: []
+      description: >
+        Dictionary whose keys are homogenization scheme labels and whose values are
+        dictionaries that specify the homogenization parameters for that scheme.
+      condition: { value.is_instance: [dict] }
 - type: damask_phases
+  _validation:
+    - path: []
+      # Needs a lot more conditions on validity!
+      condition: { value.is_instance: [dict] }
 - type: damask_log
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: damask_numerics
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
 - type: damask_post_processing
 - type: damask_post_processing_result
 - type: damask_viz
+  _validation:
+    - path: []
+      description: >
+        Dictionary or list of dictionaries describing particular visualizations.
+        Keys should be `increments`, `phases`, `homogenizations`, or `fields`; all are
+        optional.
+      condition:
+        or:
+          - and:
+            - value.is_instance: [dict]
+            - key.in: ["increments", "phases", "homogenizations", "fields"]
+          - and:
+            - value.is_instance: [list]
+            - value.length.greater_than: 1
 - type: damask_viz_result
 - type: damask_solver
   _validation:
@@ -136,7 +189,24 @@
       doc: Where to write dump data. 
       condition: { value.is_instance: [str, path] }
 - type: yield_point # vol-avg equivalent plastic strain
+  _validation:
+    - path: []
+      condition: { value.is_instance: [float] }
 - type: yield_function_name
+  _validation:
+    - path: []
+      doc:
+        description: The name of the yield function to fit to the data.
+        examples:
+          - `VonMises`
+          - `Tresca`
+          - `Hosford`
+          - `Barlat_Yld91`
+          - `Barlat_Yld2000_2D`
+          - `Barlat_Yld2004_18p`
+          - `Hill1979`
+          - `Hill1948`
+      condition: { value.is_instance: [str] }
 - type: yield_point_criteria
 - type: fit_yield_fixed_parameters
 - type: fit_yield_initial_parameters
