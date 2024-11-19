@@ -70,7 +70,7 @@
   _validation:
     - path: []
       doc: Electron backscatter diffraction phase.
-      condition: { value.is_instance: ]str] }
+      condition: { value.is_instance: [str] }
 - type: EBSD_reference_frame_transformation
   _validation:
     - path: []
