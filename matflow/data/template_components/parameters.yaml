@@ -148,9 +148,7 @@
     - path: []
       doc: Scaling factor.
       condition:
-        or:
-          value.type.equal_to: int
-          value.type.equal_to: float
+        value.type.in: [int, float]
 - type: transform_type
   _validation:
     - path: []
