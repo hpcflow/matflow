@@ -144,6 +144,42 @@
     - path: []
       condition: { value.is_instance: [dict] }
 - type: damask_post_processing
+  _validation:
+    - path: []
+      doc: List of post-processing operations to apply to the DAMASK output.
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: ["name", "args", "opts"]
+    - path: [{ "type": "list_value" }, "name" ]
+      doc: See `damask.Result` for what the operations do.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in:
+            # I think these are the relevant operations
+            - "add_absolute"
+            - "add_calculation"
+            - "add_stress_Cauchy"
+            - "add_determinant"
+            - "add_deviator"
+            - "add_eigenvalue"
+            - "add_eigenvector"
+            - "add_IPF_color"
+            - "add_maximum_shear"
+            - "add_equivalent_Mises"
+            - "add_norm"
+            - "add_stress_second_Piola_Kirchhoff"
+            - "add_pole"
+            - "add_rotation"
+            - "add_spherical"
+            - "add_strain"
+            - "add_stretch_tensor"
+            - "add_curl"
+            - "add_divergence"
+            - "add_gradient"
 - type: damask_post_processing_result
 - type: damask_viz
   _validation:
