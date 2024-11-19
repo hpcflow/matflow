@@ -198,14 +198,14 @@
       doc:
         description: The name of the yield function to fit to the data.
         examples:
-          - "`VonMises`"
-          - "`Tresca`"
-          - "`Hosford`"
-          - "`Barlat_Yld91`"
-          - "`Barlat_Yld2000_2D`"
-          - "`Barlat_Yld2004_18p`"
-          - "`Hill1979`"
-          - "`Hill1948`"
+          - "`VonMises` - von Mises yield criteron"
+          - "`Tresca` - Tresca ductile failure criterion"
+          - "`Hosford` - Hosford yield criterion"
+          - "`Barlat_Yld91` - Barlat anisotropic yield model"
+          - "`Barlat_Yld2000_2D` - Barlat planar stress yield model"
+          - "`Barlat_Yld2004_18p` - Barlat linear transformation yield functions"
+          - "`Hill1979` - Generalised Hill yield criterion"
+          - "`Hill1948` - Quadratic Hill yield criterion"
       condition: { value.is_instance: [str] }
 - type: yield_point_criteria
 - type: fit_yield_fixed_parameters
