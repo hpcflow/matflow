@@ -9,7 +9,7 @@
             as in the x- and z-directions, use: `[1.0, 2.0, 1.0]`.
       condition:
         and:
-          - value.is_instance: list
+          - value.is_instance: [list]
           - value.length.in: [2, 3]
     - path: [{ "type": "list_value" }]
       condition: { value.type.equal_to: float }
@@ -19,26 +19,26 @@
       doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
       condition:
         and:
-          - value.is_instance: list
+          - value.is_instance: [list]
           - value.length.in: [2, 3]
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: int }
+      condition: { value.is_instance: [int] }
 - type: phase_label
   _validation:
     - path: []
       doc: The string phase label to associated with e.g. the microstructure seed points.
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
 - type: num_grains
   _validation:
     - path: []
       doc: The integer number of grains to include.
-      condition: { value.is_instance: int }
+      condition: { value.is_instance: [int] }
 - type: microstructure_seeds
 - type: volume_element
   _validation:
     - path: []
       doc: Voxelated volume element
-      condition: { value.is_instance: dict }
+      condition: { value.is_instance: [dict] }
 - type: CTF_file_path
   _validation:
     - path: []
@@ -56,7 +56,7 @@
       doc: Digital image correlation descriptor.
       condition:
         and:
-          - value.is_instance: dict
+          - value.is_instance: [dict]
           - key.in: ["filename", "crop", "scale", "homog_points", "min_grain_size"]
 - type: EBSD
   _validation:
@@ -64,24 +64,24 @@
       doc: Electron backscatter diffraction descriptor.
       condition:
         and:
-          - value.is_instance: dict
+          - value.is_instance: [dict]
           - key.in: ["filename", "boundary_tol", "min_grain_size", "homog_points"]
 - type: EBSD_phase
   _validation:
     - path: []
       doc: Electron backscatter diffraction phase.
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: ]str] }
 - type: EBSD_reference_frame_transformation
   _validation:
     - path: []
       doc: Electron backscatter diffraction transformation.
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
 - type: EBSD_rotation
 - type: num_orientations
   _validation:
     - path: []
       doc: Number of orientations.
-      condition: { value.is_instance: int }
+      condition: { value.is_instance: [int] }
 - type: orientations
 - type: homog_label
   _validation:
@@ -95,7 +95,7 @@
           - >
             For a full-field simulation, where there is no mechanical homogenization we
             typically use the label 'SX'.
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
 - type: VE_response
   # Viscoelastic response ? Volume element ?
 - type: VE_response_data
@@ -121,15 +121,15 @@
             `spectral_basic` solver, set to: `{"mechanical": "spectral_polarization"}`
       condition:
         and:
-          - value.is_instance: dict
+          - value.is_instance: [dict]
           - key.in: ["mechanical", "thermal", "damage"]
     - path: [{ "type": "map_value" }]
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
 - type: compile
   _validation:
     - path: []
       doc: Whether to compile.
-      condition: { value.is_instance: bool }
+      condition: { value.is_instance: [bool] }
 - type: dump_path
   _validation:
     - path: []
@@ -156,7 +156,7 @@
   _validation:
     - path: []
       doc: Transformation type.
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
 - type: path
   _validation:
     - path: []
@@ -176,12 +176,12 @@
   _validation:
     - path: []
       doc: Whether to use countours when visualising orientations.
-      condition: { value.is_instance: bool }
+      condition: { value.is_instance: [bool] }
 - type: use_one_colourbar
   _validation:
     - path: []
       doc: Whether to use a single colour bar when visualising orientations.
-      condition: { value.is_instance: bool }
+      condition: { value.is_instance: [bool] }
 - type: stress_units
   _validation:
     - path: []
@@ -189,4 +189,4 @@
         description: Units to use for stress values.
         examples:
           - The normal value here is Pascals, `"Pa"`
-      condition: { value.is_instance: str }
+      condition: { value.is_instance: [str] }
