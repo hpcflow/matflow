@@ -922,6 +922,18 @@ class LoadCase(ParameterValue):
         """
         return [i.type for i in self.steps]
 
+    def create_damask_loading_plan(self) -> list[dict[str, Any]]:
+        """
+        Turn this load case into a DAMASK loading plan.
+        """
+        load_steps: list[dict[str, Any]] = []
+        for step in self.steps:
+            dct = step.to_dict()
+            dct["def_grad_aim"] = dct.pop("target_def_grad", None)
+            dct["def_grad_rate"] = dct.pop("target_def_grad_rate", None)
+            load_steps.append(dct)
+        return load_steps
+
     @classmethod
     def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
