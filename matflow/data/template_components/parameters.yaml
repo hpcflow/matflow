@@ -110,7 +110,7 @@
         `damask_parse.read_HDF5_file` (which should be consulted for details).
         Keys should be one of
         `"geom_path"`, `"volume_data"`, `"phase_data"`, `"field_data"`, `"grain_data"`,
-        "operations", or `"incremental_data"` (now deprecated).
+        or `"incremental_data"` (now deprecated).
       condition:
         and:
         - value.is_instance: [dict]
@@ -121,7 +121,6 @@
           - "phase_data"
           - "field_data"
           - "grain_data"
-          - "operations"
 - type: load_case
 - type: homogenization
   _validation:
