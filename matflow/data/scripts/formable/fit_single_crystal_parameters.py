@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 import numpy as np
 from formable.levenberg_marquardt import (
     FittingParameter,
@@ -8,11 +10,11 @@ from formable.tensile_test import TensileTest
 
 
 def fit_single_crystal_parameters(
-    VE_response,
-    single_crystal_parameters,
-    tensile_test,
-    initial_damping,
-):
+    VE_response: dict,
+    single_crystal_parameters: dict,
+    tensile_test: dict,
+    initial_damping: list[float] | None = None,
+) -> dict[str, Any]:
     """Perform Levenberg-Marquardt optimisation."""
 
     # Generate FittingParameter objects:

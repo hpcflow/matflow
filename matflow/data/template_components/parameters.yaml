@@ -33,7 +33,6 @@
     - path: []
       doc: The integer number of grains to include.
       condition: { value.is_instance: [int] }
-- type: microstructure_seeds
 - type: volume_element
   _validation:
     - path: []
@@ -50,6 +49,13 @@
       doc: Path to ODF material file.
       condition: { value.is_instance: [str, path] }
 - type: specimen_symmetry
+  _validation:
+    - path: []
+      doc:
+        description: >
+          The symmetry of the specimen to sample, as understood by MTEX `specimenSymmetry`.
+        examples: [ cubic, orthorhombic ]
+      condition: { value.is_instance: [str] }
 - type: DIC
   _validation:
     - path: []
@@ -77,12 +83,20 @@
       doc: Electron backscatter diffraction transformation.
       condition: { value.is_instance: [str] }
 - type: EBSD_rotation
+  _validation:
+    - path: []
+      doc: >
+        Description of the rotation in the electron backscatter diffraction model.
+        A dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool.
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: [ "euler_angles_deg", "keep_XY", "keep_euler" ]
 - type: num_orientations
   _validation:
     - path: []
       doc: Number of orientations.
       condition: { value.is_instance: [int] }
-- type: orientations
 - type: homog_label
   _validation:
     - path: []
@@ -121,7 +135,6 @@
           - "phase_data"
           - "field_data"
           - "grain_data"
-- type: load_case
 - type: homogenization
   _validation:
     - path: []
@@ -179,7 +192,6 @@
             - "add_curl"
             - "add_divergence"
             - "add_gradient"
-- type: damask_post_processing_result
 - type: damask_viz
   _validation:
     - path: []
@@ -195,7 +207,6 @@
           - and:
             - value.is_instance: [list]
             - value.length.greater_than: 1
-- type: damask_viz_result
 - type: damask_solver
   _validation:
     - path: []
@@ -242,11 +253,6 @@
           - "`Hill1979` - Generalised Hill yield criterion"
           - "`Hill1948` - Quadratic Hill yield criterion"
       condition: { value.is_instance: [str] }
-- type: yield_point_criteria
-- type: fit_yield_fixed_parameters
-- type: fit_yield_initial_parameters
-- type: fit_yield_opt_parameters
-- type: fitted_yield_functions
 - type: CSV_file_path
   _validation:
     - path: []
@@ -294,4 +300,63 @@
         description: Units to use for stress values.
         examples:
           - The normal value here is Pascals, `"Pa"`
-      condition: { value.is_instance: [str] }
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [Pa, MPa, GPa]
+- type: initial_damping
+  _validation:
+    - path: []
+      doc:
+        description: List of initial damping parameters.
+        examples:
+          - The default value is `[2, 1, 0.5]`
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float, int] }
+- type: eng_stress_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: eng_strain_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: true_stress_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: true_strain_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: plastic_range
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 2
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: CSV_arguments
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+
+# Types only used to transfer values between tasks
+- type: damask_post_processing_result
+- type: damask_viz_result
+- type: fitted_yield_functions
+- type: fit_yield_fixed_parameters
+- type: fit_yield_initial_parameters
+- type: fit_yield_opt_parameters
+- type: load_case
+- type: microstructure_seeds
+- type: orientations
+- type: tensile_test
+- type: yield_point_criteria
