@@ -23,6 +23,88 @@
           - value.length.in: [2, 3]
     - path: [{ "type": "list_value" }]
       condition: { value.is_instance: [int] }
+- type: origin
+  _validation:
+    - path: []
+      doc: Location of the origin of the grid.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: size
+  _validation:
+    - path: []
+      doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: grid_size
+  _validation:
+    - path: []
+      doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: periodic
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: precipitates
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: new_grid_size
+  _validation:
+    - path: []
+      doc: New number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: phase_statistics
+  _validation:
+    - path: []
+      doc: >
+        A list of dictionaries giving the statistics for the various phases.
+
+        Each dictionary must have the keys `type`, `name`, `crystal_structure`, and
+        `volume_fraction`.
+
+        Dictionaries of `type: primary` must also have a `size_distribution` key.
+
+        Dictionaries of `type: precipitate` must also have the keys `size_distribution`,
+        `radial_distribution_function`, and `number_fraction_on_boundary`.
+      condtion: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in:
+            - "type"
+            - "name"
+            - "crystal_structure"
+            - "volume_fraction"
+            - "size_distribution"
+            - "radial_distribution_function"
+            - "number_fraction_on_boundary"
+            - "preset_statistics_model"
+            - "ODF"
+            - "axis_ODF"
+    - path: [{ "type": "list_value" }, "type"]
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["matrix", "primary", "precipitate"]
 - type: phase_label
   _validation:
     - path: []
@@ -358,5 +440,6 @@
 - type: load_case
 - type: microstructure_seeds
 - type: orientations
+- type: single_crystal_parameters
 - type: tensile_test
 - type: yield_point_criteria

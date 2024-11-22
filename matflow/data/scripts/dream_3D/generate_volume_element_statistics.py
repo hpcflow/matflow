@@ -1,30 +1,36 @@
+from __future__ import annotations
 import json
 import warnings
 import copy
-
+from typing import TYPE_CHECKING
 import numpy as np
+from numpy.typing import NDArray
 
 from pathlib import Path
 from damask_parse.utils import validate_orientations
 from damask_parse.quats import axang2quat, multiply_quaternions
+if TYPE_CHECKING:
+    from matflow.param_classes.orientations import Orientations
 
 
 def generate_volume_element_statistics(
-    path,
-    grid_size,
-    resolution,
-    size,
-    origin,
-    periodic,
-    phase_statistics,
-    precipitates,
-    orientations,
+    path: str | Path,
+    grid_size: list[int],
+    resolution: list[float],
+    size: list[int],
+    origin: list[float],
+    periodic: bool,
+    phase_statistics: list[dict],
+    precipitates: bool,
+    orientations: Orientations | None,
 ):
     """'path' is the file path for 'pipeline.json'"""
 
     if orientations is not None:
         # convert to old-matflow format:
-        orientations = convert_orientations_to_old_matflow_format(orientations)
+        orientations_ = convert_orientations_to_old_matflow_format(orientations)
+    else:
+        orientations_ = None
 
     if resolution is None:
         resolution = [i / j for i, j in zip(size, grid_size)]
@@ -377,7 +383,7 @@ def generate_volume_element_statistics(
         ODF = phase_stats.get("ODF")
         axis_ODF = phase_stats.get("axis_ODF")
 
-        if ODF or (phase_idx == 0 and orientations is not None):
+        if ODF or (phase_idx == 0 and orientations_ is not None):
             if not ODF:
                 ODF = {}
             given_ODF_keys = set(ODF.keys())
@@ -396,7 +402,7 @@ def generate_volume_element_statistics(
 
             ODF_presets = ODF.get("presets")
 
-            if phase_idx == 0 and orientations is not None:
+            if phase_idx == 0 and orientations_ is not None:
                 # ALlow importing orientations only for the first phase:
 
                 if ODF_presets:
@@ -412,7 +418,7 @@ def generate_volume_element_statistics(
                     )
 
                 else:
-                    ODF["orientations"] = orientations
+                    ODF["orientations"] = orientations_
 
             if ODF_presets:
                 if any([ODF.get(i) is not None for i in ALLOWED_PHASE_AXIS_ODF_KEYS]):
@@ -1016,7 +1022,7 @@ def generate_volume_element_statistics(
         json.dump(pipeline, fh, indent=4)
 
 
-def convert_orientations_to_old_matflow_format(orientations):
+def convert_orientations_to_old_matflow_format(orientations: Orientations):
     # see `LatticeDirection` enum:
     align_lookup = {
         "A": "a",
@@ -1054,7 +1060,7 @@ def convert_orientations_to_old_matflow_format(orientations):
 
 ## These next two functions are from matflow.matflow_dream3d.utilities
 # https://github.com/LightForm-group/matflow-dream3d/blob/3c73bd043b8e80bdc17af434e9e89a1660cffc2d/matflow_dream3d/utilities.py
-def quat2euler(quats, degrees=False, P=1):
+def quat2euler(quats: NDArray, degrees: bool = False, P: int = 1) -> NDArray:
     """Convert quaternions to Bunge-convention Euler angles.
 
     Parameters
@@ -1139,7 +1145,7 @@ def quat2euler(quats, degrees=False, P=1):
     return euler_angles
 
 
-def process_dream3D_euler_angles(euler_angles, degrees=False):
+def process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> dict:
     orientations = {
         "type": "euler",
         "euler_degrees": degrees,
@@ -1154,11 +1160,11 @@ def process_dream3D_euler_angles(euler_angles, degrees=False):
 """Functions for replicating preset statistics models as implemented in Dream.3D"""
 
 
-def generate_omega3_dist_from_preset(num_bins):
+def generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L62"""
 
-    alphas = []
-    betas = []
+    alphas: list[float] = []
+    betas: list[float] = []
     for _ in range(num_bins):
         alpha = 10.0 + np.random.random()
         beta = 1.5 + (0.5 * np.random.random())
@@ -1168,10 +1174,10 @@ def generate_omega3_dist_from_preset(num_bins):
     return {"alpha": alphas, "beta": betas}
 
 
-def generate_shape_dist_from_preset(num_bins, aspect_ratio, preset_type):
+def generate_shape_dist_from_preset(num_bins: int, aspect_ratio: float, preset_type: str) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L88"""
-    alphas = []
-    betas = []
+    alphas: list[float] = []
+    betas: list[float] = []
     for _ in range(num_bins):
         if preset_type in ["primary_rolled", "precipitate_rolled"]:
             alpha = (1.1 + (28.9 * (1.0 / aspect_ratio))) + np.random.random()
@@ -1181,16 +1187,19 @@ def generate_shape_dist_from_preset(num_bins, aspect_ratio, preset_type):
             alpha = 15.0 + np.random.random()
             beta = 1.25 + (0.5 * np.random.random())
 
+        else:
+            raise ValueError(f"unsupported preset_type: {preset_type}")
+
         alphas.append(alpha)
         betas.append(beta)
 
     return {"alpha": alphas, "beta": betas}
 
 
-def generate_neighbour_dist_from_preset(num_bins, preset_type):
+def generate_neighbour_dist_from_preset(num_bins: int, preset_type: str) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L140"""
-    mus = []
-    sigmas = []
+    mus: list[float] = []
+    sigmas: list[float] = []
     middlebin = num_bins // 2
     for i in range(num_bins):
         if preset_type == "primary_equiaxed":
@@ -1200,6 +1209,9 @@ def generate_neighbour_dist_from_preset(num_bins, preset_type):
         elif preset_type == "primary_rolled":
             mu = np.log(8.0 + (1.0 * float(i - middlebin)))
             sigma = 0.3 + (float(middlebin - i) / float(middlebin * 10))
+
+        else:
+            raise ValueError(f"unsupported preset_type: {preset_type}")
 
         mus.append(mu)
         sigmas.append(sigma)
