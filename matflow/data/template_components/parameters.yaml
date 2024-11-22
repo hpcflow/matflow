@@ -136,7 +136,11 @@
       doc:
         description: >
           The symmetry of the specimen to sample, as understood by MTEX `specimenSymmetry`.
-        examples: [ cubic, orthorhombic ]
+        examples:
+          - >
+            `cubic`
+          - >
+            `orthorhombic`
       condition: { value.is_instance: [str] }
 - type: DIC
   _validation:
@@ -429,6 +433,50 @@
   _validation:
     - path: []
       condition: { value.is_instance: [dict] }
+- type: scale_update_size
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: scale_morphology
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int, float]}
+- type: resolution
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int, float]}
+- type: levenberg_marquardt_fitter
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+- type: microstructure_image
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: depth
+  _validation:
+    - path: []
+      condition: { value.is_instance: [int] }
+- type: image_axes
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [str]}
+- type: find_grains_algorithm
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [warp, floodfill]
 
 # Types only used to transfer values between tasks
 - type: damask_post_processing_result
