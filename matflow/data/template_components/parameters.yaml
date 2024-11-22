@@ -290,9 +290,7 @@
           - and:
             - value.is_instance: [dict]
             - key.in: ["increments", "phases", "homogenizations", "fields"]
-          - and:
-            - value.is_instance: [list]
-            - value.length.greater_than: 1
+          - value.is_instance: [list]
 - type: damask_solver
   _validation:
     - path: []
@@ -493,7 +491,6 @@
       condition:
         and:
           - value.is_instance: [list]
-          - value.length.greater_than: 0
     - path: [{ "type": "list_value" }]
       condition:
         and:
