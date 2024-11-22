@@ -84,7 +84,7 @@
 
         Dictionaries of `type: precipitate` must also have the keys `size_distribution`,
         `radial_distribution_function`, and `number_fraction_on_boundary`.
-      condtion: { value.is_instance: [list] }
+      condition: { value.is_instance: [list] }
     - path: [{ "type": "list_value" }]
       condition:
         and:
@@ -220,7 +220,7 @@
 - type: homogenization
   _validation:
     - path: []
-      description: >
+      doc: >
         Dictionary whose keys are homogenization scheme labels and whose values are
         dictionaries that specify the homogenization parameters for that scheme.
       condition: { value.is_instance: [dict] }
@@ -277,7 +277,7 @@
 - type: damask_viz
   _validation:
     - path: []
-      description: >
+      doc: >
         Dictionary or list of dictionaries describing particular visualizations.
         Keys should be `increments`, `phases`, `homogenizations`, or `fields`; all are
         optional.
