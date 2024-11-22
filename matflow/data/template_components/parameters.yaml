@@ -477,6 +477,109 @@
         and:
           - value.is_instance: [str]
           - value.in: [warp, floodfill]
+- type: crystal_symmetry
+  _validation:
+    - path: []
+      doc:
+        description:
+          Single parameter to make an instance of MTEX `crystalSymmetry`.
+        examples:
+          - "`cubic` - Cubic symmetry"
+          - "`hexagonal` - Hexagonal symmetry"
+      condition: { value.is_instance: [str] }
+- type: pole_figure_directions
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.greater_than: 0
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }, { "type": "list_value" }]
+      condition: { value.is_instance: [int, float]}
+- type: IPF_reference_direction
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["x", "y", "z"]
+- type: colourbar_limits
+  _validation:
+    - path: []
+      doc: Uses API deprecated by MTEX. Might not work at all.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 2
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float]}
+- type: ODF_components
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [dict]}
+- type: order
+  _validation:
+    - path: []
+      doc: >
+        Order to add the zones in.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["x", "y", "z"]
+- type: buffer_sizes
+  _validation:
+    - path: []
+      doc: >
+        Size of buffer on each face `[-x, +x, -y, +y, -z, +z]`.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int]}
+- type: phase_ids
+  _validation:
+    - path: []
+      doc: >
+        Phase of each buffer. Relative, so 1 is the first new phase and so on
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int]}
+- type: phase_labels
+  _validation:
+    - path: []
+      doc: >
+        Labels of the new phases.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [str]}
+- type: phase_label_mapping
+  _validation:
+    - path: []
+      doc: >
+        Mapping from phase labels in the `microstructure_image` to phase
+        labels for created in the VE.
+      condition: { value.is_instance: [dict] }
 
 # Types only used to transfer values between tasks
 - type: damask_post_processing_result
