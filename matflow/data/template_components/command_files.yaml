@@ -1,40 +1,65 @@
 - label: damask_geom_file
   name:
     name: geom.vti
+# DAMASK geometry file.
+
 - label: damask_load_file
   name:
     name: load.yaml
+# DAMASK load file, as YAML.
+
 - label: damask_material_file
   name:
     name: material.yaml
+# DAMASK material descriptor file.
+
 - label: damask_numerics_file
   name:
     name: numerics.yaml
+# DAMASK numeric control file.
+
 - label: damask_stdout_file
   name:
     name: stdout.log
+# DAMASK standard output.
+
 - label: damask_stderr_file
   name:
     name: stderr.log
+# DAMASK standard error.
+
 - label: damask_hdf5_file
   name:
     name: geom_load.hdf5
+# DAMASK geometry description, as HDF5.
+
 - label: damask_viz_files
   name:
     name: ((?:geom_load_inc\d+|static_outputs).vt(i|r))
     is_regex: true
+# DAMASK output visualisation data.
+
 - label: mtex_pole_figures
   name:
     name: pole_figure.png
+# MTEX figures of poles.
+
 - label: mtex_IPF_figure
   name:
     name: IPF_key.png
+# MTEX figure of inverse pole.
+
 - label: dream_3D_pipeline
   name:
     name: pipeline.json
+# DREAM.3D pipeline description.
+
 - label: dream_3D_hdf5_file
   name:
     name: pipeline.dream3d
+# DREAM.3D pipeline data.
+
 - label: dream_3D_XDMF_file
   name:
     name: pipeline.xdmf
+# DREAM.3D model data and metadata.
