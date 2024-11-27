@@ -4,7 +4,10 @@ from pathlib import Path
 from damask_parse.readers import read_HDF5_file
 
 
-def process_damask_HDF5(damask_hdf5_file: Path | str, damask_post_processing: list[dict]):
+def process_damask_HDF5(
+    damask_hdf5_file: Path | str,
+    damask_post_processing: list[dict]
+):
     """
     Apply post-processing to DAMASK output.
 

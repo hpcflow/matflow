@@ -4,7 +4,7 @@ import numpy as np
 from damask_parse.utils import validate_volume_element
 
 
-def parse_dream_3D_volume_element(dream_3D_hdf5_file):
+def parse_dream_3D_volume_element(dream_3D_hdf5_file: str):
     with h5py.File(dream_3D_hdf5_file, mode="r") as fh:
         synth_vol = fh["DataContainers"]["SyntheticVolumeDataContainer"]
         grid_size = synth_vol["_SIMPL_GEOMETRY"]["DIMENSIONS"][()]
@@ -31,12 +31,12 @@ def parse_dream_3D_volume_element(dream_3D_hdf5_file):
         "constituent_material_idx": np.arange(num_grains),
         "constituent_phase_label": constituent_phase_label,
         "material_homog": ["SX"] * num_grains,
-        "orientations": process_dream3D_euler_angles(eulers),
+        "orientations": _process_dream3D_euler_angles(eulers),
     }
     return validate_volume_element(vol_elem)
 
 
-def process_dream3D_euler_angles(euler_angles, degrees=False):
+def _process_dream3D_euler_angles(euler_angles, degrees: bool = False) -> dict:
     orientations = {
         "type": "euler",
         "euler_degrees": degrees,

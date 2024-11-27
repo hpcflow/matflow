@@ -1,36 +1,38 @@
 """Functions copied from matflow-defdap package."""
-
+from __future__ import annotations
 from pathlib import Path
+from typing import Any
 
 import defdap.ebsd as ebsd
 import defdap.hrdic as hrdic
 from defdap.quat import Quat
 import numpy as np
+from numpy.typing import NDArray
 from scipy.stats import mode
 from scipy.ndimage import zoom
 
 
 def load_microstructure_EBSD_DIC(
-    DIC,
-    EBSD,
-    root_path,
-    transform_type,
-    scaling_factor,
-    find_grains_algorithm,
-):
-    ebsd_map = load_EBSD_map(
+    DIC: dict,
+    EBSD: dict,
+    root_path: str,
+    transform_type: str,
+    scaling_factor: float,
+    find_grains_algorithm: str,
+) -> dict:
+    ebsd_map = _load_EBSD_map(
         root_path=root_path,
         ebsd_filename=EBSD["filename"],
         ebsd_boundary_tol=EBSD.get("boundary_tol", 10),
         ebsd_min_grain_size=EBSD.get("min_grain_size", 10),
     )
-    dic_map = load_DIC_map(
+    dic_map = _load_DIC_map(
         root_path=root_path,
         dic_filename=DIC["filename"],
         dic_crop=DIC.get("crop", None),
         dic_scale=DIC.get("scale", None),
     )
-    link_EBSD_DIC_maps(
+    _link_EBSD_DIC_maps(
         ebsd_map=ebsd_map,
         dic_map=dic_map,
         dic_homog_points=DIC["homog_points"],
@@ -39,12 +41,17 @@ def load_microstructure_EBSD_DIC(
         transform_type=transform_type,
         find_grains_algorithm=find_grains_algorithm,
     )
-    DIC_image = get_DIC_image(dic_map, scaling_factor)
+    DIC_image = _get_DIC_image(dic_map, scaling_factor)
 
     return {"microstructure_image": DIC_image}
 
 
-def load_EBSD_map(root_path, ebsd_filename, ebsd_boundary_tol, ebsd_min_grain_size):
+def _load_EBSD_map(
+    root_path: str,
+    ebsd_filename: str,
+    ebsd_boundary_tol: float,
+    ebsd_min_grain_size: int
+) -> ebsd.Map:
     "Load EBSD map and detect grains."
 
     ebsd_map = ebsd.Map(Path(root_path).joinpath(ebsd_filename))
@@ -62,7 +69,12 @@ def load_EBSD_map(root_path, ebsd_filename, ebsd_boundary_tol, ebsd_min_grain_si
     return ebsd_map
 
 
-def load_DIC_map(root_path, dic_filename, dic_crop, dic_scale):
+def _load_DIC_map(
+    root_path: str,
+    dic_filename: str,
+    dic_crop: list[int] | None,
+    dic_scale: float | None
+) -> hrdic.Map:
     "Load in DIC, crop and set scale."
 
     dic_map = hrdic.Map(root_path, dic_filename)
@@ -76,15 +88,15 @@ def load_DIC_map(root_path, dic_filename, dic_crop, dic_scale):
     return dic_map
 
 
-def link_EBSD_DIC_maps(
-    ebsd_map,
-    dic_map,
-    dic_homog_points,
-    dic_min_grain_size,
-    ebsd_homog_points,
-    transform_type,
-    find_grains_algorithm,
-):
+def _link_EBSD_DIC_maps(
+    ebsd_map: ebsd.Map,
+    dic_map: hrdic.Map,
+    dic_homog_points: NDArray,
+    dic_min_grain_size: int,
+    ebsd_homog_points: NDArray,
+    transform_type: str,
+    find_grains_algorithm: str,
+) -> None:
     dic_map.homogPoints = dic_homog_points
     ebsd_map.homogPoints = ebsd_homog_points
     dic_map.linkEbsdMap(ebsd_map, transformType=transform_type)
@@ -92,7 +104,7 @@ def link_EBSD_DIC_maps(
     dic_map.findGrains(minGrainSize=dic_min_grain_size, algorithm=find_grains_algorithm)
 
 
-def get_DIC_image(dic_map, scaling_factor):
+def _get_DIC_image(dic_map: hrdic.Map, scaling_factor: float) -> dict[str, Any]:
     # Construct an array of Euler angles
     grain_quats = np.empty((len(dic_map), 4))
 
@@ -115,10 +127,10 @@ def get_DIC_image(dic_map, scaling_factor):
     # Filter out -1 (grain boundary points) and -2 (too small grains)
     # values in the grain image
     grain_image = dic_map.grains
-    remove_boundary_points(grain_image)
-    remove_small_grain_points(grain_image)
-    remove_boundary_points(grain_image)
-    remove_boundary_points(grain_image, force_remove=True)
+    _remove_boundary_points(grain_image)
+    _remove_small_grain_points(grain_image)
+    _remove_boundary_points(grain_image)
+    _remove_boundary_points(grain_image, force_remove=True)
 
     # scale down image if needed
     if scaling_factor != 1:
@@ -152,7 +164,7 @@ def get_DIC_image(dic_map, scaling_factor):
     return DIC_image
 
 
-def select_area(i, j, grain_image):
+def _select_area(i: int, j: int, grain_image: NDArray) -> tuple[NDArray, int]:
     i_min, i_max = 1, 1
     j_min, j_max = 1, 1
 
@@ -178,7 +190,11 @@ def select_area(i, j, grain_image):
     return area, on_edge
 
 
-def remove_boundary_points(grain_image, force_remove=False, max_iterations=200):
+def _remove_boundary_points(
+    grain_image: NDArray, *,
+    force_remove: bool = False,
+    max_iterations: int = 200
+) -> None:
     num_bad_prev = 0
     iteration = 0
     while True:
@@ -219,7 +235,7 @@ def remove_boundary_points(grain_image, force_remove=False, max_iterations=200):
                     # give up, try in next iteration
 
                     if force_remove:
-                        area, on_edge = select_area(i, j, grain_image)
+                        area, on_edge = _select_area(i, j, grain_image)
                         area = area.flatten()
                         area = area[np.where(area > 0)]  # remove -1 and -2
 
@@ -243,10 +259,12 @@ def remove_boundary_points(grain_image, force_remove=False, max_iterations=200):
         grain_image[:, :] = grain_image_new
 
 
-def remove_small_grain_points(grain_image, max_iterations=200):
+def _remove_small_grain_points(
+    grain_image: NDArray, *,
+    max_iterations: int = 200
+) -> None:
     # num_neighbours - must have at least this many pixels surrounding
     # start checking for 8 neighbours, then 7 until 2
-    all_done = False
     for num_neighbours in list(range(8, 1, -1)):
         print(f"Starting iterations with at least {num_neighbours} equal neighbours")
 
@@ -257,8 +275,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             if num_bad == 0:
                 # No bad values left, done
                 print("All bad points removed.")
-                all_done = True
-                break
+                return
             elif num_bad == num_bad_prev:
                 # Not removing any more
                 print("Number of bad points is not decreasing!")
@@ -273,7 +290,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             grain_image_new = np.copy(grain_image)
 
             for i, j in zip(*np.where(grain_image == -2)):
-                area, on_edge = select_area(i, j, grain_image)
+                area, on_edge = _select_area(i, j, grain_image)
                 area = area.flatten()
                 area = area[np.where(area > 0)]  # remove -1 and -2
 
@@ -286,6 +303,3 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             num_bad_prev = num_bad
             # [:, :] required to update the array passed in
             grain_image[:, :] = grain_image_new
-
-        if all_done:
-            break

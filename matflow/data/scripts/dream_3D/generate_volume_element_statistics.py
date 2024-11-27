@@ -13,12 +13,161 @@ if TYPE_CHECKING:
     from matflow.param_classes.orientations import Orientations
 
 
+REQUIRED_PHASE_BASE_KEYS = {
+    "type",
+    "name",
+    "crystal_structure",
+    "volume_fraction",
+}
+REQUIRED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_BASE_KEYS | {
+    "size_distribution",
+}
+REQUIRED_PHASE_KEYS = {
+    "matrix": REQUIRED_PHASE_BASE_KEYS,
+    "primary": REQUIRED_PHASE_NON_MATRIX_KEYS,
+    "precipitate": REQUIRED_PHASE_NON_MATRIX_KEYS
+    | {
+        "radial_distribution_function",
+        "number_fraction_on_boundary",
+    },
+}
+ALLOWED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_NON_MATRIX_KEYS | {
+    "preset_statistics_model",
+    "ODF",
+    "axis_ODF",
+}
+ALLOWED_PHASE_KEYS = {
+    "matrix": REQUIRED_PHASE_KEYS["matrix"],
+    "primary": REQUIRED_PHASE_KEYS["primary"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
+    "precipitate": REQUIRED_PHASE_KEYS["precipitate"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
+}
+ALLOWED_PHASE_TYPES = set(REQUIRED_PHASE_KEYS.keys())
+REQUIRED_PHASE_SIZE_DIST_KEYS = {
+    "ESD_log_stddev",
+}
+ALLOWED_PHASE_SIZE_DIST_KEYS = REQUIRED_PHASE_SIZE_DIST_KEYS | {
+    "ESD_log_mean",
+    "ESD_mean",
+    "ESD_log_stddev_min_cut_off",
+    "ESD_log_stddev_max_cut_off",
+    "bin_step_size",
+    "num_bins",
+    "omega3",
+    "b/a",
+    "c/a",
+    "neighbours",
+}
+ALLOWED_PRECIP_RDF_KEYS = {
+    "min_distance",
+    "max_distance",
+    "num_bins",
+    "box_size",
+}
+ALLOWED_CRYSTAL_STRUCTURES = {  # values are crystal symmetry index:
+    "hexagonal": 0,
+    "cubic": 1,
+}
+SIGMA_MIN_DEFAULT = 5
+SIGMA_MAX_DEFAULT = 5
+# Distributions defined for each size distribution bin:
+DISTRIBUTIONS_MAP = {
+    "omega3": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs Omega3 Distributions",
+    },
+    "b/a": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs B Over A Distributions",
+    },
+    "c/a": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs C Over A Distributions",
+    },
+    "neighbours": {
+        "type": "lognormal",
+        "default_keys": {
+            "average": 2.0,
+            "stddev": 0.5,
+        },
+        "label": "FeatureSize Vs Neighbors Distributions",
+    },
+}
+DISTRIBUTIONS_TYPE_LABELS = {
+    "lognormal": "Log Normal Distribution",
+    "beta": "Beta Distribution",
+}
+DISTRIBUTIONS_KEY_LABELS = {
+    "alpha": "Alpha",
+    "beta": "Beta",
+    "average": "Average",
+    "stddev": "Standard Deviation",
+}
+PRESETS_TYPE_KEYS = {
+    "primary_equiaxed": {
+        "type",
+    },
+    "primary_rolled": {
+        "type",
+        "A_axis_length",
+        "B_axis_length",
+        "C_axis_length",
+    },
+    "precipitate_equiaxed": {
+        "type",
+    },
+    "precipitate_rolled": {
+        "type",
+        "A_axis_length",
+        "B_axis_length",
+        "C_axis_length",
+    },
+}
+REQUIRED_PHASE_AXIS_ODF_KEYS = {"orientations"}
+ALLOWED_PHASE_AXIS_ODF_KEYS = REQUIRED_PHASE_AXIS_ODF_KEYS | {"weights", "sigmas"}
+REQUIRED_PHASE_ODF_KEYS = set()  # presets can be specified instead of orientations
+ALLOWED_PHASE_ODF_KEYS = ALLOWED_PHASE_AXIS_ODF_KEYS | {"presets"}
+DEFAULT_ODF_WEIGHT = 500_000
+DEFAULT_ODF_SIGMA = 2
+
+DEFAULT_AXIS_ODF_WEIGHT = DEFAULT_ODF_WEIGHT
+DEFAULT_AXIS_ODF_SIGMA = DEFAULT_ODF_SIGMA
+
+ODF_CUBIC_PRESETS = {
+    "cube": (0, 0, 0),
+    "goss": (0, 45, 0),
+    "brass": (35, 45, 0),
+    "copper": (90, 35, 45),
+    "s": (59, 37, 63),
+    "s1": (55, 30, 65),
+    "s2": (45, 35, 65),
+    "rc(rd1)": (0, 20, 0),
+    "rc(rd2)": (0, 35, 0),
+    "rc(nd1)": (20, 0, 0),
+    "rc(nd2)": (35, 0, 0),
+    "p": (70, 45, 0),
+    "q": (55, 20, 0),
+    "r": (55, 75, 25),
+}
+
+
 def generate_volume_element_statistics(
     path: str | Path,
     grid_size: list[int],
-    resolution: list[float],
+    resolution: list[float] | None,
     size: list[int],
-    origin: list[float],
+    origin: list[float] | None,
     periodic: bool,
     phase_statistics: list[dict],
     precipitates: bool,
@@ -28,7 +177,7 @@ def generate_volume_element_statistics(
 
     if orientations is not None:
         # convert to old-matflow format:
-        orientations_ = convert_orientations_to_old_matflow_format(orientations)
+        orientations_ = _convert_orientations_to_old_matflow_format(orientations)
     else:
         orientations_ = None
 
@@ -37,154 +186,6 @@ def generate_volume_element_statistics(
 
     if origin is None:
         origin = [0, 0, 0]
-
-    REQUIRED_PHASE_BASE_KEYS = {
-        "type",
-        "name",
-        "crystal_structure",
-        "volume_fraction",
-    }
-    REQUIRED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_BASE_KEYS | {
-        "size_distribution",
-    }
-    REQUIRED_PHASE_KEYS = {
-        "matrix": REQUIRED_PHASE_BASE_KEYS,
-        "primary": REQUIRED_PHASE_NON_MATRIX_KEYS,
-        "precipitate": REQUIRED_PHASE_NON_MATRIX_KEYS
-        | {
-            "radial_distribution_function",
-            "number_fraction_on_boundary",
-        },
-    }
-    ALLOWED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_NON_MATRIX_KEYS | {
-        "preset_statistics_model",
-        "ODF",
-        "axis_ODF",
-    }
-    ALLOWED_PHASE_KEYS = {
-        "matrix": REQUIRED_PHASE_KEYS["matrix"],
-        "primary": REQUIRED_PHASE_KEYS["primary"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
-        "precipitate": REQUIRED_PHASE_KEYS["precipitate"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
-    }
-    ALLOWED_PHASE_TYPES = set(REQUIRED_PHASE_KEYS.keys())
-    REQUIRED_PHASE_SIZE_DIST_KEYS = {
-        "ESD_log_stddev",
-    }
-    ALLOWED_PHASE_SIZE_DIST_KEYS = REQUIRED_PHASE_SIZE_DIST_KEYS | {
-        "ESD_log_mean",
-        "ESD_mean",
-        "ESD_log_stddev_min_cut_off",
-        "ESD_log_stddev_max_cut_off",
-        "bin_step_size",
-        "num_bins",
-        "omega3",
-        "b/a",
-        "c/a",
-        "neighbours",
-    }
-    ALLOWED_PRECIP_RDF_KEYS = {
-        "min_distance",
-        "max_distance",
-        "num_bins",
-        "box_size",
-    }
-    ALLOWED_CRYSTAL_STRUCTURES = {  # values are crystal symmetry index:
-        "hexagonal": 0,
-        "cubic": 1,
-    }
-    SIGMA_MIN_DEFAULT = 5
-    SIGMA_MAX_DEFAULT = 5
-    # Distributions defined for each size distribution bin:
-    DISTRIBUTIONS_MAP = {
-        "omega3": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs Omega3 Distributions",
-        },
-        "b/a": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs B Over A Distributions",
-        },
-        "c/a": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs C Over A Distributions",
-        },
-        "neighbours": {
-            "type": "lognormal",
-            "default_keys": {
-                "average": 2.0,
-                "stddev": 0.5,
-            },
-            "label": "FeatureSize Vs Neighbors Distributions",
-        },
-    }
-    DISTRIBUTIONS_TYPE_LABELS = {
-        "lognormal": "Log Normal Distribution",
-        "beta": "Beta Distribution",
-    }
-    DISTRIBUTIONS_KEY_LABELS = {
-        "alpha": "Alpha",
-        "beta": "Beta",
-        "average": "Average",
-        "stddev": "Standard Deviation",
-    }
-    PRESETS_TYPE_KEYS = {
-        "primary_equiaxed": {
-            "type",
-        },
-        "primary_rolled": {
-            "type",
-            "A_axis_length",
-            "B_axis_length",
-            "C_axis_length",
-        },
-        "precipitate_equiaxed": {
-            "type",
-        },
-        "precipitate_rolled": {
-            "type",
-            "A_axis_length",
-            "B_axis_length",
-            "C_axis_length",
-        },
-    }
-    REQUIRED_PHASE_AXIS_ODF_KEYS = {"orientations"}
-    ALLOWED_PHASE_AXIS_ODF_KEYS = REQUIRED_PHASE_AXIS_ODF_KEYS | {"weights", "sigmas"}
-    REQUIRED_PHASE_ODF_KEYS = set()  # presets can be specified instead of orientations
-    ALLOWED_PHASE_ODF_KEYS = ALLOWED_PHASE_AXIS_ODF_KEYS | {"presets"}
-    DEFAULT_ODF_WEIGHT = 500_000
-    DEFAULT_ODF_SIGMA = 2
-
-    DEFAULT_AXIS_ODF_WEIGHT = DEFAULT_ODF_WEIGHT
-    DEFAULT_AXIS_ODF_SIGMA = DEFAULT_ODF_SIGMA
-
-    ODF_CUBIC_PRESETS = {
-        "cube": (0, 0, 0),
-        "goss": (0, 45, 0),
-        "brass": (35, 45, 0),
-        "copper": (90, 35, 45),
-        "s": (59, 37, 63),
-        "s1": (55, 30, 65),
-        "s2": (45, 35, 65),
-        "rc(rd1)": (0, 20, 0),
-        "rc(rd2)": (0, 35, 0),
-        "rc(nd1)": (20, 0, 0),
-        "rc(nd2)": (35, 0, 0),
-        "p": (70, 45, 0),
-        "q": (55, 20, 0),
-        "r": (55, 75, 25),
-    }
 
     vol_frac_sum = 0.0
     stats_JSON = []
@@ -445,7 +446,7 @@ def generate_volume_element_statistics(
 
                 ODF["sigmas"] = preset_sigmas
                 ODF["weights"] = preset_weights
-                ODF["orientations"] = process_dream3D_euler_angles(
+                ODF["orientations"] = _process_dream3D_euler_angles(
                     np.array(preset_eulers),
                     degrees=True,
                 )
@@ -501,7 +502,7 @@ def generate_volume_element_statistics(
                 ODF[i] = val
 
             # Convert to Euler angles for Dream3D:
-            oris_euler = quat2euler(oris["quaternions"], degrees=False, P=oris["P"])
+            oris_euler = _quat2euler(oris["quaternions"], degrees=False, P=oris["P"])
 
             ODF_weights = {
                 "Euler 1": oris_euler[:, 0].tolist(),
@@ -580,7 +581,7 @@ def generate_volume_element_statistics(
                 axis_ODF[i] = val
 
             # Convert to Euler angles for Dream3D:
-            axis_oris_euler = quat2euler(
+            axis_oris_euler = _quat2euler(
                 axis_oris["quaternions"], degrees=False, P=axis_oris["P"]
             )
 
@@ -613,12 +614,12 @@ def generate_volume_element_statistics(
         # Generate dists from `preset_statistics_model`:
         if preset:
             if "omega3" not in all_dists:
-                omega3_dist = generate_omega3_dist_from_preset(num_bins)
+                omega3_dist = _generate_omega3_dist_from_preset(num_bins)
                 all_dists.update({"omega3": omega3_dist})
 
             if "c/a" not in all_dists:
                 c_a_aspect_ratio = preset["A_axis_length"] / preset["C_axis_length"]
-                c_a_dist = generate_shape_dist_from_preset(
+                c_a_dist = _generate_shape_dist_from_preset(
                     num_bins,
                     c_a_aspect_ratio,
                     preset_type,
@@ -627,7 +628,7 @@ def generate_volume_element_statistics(
 
             if "b/a" not in all_dists:
                 b_a_aspect_ratio = preset["A_axis_length"] / preset["B_axis_length"]
-                b_a_dist = generate_shape_dist_from_preset(
+                b_a_dist = _generate_shape_dist_from_preset(
                     num_bins,
                     b_a_aspect_ratio,
                     preset_type,
@@ -636,7 +637,7 @@ def generate_volume_element_statistics(
 
             if phase_type == "primary":
                 if "neighbours" not in all_dists:
-                    neigh_dist = generate_neighbour_dist_from_preset(
+                    neigh_dist = _generate_neighbour_dist_from_preset(
                         num_bins,
                         preset_type,
                     )
@@ -1022,7 +1023,7 @@ def generate_volume_element_statistics(
         json.dump(pipeline, fh, indent=4)
 
 
-def convert_orientations_to_old_matflow_format(orientations: Orientations):
+def _convert_orientations_to_old_matflow_format(orientations: Orientations):
     # see `LatticeDirection` enum:
     align_lookup = {
         "A": "a",
@@ -1060,7 +1061,7 @@ def convert_orientations_to_old_matflow_format(orientations: Orientations):
 
 ## These next two functions are from matflow.matflow_dream3d.utilities
 # https://github.com/LightForm-group/matflow-dream3d/blob/3c73bd043b8e80bdc17af434e9e89a1660cffc2d/matflow_dream3d/utilities.py
-def quat2euler(quats: NDArray, degrees: bool = False, P: int = 1) -> NDArray:
+def _quat2euler(quats: NDArray, degrees: bool = False, P: int = 1) -> NDArray:
     """Convert quaternions to Bunge-convention Euler angles.
 
     Parameters
@@ -1145,7 +1146,7 @@ def quat2euler(quats: NDArray, degrees: bool = False, P: int = 1) -> NDArray:
     return euler_angles
 
 
-def process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> dict:
+def _process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> dict:
     orientations = {
         "type": "euler",
         "euler_degrees": degrees,
@@ -1160,7 +1161,7 @@ def process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> d
 """Functions for replicating preset statistics models as implemented in Dream.3D"""
 
 
-def generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
+def _generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L62"""
 
     alphas: list[float] = []
@@ -1174,7 +1175,11 @@ def generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
     return {"alpha": alphas, "beta": betas}
 
 
-def generate_shape_dist_from_preset(num_bins: int, aspect_ratio: float, preset_type: str) -> dict[str, list[float]]:
+def _generate_shape_dist_from_preset(
+    num_bins: int,
+    aspect_ratio: float,
+    preset_type: str
+) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L88"""
     alphas: list[float] = []
     betas: list[float] = []
@@ -1196,7 +1201,10 @@ def generate_shape_dist_from_preset(num_bins: int, aspect_ratio: float, preset_t
     return {"alpha": alphas, "beta": betas}
 
 
-def generate_neighbour_dist_from_preset(num_bins: int, preset_type: str) -> dict[str, list[float]]:
+def _generate_neighbour_dist_from_preset(
+    num_bins: int,
+    preset_type: str
+) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L140"""
     mus: list[float] = []
     sigmas: list[float] = []

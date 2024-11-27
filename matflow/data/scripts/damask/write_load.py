@@ -7,7 +7,11 @@ if TYPE_CHECKING:
     from matflow.param_classes.load import LoadCase
 
 
-def write_load(path: Path | str, load_case: LoadCase, damask_solver: dict[str, str] | None) -> None:
+def write_load(
+    path: Path | str,
+    load_case: LoadCase,
+    damask_solver: dict[str, str] | None
+) -> None:
     """Write the load file for a DAMASK simulation.
 
     Parameters

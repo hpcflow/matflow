@@ -4,7 +4,11 @@ from pathlib import Path
 import numpy as np
 
 
-def dump_all_yield_stresses(VE_response: list[dict], yield_point: float, dump_path: str | Path) -> dict:
+def dump_all_yield_stresses(
+    VE_response: list[dict],
+    yield_point: float,
+    dump_path: str | Path
+) -> dict:
     all_VE_responses = VE_response
     yield_stresses = []
     for VE_resp_i in all_VE_responses:

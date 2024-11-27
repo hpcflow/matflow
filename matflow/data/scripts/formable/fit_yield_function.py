@@ -1,16 +1,18 @@
+from __future__ import annotations
 from pathlib import Path
 from formable import LoadResponse, LoadResponseSet
 import numpy as np
+from numpy.typing import NDArray
 
 
 def fit_yield_function(
-    yield_function_name,
-    yield_point_criteria,
-    VE_response,
-    fit_yield_fixed_parameters,
-    fit_yield_initial_parameters,
-    fit_yield_opt_parameters,
-):
+    yield_function_name: str,
+    yield_point_criteria: dict,
+    VE_response: dict,
+    fit_yield_fixed_parameters: dict,
+    fit_yield_initial_parameters: dict,
+    fit_yield_opt_parameters: dict,
+) -> dict:
     """
     Parameters
     ----------
@@ -36,7 +38,7 @@ def fit_yield_function(
     multiaxial_responses = VE_response["multiaxial"]
 
     # Generate LoadResponse objects:
-    eq_vol_avg_plastic_strain = get_von_mises_strain(
+    eq_vol_avg_plastic_strain = _get_von_mises_strain(
         uniaxial_response["volume_data"]["vol_avg_plastic_strain"]["data"]
     )
     uni_resp = LoadResponse(
@@ -45,7 +47,7 @@ def fit_yield_function(
     )
     multi_resp = []
     for resp_dat in multiaxial_responses:
-        eq_vol_avg_plastic_strain_i = get_von_mises_strain(
+        eq_vol_avg_plastic_strain_i = _get_von_mises_strain(
             resp_dat["volume_data"]["vol_avg_plastic_strain"]["data"]
         )
         multi_resp.append(
@@ -68,7 +70,7 @@ def fit_yield_function(
     return {"fitted_yield_functions": fitted_yield_functions}
 
 
-def get_hydrostatic_tensor(tensor):
+def _get_hydrostatic_tensor(tensor: NDArray) -> NDArray:
     """Returns the hydrostatic tensor from an input stress strain tensor
 
     Parameters
@@ -88,7 +90,7 @@ def get_hydrostatic_tensor(tensor):
     return hydro
 
 
-def get_von_mises(s, tensor):
+def _get_von_mises(s: float, tensor: NDArray) -> NDArray:
     """Returns the equivalent value of stress or strain tensor
 
     Parameters
@@ -104,14 +106,14 @@ def get_von_mises(s, tensor):
 
     """
 
-    deviatoric = tensor - get_hydrostatic_tensor(tensor)
+    deviatoric = tensor - _get_hydrostatic_tensor(tensor)
 
     return np.sqrt(s * np.sum(deviatoric**2.0, axis=(-2, -1)))
 
 
-def get_von_mises_stress(stress):
-    return get_von_mises(3 / 2, stress)
+def _get_von_mises_stress(stress: NDArray) -> NDArray:
+    return _get_von_mises(3 / 2, stress)
 
 
-def get_von_mises_strain(strain):
-    return get_von_mises(2 / 3, strain)
+def _get_von_mises_strain(strain: NDArray) -> NDArray:
+    return _get_von_mises(2 / 3, strain)

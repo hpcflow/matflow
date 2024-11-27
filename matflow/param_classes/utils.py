@@ -7,11 +7,16 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def _is_list_of_lists(arr: list[float] | list[list[float]]) -> TypeIs[list[list[float]]]:
+def _is_list_of_lists(
+    arr: list[float] | list[list[float]]
+) -> TypeIs[list[list[float]]]:
     return isinstance(arr[0], list)
 
 
-def masked_array_from_list(arr: list[float] | list[list[float]], fill_value: str = "x") -> NDArray:
+def masked_array_from_list(
+    arr: list[float] | list[list[float]],
+    fill_value: str = "x"
+) -> NDArray:
     """Generate a (masked) array from a 1D or 2D list whose elements may contain a fill
     value."""
 
@@ -22,7 +27,7 @@ def masked_array_from_list(arr: list[float] | list[list[float]], fill_value: str
         arr = [item for row in arr for item in row]
 
     data = np.empty(len(arr))
-    mask = np.zeros(len(arr))
+    mask = np.full(len(arr), False)
     has_mask = False
     for idx, i in enumerate(arr):
         if i == fill_value:
