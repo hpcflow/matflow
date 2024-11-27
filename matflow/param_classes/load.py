@@ -168,7 +168,7 @@ class LoadStep(ParameterValue):
             if isinstance(self.stress, list):
                 self.stress = masked_array_from_list(self.stress)
             xor_arr = np.logical_xor(self.strain_like_tensor.mask, self.stress.mask)
-            if not np.alltrue(xor_arr):
+            if not np.all(xor_arr):
                 raise RuntimeError(
                     "Stress and strain tensor masks should be element-wise mutually "
                     "exclusive, but they are not."
