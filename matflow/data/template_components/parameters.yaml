@@ -365,7 +365,7 @@
 - type: CRC_file_path
   _validation:
     - path: []
-      doc: CRC file path.
+      doc: Channel reconstruction file path.
       condition: { value.is_instance: [str, path] }
 - type: use_contours
   _validation:

@@ -254,7 +254,7 @@
             value.equal_to: false
 
 - objective: sample_texture
-  # Extract the crystal orientations from a CRC file.
+  # Extract the crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
@@ -1213,7 +1213,7 @@
             value.equal_to: false
 
 - objective: sample_orientations
-  # Get sample of crystal orientations from a CRC file.
+  # Get sample of crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
