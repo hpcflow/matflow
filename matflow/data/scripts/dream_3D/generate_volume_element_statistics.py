@@ -575,8 +575,8 @@ def generate_volume_element_statistics(
                     raise ValueError(
                         err_msg
                         + f'axis_ODF key "{i}" must have length one, or length equal '
-                        f"to the number of axis_ODF orientations, which is {num_oris}, but in "
-                        f"fact has length {len(val)}."
+                        f"to the number of axis_ODF orientations, which is {num_oris}, "
+                        f"but in fact has length {len(val)}."
                     )
                 axis_ODF[i] = val
 
@@ -711,7 +711,11 @@ def generate_volume_element_statistics(
         },
         "1": {
             # TODO: fix this
-            "BoxDimensions": "X Range: 0 to 2 (Delta: 2)\nY Range: 0 to 256 (Delta: 256)\nZ Range: 0 to 256 (Delta: 256)",
+            "BoxDimensions": (
+                "X Range: 0 to 2 (Delta: 2)\n"
+                "Y Range: 0 to 256 (Delta: 256)\n"
+                "Z Range: 0 to 256 (Delta: 256)"
+            ),
             "CellAttributeMatrixName": "CellData",
             "DataContainerName": "SyntheticVolumeDataContainer",
             "Dimensions": {"x": grid_size[0], "y": grid_size[1], "z": grid_size[2]},
@@ -1008,7 +1012,9 @@ def generate_volume_element_statistics(
             "Filter_Human_Label": "Write DREAM.3D Data File",
             "Filter_Name": "DataContainerWriter",
             "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
-            "OutputFile": f"{str(Path(path).absolute().parent.joinpath('pipeline.dream3d'))}",
+            "OutputFile": (
+                f"{str(Path(path).absolute().parent.joinpath('pipeline.dream3d'))}"
+            ),
             "WriteTimeSeries": 0,
             "WriteXdmfFile": 1,
         },
@@ -1163,16 +1169,9 @@ def _process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> 
 
 def _generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L62"""
-
-    alphas: list[float] = []
-    betas: list[float] = []
-    for _ in range(num_bins):
-        alpha = 10.0 + np.random.random()
-        beta = 1.5 + (0.5 * np.random.random())
-        alphas.append(alpha)
-        betas.append(beta)
-
-    return {"alpha": alphas, "beta": betas}
+    alphas = 10.0 + np.random.rand(num_bins)
+    betas = 1.5 + (0.5 * np.random.rand(num_bins))
+    return {"alpha": alphas.tolist(), "beta": betas.tolist()}
 
 
 def _generate_shape_dist_from_preset(
@@ -1181,24 +1180,15 @@ def _generate_shape_dist_from_preset(
     preset_type: str
 ) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L88"""
-    alphas: list[float] = []
-    betas: list[float] = []
-    for _ in range(num_bins):
-        if preset_type in ["primary_rolled", "precipitate_rolled"]:
-            alpha = (1.1 + (28.9 * (1.0 / aspect_ratio))) + np.random.random()
-            beta = (30 - (28.9 * (1.0 / aspect_ratio))) + np.random.random()
-
-        elif preset_type in ["primary_equiaxed", "precipitate_equiaxed"]:
-            alpha = 15.0 + np.random.random()
-            beta = 1.25 + (0.5 * np.random.random())
-
-        else:
-            raise ValueError(f"unsupported preset_type: {preset_type}")
-
-        alphas.append(alpha)
-        betas.append(beta)
-
-    return {"alpha": alphas, "beta": betas}
+    if preset_type in ("primary_rolled", "precipitate_rolled"):
+        alphas = 1.1 + (28.9 / aspect_ratio) + np.random.rand(num_bins)
+        betas = 30 - (28.9 / aspect_ratio) + np.random.rand(num_bins)
+    elif preset_type in ("primary_equiaxed", "precipitate_equiaxed"):
+        alphas = 15.0 + np.random.rand(num_bins)
+        betas = 1.25 + (0.5 * np.random.rand(num_bins))
+    else:
+        raise ValueError(f"unsupported preset_type: {preset_type}")
+    return {"alpha": alphas.tolist(), "beta": betas.tolist()}
 
 
 def _generate_neighbour_dist_from_preset(
@@ -1206,22 +1196,14 @@ def _generate_neighbour_dist_from_preset(
     preset_type: str
 ) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L140"""
-    mus: list[float] = []
-    sigmas: list[float] = []
     middlebin = num_bins // 2
-    for i in range(num_bins):
-        if preset_type == "primary_equiaxed":
-            mu = np.log(14.0 + (2.0 * float(i - middlebin)))
-            sigma = 0.3 + (float(middlebin - i) / float(middlebin * 10))
-
-        elif preset_type == "primary_rolled":
-            mu = np.log(8.0 + (1.0 * float(i - middlebin)))
-            sigma = 0.3 + (float(middlebin - i) / float(middlebin * 10))
-
-        else:
-            raise ValueError(f"unsupported preset_type: {preset_type}")
-
-        mus.append(mu)
-        sigmas.append(sigma)
-
-    return {"average": mus, "stddev": sigmas}
+    relative_bins = np.arange(num_bins) - middlebin
+    if preset_type == "primary_equiaxed":
+        mus = np.log(14.0 + 2.0 * relative_bins)
+        sigmas = 0.3 - relative_bins / (middlebin * 10)
+    elif preset_type == "primary_rolled":
+        mus = np.log(8.0 + relative_bins)
+        sigmas = 0.3 - relative_bins / (middlebin * 10)
+    else:
+        raise ValueError(f"unsupported preset_type: {preset_type}")
+    return {"average": mus.tolist(), "stddev": sigmas.tolist()}
