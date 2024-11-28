@@ -210,8 +210,8 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: EBSD_reference_frame_transformation
-      default_value: euler_to_spatial # or "spatial_to_euler" or null
-    - parameter: EBSD_rotation # dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
       default_value: null
   outputs:
     - parameter: orientations
@@ -266,8 +266,8 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: EBSD_reference_frame_transformation
-      default_value: euler_to_spatial # or "spatial_to_euler" or null
-    - parameter: EBSD_rotation # dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
       default_value: null
   outputs:
     - parameter: orientations
@@ -1169,8 +1169,8 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: EBSD_reference_frame_transformation
-      default_value: euler_to_spatial # or "spatial_to_euler" or null
-    - parameter: EBSD_rotation # dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
       default_value: null
   outputs:
     - parameter: orientations
@@ -1225,8 +1225,8 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: EBSD_reference_frame_transformation
-      default_value: euler_to_spatial # or "spatial_to_euler" or null
-    - parameter: EBSD_rotation # dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
       default_value: null
   outputs:
     - parameter: orientations

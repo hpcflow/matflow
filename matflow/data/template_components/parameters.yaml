@@ -123,7 +123,7 @@
 - type: CTF_file_path
   _validation:
     - path: []
-      doc: Path to CTF code archive for Matlab.
+      doc: Path to CTF (HKL single orientation) file.
       condition: { value.is_instance: [str, path] }
 - type: ODF_mat_file_path
   _validation:
@@ -166,17 +166,25 @@
 - type: EBSD_reference_frame_transformation
   _validation:
     - path: []
-      doc: Electron backscatter diffraction transformation.
-      condition: { value.is_instance: [str] }
+      doc: Electron backscatter diffraction referemce frame transformation.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in:
+            - euler_to_spatial
+            - spatial_to_euler
+            # https://mtex-toolbox.github.io/EBSDReferenceFrame.html
+            - convertEuler2SpatialReferenceFrame
+            - convertSpatial2EulerReferenceFrame
 - type: EBSD_rotation
   _validation:
     - path: []
       doc: >
         Description of the rotation in the electron backscatter diffraction model.
-        A dict with keys "euler_angles_deg" list optional "keep_XY" bool, or "keep_euler" bool.
+        A dict with keys "euler_angles_deg" (list, optional) "keep_XY" (bool), or "keep_euler" (bool).
       condition:
         and:
-          - value.is_instance: [dict]
+          - value.is_instance: [dict, "null"]
           - key.in: [ "euler_angles_deg", "keep_XY", "keep_euler" ]
 - type: num_orientations
   _validation:
@@ -340,7 +348,7 @@
 - type: CSV_file_path
   _validation:
     - path: []
-      doc: Path to CSV file.
+      doc: Path to CSV (possibly an Oxford Instruments single orientation) file.
       condition: { value.is_instance: [str, path] }
 - type: scaling_factor
   _validation:
@@ -365,7 +373,7 @@
 - type: CRC_file_path
   _validation:
     - path: []
-      doc: Channel reconstruction file path.
+      doc: Path to channel reconstruction (Oxford Instruments binary) file.
       condition: { value.is_instance: [str, path] }
 - type: use_contours
   _validation:
@@ -518,6 +526,7 @@
 - type: ODF_components
   _validation:
     - path: []
+      doc: Information used to control the orientation distribution function.
       condition:
         and:
           - value.is_instance: [list]
