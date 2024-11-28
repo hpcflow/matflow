@@ -27,10 +27,11 @@ def write_material(
                         Array of R row four-vectors of unit quaternions. Specify either
                         `quaternions` or `euler_angles`.
                     euler_angles : ndarray of shape (R, 3) of float, optional
-                        Array of R row three-vectors of Euler angles in degrees or radians,
-                        as determined by `euler_degrees`. Specify either `quaternions` or
-                        `euler_angles`. Specified as proper Euler angles in the Bunge
-                        convention. (Rotations are about Z, new X, new new Z.)
+                        Array of R row three-vectors of Euler angles in degrees or
+                        radians, as determined by `euler_degrees`. Specify either
+                        `quaternions` or `euler_angles`. Specified as proper Euler
+                        angles in the Bunge convention.
+                        (Rotations are about Z, new X, new new Z.)
                     euler_degrees : bool, optional
                         If True, `euler_angles` are expected in degrees, rather than
                         radians.

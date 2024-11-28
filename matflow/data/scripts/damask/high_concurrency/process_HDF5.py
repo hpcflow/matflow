@@ -78,7 +78,8 @@ def process_HDF5(
                         sum_along_axes : int, optional
                             If specified, take the sum the array along this axis.
                         mean_along_axes: int, optional
-                            If specified, take the mean average of the array along this axis.
+                            If specified, take the mean average of the array along this
+                            axis.
 
         phase_data : list of dict, optional
             List of data to extract from a single phase. This is a list of dict
@@ -107,7 +108,8 @@ def process_HDF5(
                         sum_along_axes : int, optional
                             If specified, take the sum the array along this axis.
                         mean_along_axes: int, optional
-                            If specified, take the mean average of the array along this axis.
+                            If specified, take the mean average of the array along this
+                            axis.
 
         field_data : list of dict, optional
             List of field data to extract. Only extracts for the first constituent
