@@ -1,5 +1,9 @@
 import numpy as np
-from damask import Grid
+
+try:
+    from damask import GeomGrid as grid_cls
+except ImportError:
+    from damask import Grid as grid_cls
 from damask_parse.utils import validate_volume_element, validate_orientations
 
 
@@ -11,7 +15,7 @@ def generate_volume_element_voronoi(
     scale_morphology,
     scale_update_size,
 ):
-    grid_obj = Grid.from_Voronoi_tessellation(
+    grid_obj = grid_cls.from_Voronoi_tessellation(
         cells=np.array(VE_grid_size),
         size=np.array(microstructure_seeds.box_size),
         seeds=np.array(microstructure_seeds.position),

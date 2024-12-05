@@ -223,7 +223,7 @@ def remove_boundary_points(grain_image, force_remove=False, max_iterations=200):
                         area = area.flatten()
                         area = area[np.where(area > 0)]  # remove -1 and -2
 
-                        mode_vals, mode_counts = mode(area)
+                        mode_vals, mode_counts = mode(area, keepdims=True)
                         for mode_val, mode_count in zip(mode_vals, mode_counts):
                             #         mode_val, mode_count = mode_vals[0], mode_counts[0]
                             #                         if mode_count >= num_neighbours:
@@ -277,7 +277,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
                 area = area.flatten()
                 area = area[np.where(area > 0)]  # remove -1 and -2
 
-                mode_vals, mode_counts = mode(area)
+                mode_vals, mode_counts = mode(area, keepdims=True)
                 for mode_val, mode_count in zip(mode_vals, mode_counts):
                     if mode_count >= num_neighbours:
                         grain_image_new[i, j] = mode_val

@@ -1,4 +1,71 @@
 
+<a name="v0.3.0a134"></a>
+## [v0.3.0a134](https://github.com/hpcflow/matflow-new/compare/v0.3.0a133...v0.3.0a134) - 2024.12.05
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a133"></a>
+## [v0.3.0a133](https://github.com/hpcflow/matflow-new/compare/v0.3.0a132...v0.3.0a133) - 2024.12.05
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* centOS GHAs
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a132"></a>
+## [v0.3.0a132](https://github.com/hpcflow/matflow-new/compare/v0.3.0a131...v0.3.0a132) - 2024.11.14
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a131"></a>
+## [v0.3.0a131](https://github.com/hpcflow/matflow-new/compare/v0.3.0a130...v0.3.0a131) - 2024.10.24
+
+### 🐛 Bug Fixes
+
+* enable compatibility with new DAMASK Grid variable
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a130"></a>
+## [v0.3.0a130](https://github.com/hpcflow/matflow-new/compare/v0.3.0a129...v0.3.0a130) - 2024.10.23
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* allow using pre-defined orientations in Dream 3D stats generator
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a129"></a>
 ## [v0.3.0a129](https://github.com/hpcflow/matflow-new/compare/v0.3.0a128...v0.3.0a129) - 2024.07.14
 
