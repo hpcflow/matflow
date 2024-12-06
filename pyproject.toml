@@ -14,7 +14,7 @@ exclude = ["matflow/data/demo_data"]
 python = ">=3.8,<3.13"
 pytest = {version = "^7.2.0", optional = true}
 matplotlib = "^3.7"
-hpcflow-new2 = "^0.2.0a181"
+hpcflow-new2 = "^0.2.0a186"
 typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
