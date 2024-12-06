@@ -137,42 +137,29 @@ jobs:
   test-units-CentOS:
     needs: pre-commit
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     if: github.event_name == 'pull_request' || github.event.inputs.unit_tests == 'true'
-    container:
-      image: ghcr.io/hpcflow/centos7-poetry:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Set ownership
-        run: |
-          # see: https://github.com/actions/runner/issues/2033#issuecomment-1204205989
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
       - name: Cache the virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: venv-CentOS-test-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
-        run: poetry install --without dev,pyinstaller
-
-      - name: Run tests
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          poetry run python -m pytest --verbose --exitfirst ${{ github.event.inputs.unit_test_args }}
+      - name: Run unit tests within Docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v ${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          run: |
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev,pyinstaller
+            poetry run python -m pytest ${{ github.event.inputs.unit_test_args }}
 
   test-integration:
     needs: pre-commit
@@ -226,42 +213,29 @@ jobs:
   test-integration-CentOS:
     needs: pre-commit
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     if: github.event_name == 'pull_request' || github.event.inputs.integration_tests == 'true'
-    container:
-      image: ghcr.io/hpcflow/centos7-poetry:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Set ownership
-        run: |
-          # see: https://github.com/actions/runner/issues/2033#issuecomment-1204205989
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
       - name: Cache the virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: venv-CentOS-test-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
-        run: poetry install --without dev,pyinstaller
-
-      - name: Run tests
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          poetry run matflow test --verbose --exitfirst --integration ${{ github.event.inputs.integration_test_args }}
+      - name: Run integration tests within Docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v ${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          run: |
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev,pyinstaller
+            poetry run hpcflow test --integration ${{ github.event.inputs.integration_test_args }}
 
   test-invocation-ubuntu:
     if: github.event_name == 'pull_request' || github.event.inputs.invocation_tests == 'true'

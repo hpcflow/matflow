@@ -285,88 +285,76 @@ jobs:
   build-executables-linux:
     runs-on: ubuntu-latest
     needs: bump-version
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
-    container:
-      image: ghcr.io/hpcflow/centos7-poetry:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: {% raw %}${{ github.event.pull_request.base.ref }}{% endraw %} # otherwise we get the ref when the workflow started (missing above commit)
 
-      - name: Set ownership
-        run: |
-          # see: https://github.com/actions/runner/issues/2033#issuecomment-1204205989
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
       - name: Cache the virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.venv
-          key: {% raw %}venv-build-CentOS-${{ hashFiles('**/poetry.lock') }}{% endraw %}
+          key: venv-build-CentOS-{% raw %}${{ hashFiles('**/poetry.lock') }}{% endraw %}
 
-      - name: Install dependencies
-        run: poetry install --without dev
+      - name: Build executables within Docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v {% raw %}${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          run: |
+            # set up poetry
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev
 
-      - name: Build with pyinstaller for CentOS (file)
-        working-directory: pyinstaller
-        run: ./make.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux INFO onefile{% endraw %}
+            # build with pyinstaller for CentOS (file)
+            cd {{ pyinstaller_dir }}
+            ./make.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux INFO onefile{% endraw %}
+            cd ..
 
-      - name: Build with pyinstaller for CentOS (folder)
-        working-directory: pyinstaller
-        run: ./make.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux-dir INFO onedir{% endraw %}
+            # version check (file)
+            tag={% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}
+            tagNoV=${tag:1}
+            {{ executable_name }}_vers=$({{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux --version)
+            {{ executable_name }}_vers_expected="{{ app_name }}, version $tagNoV"
+            echo ${{ executable_name }}_vers
+            echo ${{ executable_name }}_vers_expected
+            [ "${{ executable_name }}_vers" = "${{ executable_name }}_vers_expected" ]
 
-      - name: Version check (file)
-        run: |
-          tag={% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}
-          tagNoV=${tag:1}
-          {{ executable_name }}_vers=$({{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux --version)
-          {{ executable_name }}_vers_expected="{{ app_name }}, version $tagNoV"
-          echo ${{ executable_name }}_vers
-          echo ${{ executable_name }}_vers_expected
-          [ "${{ executable_name }}_vers" = "${{ executable_name }}_vers_expected" ]
+            # run test suite on the frozen app (file)
+            {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux test{% endraw %}
 
-      - name: Version check (folder)
-        run: |
-          tag={% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}
-          tagNoV=${tag:1}
-          {{ executable_name }}_vers=$({{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir --version)
-          {{ executable_name }}_vers_expected="{{ app_name }}, version $tagNoV"
-          echo ${{ executable_name }}_vers
-          echo ${{ executable_name }}_vers_expected
-          [ "${{ executable_name }}_vers" = "${{ executable_name }}_vers_expected" ]
+            # build with pyinstaller for CentOS (folder)
+            cd {{ pyinstaller_dir }}
+            ./make.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux-dir INFO onedir{% endraw %}
+            cd ..
 
-      - name: Run test suite on the frozen app (file)
-        env:
-          GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
-        run: |
-          {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }{% endraw %}}-linux test
+            # version check (folder)
+            tag={% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}
+            tagNoV=${tag:1}
+            {{ executable_name }}_vers=$({{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir --version)
+            {{ executable_name }}_vers_expected="{{ app_name }}, version $tagNoV"
+            echo ${{ executable_name }}_vers
+            echo ${{ executable_name }}_vers_expected
+            [ "${{ executable_name }}_vers" = "${{ executable_name }}_vers_expected" ]
 
-      - name: Run test suite on the frozen app (folder)
-        env:
-          GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
-        run: |
-          {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }{% endraw %}}-linux-dir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }{% endraw %}}-linux-dir test
+            # run test suite on the frozen app (folder)
+            {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir test
 
-      - name: Compress folder (folder)
-        working-directory: {{ pyinstaller_dir }}
-        run: ./compress.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux-dir 'onedir'{% endraw %}
+            # Compress folder (folder)
+            cd pyinstaller
+            ./compress.sh {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}-linux-dir 'onedir'{% endraw %}
+            cd ..
 
       - name: Upload executable artifact (file)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux
           path: {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux
 
       - name: Upload executable artifact (compressed folder)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir.zip
           path: {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ needs.bump-version.outputs.new_tag_name }}{% endraw %}-linux-dir.zip

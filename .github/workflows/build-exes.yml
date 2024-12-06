@@ -40,7 +40,7 @@ on:
         description: "CLI args to pass verbatim to pytest (unit tests)."
         required: false
         type: string
-        default: ""        
+        default: ""
 
 jobs:
   build-windows-executables:
@@ -95,28 +95,28 @@ jobs:
         run: ./make.ps1 -ExeName "matflow-${{ env.vers }}-win-dir" -LogLevel ${{ github.event.inputs.logLevel }} -BuildType 'onedir'
 
       - name: Upload executable artifact (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-win.exe
           path: pyinstaller/dist/onefile/matflow-${{ env.vers }}-win.exe
 
       - name: Upload executable artifact (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-win-dir
           path: pyinstaller/dist/onedir/matflow-${{ env.vers }}-win-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-win.spec
           path: pyinstaller/matflow-${{ env.vers }}-win.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-win-build
@@ -133,14 +133,14 @@ jobs:
           pyinstaller/dist/onedir/matflow-${{ env.vers }}-win-dir/matflow-${{ env.vers }}-win-dir.exe config set-github-demo-data-dir ${{ env.sha }}
 
       - name: Run test suite on the frozen app (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pyinstaller/dist/onefile/matflow-${{ env.vers }}-win.exe test ${{ github.event.inputs.unit_test_args }}
 
       - name: Run test suite on the frozen app (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -199,28 +199,28 @@ jobs:
         run: ./make.sh matflow-${{ env.vers }}-macOS-dir ${{ github.event.inputs.logLevel }} 'onedir'
 
       - name: Upload executable artifact (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-macOS
           path: pyinstaller/dist/onefile/matflow-${{ env.vers }}-macOS
 
       - name: Upload executable artifact (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-macOS-dir
           path: pyinstaller/dist/onedir/matflow-${{ env.vers }}-macOS-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-macOS.spec
           path: pyinstaller/matflow-${{ env.vers }}-macOS.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-macOS-build
@@ -237,52 +237,32 @@ jobs:
           pyinstaller/dist/onedir/matflow-${{ env.vers }}-macOS-dir/matflow-${{ env.vers }}-macOS-dir config set-github-demo-data-dir ${{ env.sha }}
 
       - name: Run test suite on the frozen app (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pyinstaller/dist/onefile/matflow-${{ env.vers }}-macOS test ${{ github.event.inputs.unit_test_args }}
 
       - name: Run test suite on the frozen app (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pyinstaller/dist/onedir/matflow-${{ env.vers }}-macOS-dir/matflow-${{ env.vers }}-macOS-dir test ${{ github.event.inputs.unit_test_args }}
 
-
   build-executables-linux:
     if: github.event.inputs.build_linux == 'true'
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
-    container:
-      image: ghcr.io/hpcflow/centos7-poetry:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # get all history and tags
 
-      - name: Set ownership
-        run: |
-          # see: https://github.com/actions/runner/issues/2033#issuecomment-1204205989
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
       - name: Cache the virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: venv-build-CentOS-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        run: poetry install --without dev
 
       - name: Get executable version name and store git SHA
         run: |
@@ -296,64 +276,80 @@ jobs:
           echo "sha is: $sha"
           echo "sha=$sha" >> $GITHUB_ENV
 
-      - name: Build with pyinstaller for CentOS (file)
+      - name: Build executable (file) within Docker
         if: github.event.inputs.build_onefile == 'true'
-        working-directory: pyinstaller
-        run: ./make.sh matflow-${{ env.vers }}-linux ${{ github.event.inputs.logLevel }} onefile
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v ${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          run: |
 
-      - name: Build with pyinstaller for CentOS (folder)
+            # set up poetry
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev
+
+            # build with pyinstaller for CentOS (file)
+            cd pyinstaller
+            ./make.sh matflow-${{ env.vers }}-linux ${{ github.event.inputs.logLevel }} onefile
+            cd ..
+
+            # set demo data GitHub URL using current git SHA (file), instead of default which is current version tag
+            pyinstaller/dist/onefile/matflow-${{ env.vers }}-linux config set-github-demo-data-dir ${{ env.sha }}
+
+            # run test suite on the frozen app (file)
+            pyinstaller/dist/onefile/matflow-${{ env.vers }}-linux test ${{ github.event.inputs.unit_test_args }}
+
+      - name: Build executable (folder) within Docker
         if: github.event.inputs.build_onedir == 'true'
-        working-directory: pyinstaller
-        run: ./make.sh matflow-${{ env.vers }}-linux-dir ${{ github.event.inputs.logLevel }} onedir
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v ${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          run: |
+
+            # set up poetry
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev
+
+            # build with pyinstaller for CentOS (folder)
+            cd pyinstaller
+            ./make.sh matflow-${{ env.vers }}-linux-dir ${{ github.event.inputs.logLevel }} onedir
+            cd ..
+
+            # set demo data GitHub URL using current git SHA (folder), instead of default which is current version tag
+            pyinstaller/dist/onedir/matflow-${{ env.vers }}-linux-dir/matflow-${{ env.vers }}-linux-dir config set-github-demo-data-dir ${{ env.sha }}
+
+            # run test suite on the frozen app (folder)
+            pyinstaller/dist/onedir/matflow-${{ env.vers }}-linux-dir/matflow-${{ env.vers }}-linux-dir test ${{ github.event.inputs.unit_test_args }}
 
       - name: Upload executable artifact (file)
         if: github.event.inputs.build_onefile == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-linux
           path: pyinstaller/dist/onefile/matflow-${{ env.vers }}-linux
 
       - name: Upload executable artifact (folder)
         if: github.event.inputs.build_onedir == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-linux-dir
           path: pyinstaller/dist/onedir/matflow-${{ env.vers }}-linux-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
-        uses: actions/upload-artifact@v3
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-linux.spec
           path: pyinstaller/matflow-${{ env.vers }}-linux.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
-        uses: actions/upload-artifact@v3
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        uses: actions/upload-artifact@v4
         with:
           name: matflow-${{ env.vers }}-linux-build
           path: pyinstaller/build/matflow-${{ env.vers }}-linux
-
-      - name: Set demo data GitHub URL using current git SHA (file) # instead of default which is current version tag
-        if: github.event.inputs.build_onefile == 'true'
-        run: |
-          pyinstaller/dist/onefile/matflow-${{ env.vers }}-linux config set-github-demo-data-dir ${{ env.sha }}
-
-      - name: Set demo data GitHub URL using current git SHA (folder) # instead of default which is current version tag
-        if: github.event.inputs.build_onedir == 'true'
-        run: |
-          pyinstaller/dist/onedir/matflow-${{ env.vers }}-linux-dir/matflow-${{ env.vers }}-linux-dir config set-github-demo-data-dir ${{ env.sha }}
-
-      - name: Run test suite on the frozen app (file)
-        if: github.event.inputs.build_onefile == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pyinstaller/dist/onefile/matflow-${{ env.vers }}-linux test ${{ github.event.inputs.unit_test_args }}
-
-      - name: Run test suite on the frozen app (folder)
-        if: github.event.inputs.build_onedir == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pyinstaller/dist/onedir/matflow-${{ env.vers }}-linux-dir/matflow-${{ env.vers }}-linux-dir test ${{ github.event.inputs.unit_test_args }}

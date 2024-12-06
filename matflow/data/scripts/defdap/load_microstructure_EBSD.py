@@ -199,7 +199,7 @@ def _remove_small_grain_points(grain_image: NDArray, max_iterations: int = 200):
                     grain_image_new[i, j] = area[np.argsort(sizes)[-1]]
 
                 else:
-                    mode_vals, mode_counts = mode(area)
+                    mode_vals, mode_counts = mode(area, keepdims=True)
                     for mode_val, mode_count in zip(mode_vals, mode_counts):
                         if mode_count >= num_neighbours:
                             grain_image_new[i, j] = mode_val

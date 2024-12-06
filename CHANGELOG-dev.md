@@ -1,4 +1,42 @@
 
+<a name="v0.3.0a135"></a>
+## [v0.3.0a135](https://github.com/hpcflow/matflow-new/compare/v0.3.0a134...v0.3.0a135) - 2024.12.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a134"></a>
+## [v0.3.0a134](https://github.com/hpcflow/matflow-new/compare/v0.3.0a133...v0.3.0a134) - 2024.12.05
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a133"></a>
+## [v0.3.0a133](https://github.com/hpcflow/matflow-new/compare/v0.3.0a132...v0.3.0a133) - 2024.12.05
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* centOS GHAs
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a132"></a>
 ## [v0.3.0a132](https://github.com/hpcflow/matflow-new/compare/v0.3.0a131...v0.3.0a132) - 2024.11.14
 

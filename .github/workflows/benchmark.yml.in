@@ -58,7 +58,7 @@ jobs:
         with:
             name: {% raw %}benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt{% endraw %}
             path: {% raw %}benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt{% endraw %}
- 
+
   make-workflow-benchmark-upload:
     needs: make-workflow-benchmark
     runs-on: ubuntu-latest
@@ -69,10 +69,10 @@ jobs:
       - run: |
           mkdir benchmarks
       - uses: actions/download-artifact@v4
-        with: 
+        with:
           merge-multiple: true
           path: benchmarks
       - uses: actions/upload-artifact@v4
-        with:             
+        with:
           name: benchmarks
           path: benchmarks

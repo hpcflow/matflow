@@ -40,7 +40,7 @@ on:
         description: "CLI args to pass verbatim to pytest (unit tests)."
         required: false
         type: string
-        default: ""        
+        default: ""
 
 jobs:
   build-windows-executables:
@@ -95,28 +95,28 @@ jobs:
         run: ./make.ps1 -ExeName "{{ executable_name }}-{% raw %}${{ env.vers }}-win-dir" -LogLevel ${{ github.event.inputs.logLevel }}{% endraw %} -BuildType 'onedir'
 
       - name: Upload executable artifact (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win.exe
           path: {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win.exe
 
       - name: Upload executable artifact (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win-dir
           path: {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win.spec
           path: {{ pyinstaller_dir }}/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win-build
@@ -133,14 +133,14 @@ jobs:
           {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win-dir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win-dir.exe config set-github-demo-data-dir {% raw %}${{ env.sha }}{% endraw %}
 
       - name: Run test suite on the frozen app (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         env:
           GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
         run: |
           {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-win.exe test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
 
       - name: Run test suite on the frozen app (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         env:
           GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
         run: |
@@ -199,28 +199,28 @@ jobs:
         run: ./make.sh {{ executable_name }}-{% raw %}${{ env.vers }}-macOS-dir ${{ github.event.inputs.logLevel }}{% endraw %} 'onedir'
 
       - name: Upload executable artifact (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS
           path: {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS
 
       - name: Upload executable artifact (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir
           path: {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS.spec
           path: {{ pyinstaller_dir }}/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
         uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-build
@@ -237,52 +237,32 @@ jobs:
           {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir config set-github-demo-data-dir {% raw %}${{ env.sha }}{% endraw %}
 
       - name: Run test suite on the frozen app (file)
-        if:  github.event.inputs.build_onefile == 'true'
+        if: github.event.inputs.build_onefile == 'true'
         env:
           GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
         run: |
           {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
 
       - name: Run test suite on the frozen app (folder)
-        if:  github.event.inputs.build_onedir == 'true'
+        if: github.event.inputs.build_onedir == 'true'
         env:
           GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
         run: |
           {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-macOS-dir test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
 
-
   build-executables-linux:
     if: github.event.inputs.build_linux == 'true'
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
-    container:
-      image: ghcr.io/hpcflow/centos7-poetry:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # get all history and tags
 
-      - name: Set ownership
-        run: |
-          # see: https://github.com/actions/runner/issues/2033#issuecomment-1204205989
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: Configure poetry
-        run: |
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
       - name: Cache the virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./.venv
           key: {% raw %}venv-build-CentOS-${{ hashFiles('**/poetry.lock') }}{% endraw %}
-
-      - name: Install dependencies
-        run: poetry install --without dev
 
       - name: Get executable version name and store git SHA
         run: |
@@ -296,64 +276,80 @@ jobs:
           echo "sha is: $sha"
           echo "sha=$sha" >> $GITHUB_ENV
 
-      - name: Build with pyinstaller for CentOS (file)
+      - name: Build executable (file) within Docker
         if: github.event.inputs.build_onefile == 'true'
-        working-directory: {{ pyinstaller_dir }}
-        run: ./make.sh {{ executable_name }}-{% raw %}${{ env.vers }}-linux ${{ github.event.inputs.logLevel }}{% endraw %} onefile
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v {% raw %}${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          run: |
 
-      - name: Build with pyinstaller for CentOS (folder)
+            # set up poetry
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev
+
+            # build with pyinstaller for CentOS (file)
+            cd {{ pyinstaller_dir }}
+            ./make.sh {{ executable_name }}-{% raw %}${{ env.vers }}-linux ${{ github.event.inputs.logLevel }}{% endraw %} onefile
+            cd ..
+
+            # set demo data GitHub URL using current git SHA (file), instead of default which is current version tag
+            {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}-linux config set-github-demo-data-dir ${{ env.sha }}{% endraw %}
+
+            # run test suite on the frozen app (file)
+            {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}-linux test ${{ github.event.inputs.unit_test_args }}{% endraw %}
+
+      - name: Build executable (folder) within Docker
         if: github.event.inputs.build_onedir == 'true'
-        working-directory: {{ pyinstaller_dir }}
-        run: ./make.sh {{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir ${{ github.event.inputs.logLevel }}{% endraw %} onedir
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/hpcflow/centos7-poetry:latest
+          options: -v {% raw %}${{ github.workspace }}:/home --env GH_TOKEN=${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          run: |
+
+            # set up poetry
+            cd /home
+            poetry config virtualenvs.in-project true
+            poetry config installer.modern-installation false
+            poetry install --without dev
+
+            # build with pyinstaller for CentOS (folder)
+            cd {{ pyinstaller_dir }}
+            ./make.sh {{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir ${{ github.event.inputs.logLevel }}{% endraw %} onedir
+            cd ..
+
+            # set demo data GitHub URL using current git SHA (folder), instead of default which is current version tag
+            {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir config set-github-demo-data-dir {% raw %}${{ env.sha }}{% endraw %}
+
+            # run test suite on the frozen app (folder)
+            {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
 
       - name: Upload executable artifact (file)
         if: github.event.inputs.build_onefile == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux
           path: {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux
 
       - name: Upload executable artifact (folder)
         if: github.event.inputs.build_onedir == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir
           path: {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-dir
 
       - name: Upload spec file
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
-        uses: actions/upload-artifact@v3
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux.spec
           path: {{ pyinstaller_dir }}/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux.spec
 
       - name: Upload build directory
-        if:  ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
-        uses: actions/upload-artifact@v3
+        if: ((github.event.inputs.build_onefile == 'true') || (github.event.inputs.build_onedir == 'true'))
+        uses: actions/upload-artifact@v4
         with:
           name: {{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux-build
           path: {{ pyinstaller_dir }}/build/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux
-
-      - name: Set demo data GitHub URL using current git SHA (file) # instead of default which is current version tag
-        if: github.event.inputs.build_onefile == 'true'
-        run: |
-          {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux config set-github-demo-data-dir {% raw %}${{ env.sha }}{% endraw %}
-
-      - name: Set demo data GitHub URL using current git SHA (folder) # instead of default which is current version tag
-        if: github.event.inputs.build_onedir == 'true'
-        run: |
-          {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir/{% endraw %}{{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir{% endraw %} config set-github-demo-data-dir {% raw %}${{ env.sha }}{% endraw %}
-
-      - name: Run test suite on the frozen app (file)
-        if: github.event.inputs.build_onefile == 'true'
-        env:
-          GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
-        run: |
-          {{ pyinstaller_dir }}/dist/onefile/{{ executable_name }}-{% raw %}${{ env.vers }}{% endraw %}-linux test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
-
-      - name: Run test suite on the frozen app (folder)
-        if: github.event.inputs.build_onedir == 'true'
-        env:
-          GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
-        run: |
-          {{ pyinstaller_dir }}/dist/onedir/{{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir/{% endraw %}{{ executable_name }}-{% raw %}${{ env.vers }}-linux-dir{% endraw %} test {% raw %}${{ github.event.inputs.unit_test_args }}{% endraw %}
