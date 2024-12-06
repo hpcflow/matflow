@@ -184,7 +184,7 @@
         A dict with keys "euler_angles_deg" (list, optional) "keep_XY" (bool), or "keep_euler" (bool).
       condition:
         and:
-          - value.is_instance: [dict, "null"]
+          - value.is_instance: [dict]
           - key.in: [ "euler_angles_deg", "keep_XY", "keep_euler" ]
 - type: num_orientations
   _validation:
