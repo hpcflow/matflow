@@ -1,5 +1,5 @@
 - name: null_env
-# No special settings. Used for tests.
+  doc: Default system environment with no special settings. Used for tests.
 
 - name: python_env
   executables:
@@ -8,22 +8,22 @@
         - command: python <<script_name>> <<args>>
           num_cores: 1
           parallel_mode: null
-# For running Python; a Python virtual environment. Needs numpy and h5py.
+  doc: For running Python; a Python virtual environment. Needs numpy and h5py.
 
 - name: damask_env
-# For running DAMASK.
+  doc: For running DAMASK.
 
 - name: damask_parse_env
-# For running damask_parse; a Python virtual environment.
+  doc: For running damask_parse; a Python virtual environment.
 
 - name: formable_env
-# For running formable; a Python virtual environment.
+  doc: For running formable; a Python virtual environment.
 
 - name: matlab_env
-# For running MATLAB and MTEX.
+  doc: For running MATLAB and MTEX.
 
 - name: dream_3D_env
-# For running DREAM.3D
+  doc: For running DREAM.3D
 
 - name: defdap_env
-# For running DefDAP; a Python virtual environment.
+  doc: For running DefDAP; a Python virtual environment.

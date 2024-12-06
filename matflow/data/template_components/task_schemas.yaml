@@ -1,5 +1,5 @@
 - objective: test_t1_bash
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: p1
@@ -25,7 +25,7 @@
             done
 
 - objective: test_t1_ps
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: p1
@@ -55,7 +55,7 @@
           stdout: <<parameter:p2>>
 
 - objective: test_t2_bash
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: p2
@@ -72,7 +72,7 @@
           stdout: <<parameter:p3>>
 
 - objective: test_t2_ps
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: p2
@@ -89,7 +89,7 @@
           stdout: <<parameter:p3>>
 
 # - objective: dummy_task_1
-#   # Test only.
+#   doc: Test only.
 #   inputs:
 #     - parameter: p1
 #     - parameter: p2
@@ -113,7 +113,7 @@
 #           script: <<script:read_t1_outfile_1.py>>
 
 # - objective: file_modifying_task
-#   # Test only.
+#   doc: Test only.
 #   inputs:
 #     - parameter: p1
 #   outputs:
@@ -136,7 +136,7 @@
 #           script: <<script:read_my_file.py>>
 
 - objective: generate_microstructure_seeds
-  # Generate seeds for the crystalline microstructure.
+  doc: Generate seeds for the crystalline microstructure.
   method: from_random
   inputs:
     - parameter: VE_size
@@ -155,7 +155,7 @@
           environment: damask_parse_env
 
 - objective: generate_volume_element
-  # Generate a volume element from microstructure seeds using a Voronoi diagram.
+  doc: Generate a volume element from microstructure seeds using a Voronoi diagram.
   method: from_voronoi
   inputs:
     - parameter: microstructure_seeds
@@ -181,7 +181,7 @@
           environment: damask_parse_env
 
 - objective: visualise_VE
-  # Visualise a volume element.
+  doc: Visualise a volume element.
   method: VTK
   inputs:
     - parameter: volume_element
@@ -198,7 +198,7 @@
           environment: damask_parse_env
 
 - objective: sample_texture
-  # Extract the crystal orientations from a CTF file.
+  doc: Extract the crystal orientations from a CTF file.
   method: from_CTF_file
   implementation: mtex
   inputs:
@@ -254,7 +254,7 @@
             value.equal_to: false
 
 - objective: sample_texture
-  # Extract the crystal orientations from a channel reconstruction file.
+  doc: Extract the crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
@@ -310,7 +310,7 @@
             value.equal_to: false
 
 - objective: sample_texture
-  # Extract the crystal orientations from an ODF material file.
+  doc: Extract the crystal orientations from an ODF material file.
   method: from_ODF_mat_file
   implementation: mtex
   inputs:
@@ -360,7 +360,7 @@
             value.equal_to: false
 
 - objective: sample_texture
-  # Extract the crystal orientations from a model ODF file.
+  doc: Extract the crystal orientations from a model ODF file.
   method: from_model_ODF
   implementation: mtex
   inputs:
@@ -412,7 +412,7 @@
             value.equal_to: false
 
 - objective: visualise_orientations
-  # Visualise crystal orientations.
+  doc: Visualise crystal orientations.
   method: pole_figure
   implementation: mtex
   inputs:
@@ -472,7 +472,7 @@
             value.equal_to: false
 
 - objective: generate_orientations
-  # Generate random crystal orientations.
+  doc: Generate random crystal orientations.
   inputs:
     - parameter: num_orientations
   outputs:
@@ -488,17 +488,18 @@
           environment: python_env
 
 - objective: define_p1
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: p1
 
 - objective: define_load_case
-  # Pseudo-task for defining a load case as a literal value in the workflow.
+  doc: Pseudo-task for defining a load case as a literal value in the workflow.
   inputs:
     - parameter: load_case
 
 # - objective: define_orientations
+#   doc: Pseudo-task for defining orientations as a literal value in the workflow.
 #   inputs:
 #     - parameter: orientations
 #       accept_multiple: true
@@ -506,7 +507,7 @@
 #         oris_1: {}
 
 - objective: simulate_VE_loading
-  # Simulate applying a load case to a volume element.
+  doc: Simulate applying a load case to a volume element.
   implementation: damask
   inputs:
     - parameter: volume_element
@@ -587,7 +588,7 @@
               condition: { value.not_equal_to: null }
 
 - objective: simulate_VE_loading
-  # Simulate applying a load case to a volume element. High-concurrency mode.
+  doc: Simulate applying a load case to a volume element. High-concurrency mode.
   implementation: damask_HC # high concurrency
   inputs:
     - parameter: volume_element
@@ -638,7 +639,7 @@
           inputs: [damask_post_processing, VE_response_data, damask_viz]
 
 - objective: read_tensile_test
-  # Read tensile test data from CSV.
+  doc: Read tensile test data from CSV.
   method: from_CSV
   inputs:
     - parameter: CSV_file_path
@@ -668,7 +669,7 @@
       script_exe: python_script
 
 - objective: fit_single_crystal_parameters
-  # Fit crystal parameters to the tensile test under a volume element model.
+  doc: Fit crystal parameters to the tensile test under a volume element model.
   inputs:
     - parameter: VE_response
       group: fit_single_crystal_parameters
@@ -693,7 +694,7 @@
       script_exe: python_script
 
 - objective: dump_all_yield_stresses
-  # Dump yield stresses.
+  doc: Dump yield stresses.
   inputs:
     - parameter: VE_response
       group: all_simulations
@@ -710,7 +711,7 @@
       script_exe: python_script
 
 - objective: fit_yield_function
-  # Fit yield functions to volumem element's response model.
+  doc: Fit yield functions to volumem element's response model.
   inputs:
     - parameter: yield_function_name
     - parameter: yield_point_criteria
@@ -739,7 +740,7 @@
       script_exe: python_script
 
 - objective: print_hello
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: my_name
@@ -757,7 +758,7 @@
         - command: Write-Host "Hello, <<parameter:my_name>>!"
 
 - objective: demo_adder
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: number_1
@@ -779,7 +780,7 @@
           stdout: <<int(parameter:sum)>>
 
 - objective: demo_sleep
-  # Test only.
+  doc: Test only.
   web_doc: false
   inputs:
     - parameter: max_sleep_time
@@ -831,7 +832,7 @@
           stdout: <<int(parameter:sleep_time)>>
 
 # - objective: hello_world
-#   # Test only.
+#   doc: Test only.
 #   web_doc: false
 #   actions:
 #     - commands:
@@ -842,6 +843,7 @@
 #           environment: null_env
 
 # - objective: prepare_atoms_box
+#   doc: Prepare a box containing atoms using LAMPPS.
 #   inputs:
 #     - parameter: number_atoms
 #   outputs:
@@ -854,6 +856,7 @@
 #         - command: doSomething
 
 # - objective: optimise_atoms
+#   doc: Optimise atom placement using empirical potentials.
 #   method: empirical_potential
 #   inputs:
 #     - parameter: box
@@ -878,6 +881,7 @@
 #           stdin: <<lammps_input_script>>
 
 # - objective: generate_microstructure_seeds
+#   doc: Generate seeds for the microstructure. FIXME: incomplete
 #   inputs:
 #     - parameter: num_seeds
 #   outputs:
@@ -891,6 +895,7 @@
 #         - command: <<executable:python_script>> <<script>> ??
 
 # - objective: prepare_atoms_box
+#   doc: Prepare a box containing atoms using LAMPPS.
 #   method: v2
 #   inputs:
 #     - parameter: number_atoms
@@ -919,6 +924,7 @@
 #           from_files: [t1_outfile_1]
 
 # - objective: prepare_atoms_box
+#   doc: Prepare a box containing atoms using LAMMPS.
 #   method: v1
 #   inputs:
 #     - parameter: number_atoms
@@ -945,6 +951,7 @@
 #           from_files: [t1_outfile_1]
 
 # - objective: optimise_atoms
+#   doc: Optimise atom placement using empirical potentials.
 #   method: empirical_potential
 #   inputs:
 #     - parameter: box
@@ -975,6 +982,7 @@
 #           stdin: <<lammps_input_script>>
 
 # - objective: simulate_RVE_loading
+#   doc: Simulate representative volume element loading.
 #   method: CP_FFT
 #   inputs:
 #     - parameter: material
@@ -1002,7 +1010,7 @@
 #         - command: DAMASK_grid --load <<input_file:damask_load_file>> --geom <<input_file:damask_geom_file>>
 
 - objective: generate_volume_element
-  # Generate a volume element from phase statistics.
+  doc: Generate a volume element from phase statistics.
   method: from_statistics
   inputs:
     - parameter: grid_size
@@ -1047,7 +1055,7 @@
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
 
 - objective: generate_volume_element
-  # Generate a volume element by extrusion of a 2D model.
+  doc: Generate a volume element by extrusion of a 2D model.
   method: extrusion
   inputs:
     - parameter: microstructure_image
@@ -1071,7 +1079,7 @@
       script_exe: python_script
 
 - objective: load_microstructure
-  # Get a 2D microstructure model from a differential interference contrast microscopy image.
+  doc: Get a 2D microstructure model from a differential interference contrast microscopy image.
   method: EBSD_DIC
   inputs:
     - parameter: DIC
@@ -1096,7 +1104,7 @@
       script_exe: python_script
 
 - objective: load_microstructure
-  # Get a 2D microstructure model from an electron backscatter diffraction microscopy image.
+  doc: Get a 2D microstructure model from an electron backscatter diffraction microscopy image.
   method: EBSD
   inputs:
     - parameter: EBSD
@@ -1116,7 +1124,7 @@
       script_exe: python_script
 
 - objective: modify_VE
-  # Modify a volume element to add buffer zones around it.
+  doc: Modify a volume element to add buffer zones around it.
   method: add_buffer_zones
   inputs:
     - parameter: volume_element
@@ -1139,7 +1147,7 @@
       script_exe: python_script
 
 - objective: modify_VE
-  # Modify a volume element to alter the grid size.
+  doc: Modify a volume element to alter the grid size.
   method: grid_size
   inputs:
     - parameter: volume_element
@@ -1157,7 +1165,7 @@
       script_exe: python_script
 
 - objective: sample_orientations
-  # Get sample of crystal orientations from a contrast transfer function file.
+  doc: Get sample of crystal orientations from a contrast transfer function file.
   method: from_CTF_file
   implementation: mtex
   inputs:
@@ -1213,7 +1221,7 @@
             value.equal_to: false
 
 - objective: sample_orientations
-  # Get sample of crystal orientations from a channel reconstruction file.
+  doc: Get sample of crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
@@ -1269,7 +1277,7 @@
             value.equal_to: false
 
 - objective: sample_texture
-  # Get sample of crystal orientations by generation from a random model.
+  doc: Get sample of crystal orientations by generation from a random model.
   method: random
   implementation: mtex
   inputs:
