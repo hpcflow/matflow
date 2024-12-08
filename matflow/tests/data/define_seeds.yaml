@@ -1,0 +1,23 @@
+doc: |
+  A workflow used to test we can correctly initialise the `MicrostructureSeeds` class from
+  YAML parametrisations.
+
+tasks:
+  - schema: define_microstructure_seeds
+    inputs:
+      microstructure_seeds:
+        position:
+          - [0.3, 0.2, 0.1]
+          - [0.5, 0.4, 0.3]
+        box_size: [1.0, 1.0, 1.0]
+        phase_label: phase_1
+        orientations:
+          data:
+            - [0, 0, 0]
+            - [0, 45, 0]
+          unit_cell_alignment:
+            x: a
+          representation:
+            type: euler
+            euler_definition: bunge
+            euler_is_degrees: true

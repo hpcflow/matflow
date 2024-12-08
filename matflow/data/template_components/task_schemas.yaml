@@ -481,6 +481,14 @@
   inputs:
     - parameter: load_case
 
+- objective: define_orientations
+  inputs:
+    - parameter: orientations
+
+- objective: define_microstructure_seeds
+  inputs:
+    - parameter: microstructure_seeds
+
 # - objective: define_orientations
 #   inputs:
 #     - parameter: orientations
