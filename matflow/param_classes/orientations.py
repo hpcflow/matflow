@@ -118,11 +118,24 @@ class Orientations(ParameterValue):
     representation: OrientationRepresentation
 
     def __post_init__(self):
+        self.data = np.asarray(self.data)
+
         if not isinstance(self.representation, OrientationRepresentation):
             self.representation = OrientationRepresentation(**self.representation)
 
         if not isinstance(self.unit_cell_alignment, UnitCellAlignment):
             self.unit_cell_alignment = UnitCellAlignment(**self.unit_cell_alignment)
+
+    def __eq__(self, other: object) -> bool:
+        if (
+            isinstance(other, self.__class__)
+            and self.data.shape == other.data.shape
+            and np.allclose(self.data, other.data)
+            and self.unit_cell_alignment == other.unit_cell_alignment
+            and self.representation == other.representation
+        ):
+            return True
+        return False
 
     @classmethod
     def save_from_HDF5_group(cls, group, param_id: int, workflow):

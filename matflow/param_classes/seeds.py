@@ -27,6 +27,20 @@ class MicrostructureSeeds(ParameterValue):
         else:
             self.orientations = Orientations.from_random(number=self.num_seeds)
 
+    def __eq__(self, other: object) -> bool:
+        if (
+            isinstance(other, self.__class__)
+            and self.position.shape == other.position.shape
+            and np.allclose(self.position, other.position)
+            and self.box_size.shape == other.box_size.shape
+            and np.allclose(self.box_size, other.box_size)
+            and self.orientations == other.orientations
+            and self.phase_label == other.phase_label
+            and self.random_seed == other.random_seed
+        ):
+            return True
+        return False
+
     @classmethod
     def from_JSON_like(cls, position, orientations=None, **kwargs):
         """For custom initialisation via YAML or JSON."""

@@ -1,0 +1,19 @@
+doc: |
+  A workflow used to test we can correctly initialise the `LoadCase` class from
+  YAML parametrisations.
+
+tasks:
+  - schema: define_load_case
+    inputs:
+      load_case:
+        steps:
+          - total_time: 100
+            num_increments: 200
+            target_def_grad_rate:
+              - [0.001, 0.0, 0.0]
+              - [0.0, x, 0.0]
+              - [0.0, 0.0, x]
+            stress:
+              - [x, x, x]
+              - [x, 0.0, x]
+              - [x, x, 0.0]
