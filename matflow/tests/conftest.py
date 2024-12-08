@@ -65,7 +65,7 @@ def new_null_config(tmp_path):
 
 
 @pytest.fixture
-def load_case_1():
+def load_case_1() -> LoadCase:
     """A load case object to compare to that generated in `define_load.yaml`."""
     return LoadCase(
         steps=[
@@ -110,7 +110,7 @@ def load_case_1():
 
 
 @pytest.fixture
-def orientations_1():
+def orientations_1() -> Orientations:
     """An orientations object to compare to that generated in `define_orientations.yaml`."""
     return Orientations(
         data=np.array(
@@ -129,7 +129,7 @@ def orientations_1():
 
 
 @pytest.fixture
-def seeds_1(orientations_1):
+def seeds_1(orientations_1: Orientations) -> MicrostructureSeeds:
     """A microstructure seeds object to compare to that generated in `define_seeds.yaml`."""
     return MicrostructureSeeds(
         position=np.array(
