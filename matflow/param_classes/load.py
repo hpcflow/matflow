@@ -40,7 +40,7 @@ class StrainRateMode(_StrainRateMode, enum.Enum):
     #: Deformation gradient rate.
     DEF_GRAD_RATE = (0, "F_rate", "Deformation gradient rate.")
     #: Velocity gradient.
-    VEL_GRAD = (1, "L", "elocity gradient.")
+    VEL_GRAD = (1, "L", "Velocity gradient.")
     #: Velocity gradient approximation.
     VEL_GRAD_APPROX = (2, "L_approx", "Velocity gradient approximation.")
 
@@ -910,7 +910,8 @@ class LoadCase(ParameterValue):
     @property
     def type(self) -> str | list[str]:
         """
-        The type of the step in the case, or the types if there are multiple steps.
+        The type of the step if there is only a single step,
+        or the types if there are multiple steps.
         """
         if self.num_steps == 1:
             return self.steps[0].type
@@ -920,7 +921,7 @@ class LoadCase(ParameterValue):
     @property
     def types(self) -> list[str]:
         """
-        The types of the steps in the case.
+        The types of the steps.
         """
         return [i.type for i in self.steps]
 
@@ -940,7 +941,7 @@ class LoadCase(ParameterValue):
     def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
 
-        See `LoadStep.uniaxial` for argument documentation.
+        See :py:meth:`~LoadStep.uniaxial` for argument documentation.
 
         """
         return cls(steps=[LoadStep.uniaxial(**kwargs)])
@@ -949,7 +950,7 @@ class LoadCase(ParameterValue):
     def biaxial(cls, **kwargs) -> Self:
         """A single-step biaxial load case.
 
-        See `LoadStep.biaxial` for argument documentation.
+        See :py:meth:`~`LoadStep.biaxial` for argument documentation.
 
         """
         return cls(steps=[LoadStep.biaxial(**kwargs)])
@@ -958,7 +959,7 @@ class LoadCase(ParameterValue):
     def plane_strain(cls, **kwargs) -> Self:
         """A single-step plane-strain load case.
 
-        See `LoadStep.plane_strain` for argument documentation.
+        See :py:meth:`~LoadStep.plane_strain` for argument documentation.
 
         """
         return cls(steps=[LoadStep.plane_strain(**kwargs)])
@@ -967,7 +968,7 @@ class LoadCase(ParameterValue):
     def planar_2D(cls, **kwargs) -> Self:
         """A single-step planar 2D load case.
 
-        See `LoadStep.planar_2D` for argument documentation.
+        See :py:meth:`~LoadStep.planar_2D` for argument documentation.
 
         """
         return cls(steps=[LoadStep.planar_2D(**kwargs)])
@@ -976,7 +977,7 @@ class LoadCase(ParameterValue):
     def random_2D(cls, **kwargs) -> Self:
         """A single-step random 2D load case.
 
-        See `LoadStep.random_2D` for argument documentation.
+        See :py:meth:`~LoadStep.random_2D` for argument documentation.
 
         """
         return cls(steps=[LoadStep.random_2D(**kwargs)])
@@ -985,7 +986,7 @@ class LoadCase(ParameterValue):
     def random_3D(cls, **kwargs) -> Self:
         """A single-step random 3D load case.
 
-        See `LoadStep.random_3D` for argument documentation.
+        See :py:meth:`~LoadStep.random_3D` for argument documentation.
         """
         return cls(steps=[LoadStep.random_3D(**kwargs)])
 
@@ -993,7 +994,8 @@ class LoadCase(ParameterValue):
     def uniaxial_cyclic(cls, **kwargs) -> Self:
         """Uniaxial cyclic loading.
 
-        See `LoadStep.uniaxial_cyclic` for argument documentation."""
+        See :py:meth:`~LoadStep.uniaxial_cyclic` for argument documentation.
+        """
         return cls(steps=LoadStep.uniaxial_cyclic(**kwargs))
 
     @classmethod

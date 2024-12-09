@@ -38,7 +38,7 @@ class EulerDefinition(_EulerDefinition, enum.Enum):
 
 
 class QuatOrder(enum.Enum):
-    """Order in which the four quaternion components listed.
+    """Order in which the four quaternion components are listed.
 
     Dream3D [1] uses vector-scalar ordering, whereas most other programs seem to use
     scalar-vector ordering.
