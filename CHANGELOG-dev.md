@@ -1,4 +1,34 @@
 
+<a name="v0.3.0a137"></a>
+## [v0.3.0a137](https://github.com/hpcflow/matflow-new/compare/v0.3.0a136...v0.3.0a137) - 2024.12.08
+
+### ♻ Code Refactoring
+
+* reuse util function from hpcflow
+
+### 🐛 Bug Fixes
+
+* add missing import
+* add tests for YAML-initialising load case, seeds, orientations
+
+### 👷 Build changes
+
+* merge branch 'develop' into test/params
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a136"></a>
+## [v0.3.0a136](https://github.com/hpcflow/matflow-new/compare/v0.3.0a135...v0.3.0a136) - 2024.12.08
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a135"></a>
 ## [v0.3.0a135](https://github.com/hpcflow/matflow-new/compare/v0.3.0a134...v0.3.0a135) - 2024.12.06
 
