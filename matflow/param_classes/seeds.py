@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from typing_extensions import Self
+from typing_extensions import Self, TypeGuard
 
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
@@ -31,10 +31,17 @@ class MicrostructureSeeds(ParameterValue):
     #: Seed for the random number generator, if used.
     random_seed: int | None = None
 
+    @staticmethod
+    def __is_dict(value) -> TypeGuard[dict[str, Any]]:
+        # TypeGuard, not TypeIs; gets the correct type semantics
+        return isinstance(value, dict)
+
     def __post_init__(self) -> None:
         self.box_size = np.asarray(self.box_size)
         self.position = np.asarray(self.position)
-        if not self.orientations:
+        if self.__is_dict(self.orientations):
+            self.orientations = Orientations(**self.orientations)
+        elif not self.orientations:
             self.orientations = Orientations.from_random(number=self.num_seeds)
 
     @classmethod

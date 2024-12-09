@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import enum
 from pathlib import Path
-from typing_extensions import ClassVar, Self
+from typing_extensions import Any, ClassVar, Self, TypeGuard
 
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
@@ -222,17 +222,22 @@ class Orientations(ParameterValue):
     _typ: ClassVar[str] = "orientations"
 
     #: Orientation data
-    data: np.ndarray
+    data: ArrayLike
     #: Alignment of the unit cell.
     unit_cell_alignment: UnitCellAlignment
     #: How the orientation data is represented.
     representation: OrientationRepresentation
 
+    @staticmethod
+    def __is_dict(value) -> TypeGuard[dict[str, Any]]:
+        # TypeGuard, not TypeIs; gets the correct type semantics
+        return isinstance(value, dict)
+
     def __post_init__(self) -> None:
-        if not isinstance(self.representation, OrientationRepresentation):
+        if self.__is_dict(self.representation):
             self.representation = OrientationRepresentation(**self.representation)
 
-        if not isinstance(self.unit_cell_alignment, UnitCellAlignment):
+        if self.__is_dict(self.unit_cell_alignment):
             self.unit_cell_alignment = UnitCellAlignment(**self.unit_cell_alignment)
 
     @classmethod
