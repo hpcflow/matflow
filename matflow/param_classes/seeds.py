@@ -45,7 +45,7 @@ class MicrostructureSeeds(ParameterValue):
             self.orientations = Orientations.from_random(number=self.num_seeds)
 
     def __eq__(self, other: object) -> bool:
-        if (
+        return (
             isinstance(other, self.__class__)
             and self.position.shape == other.position.shape
             and np.allclose(self.position, other.position)
@@ -54,9 +54,7 @@ class MicrostructureSeeds(ParameterValue):
             and self.orientations == other.orientations
             and self.phase_label == other.phase_label
             and self.random_seed == other.random_seed
-        ):
-            return True
-        return False
+        )
 
     @classmethod
     def from_JSON_like(

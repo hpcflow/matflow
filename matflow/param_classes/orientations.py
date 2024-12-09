@@ -183,7 +183,7 @@ class UnitCellAlignment(ParameterValue):
         self.z = get_enum_by_name_or_val(LatticeDirection, self.z)
 
     @classmethod
-    def from_hex_convention_DAMASK(cls):
+    def from_hex_convention_DAMASK(cls) -> Self:
         """
         Generate a unit cell alignment from Damask's default convention for hexagonal
         symmetry.
@@ -192,7 +192,7 @@ class UnitCellAlignment(ParameterValue):
         return cls(x=LatticeDirection.A, y=LatticeDirection.B_STAR, z=LatticeDirection.C)
 
     @classmethod
-    def from_hex_convention_MTEX(cls):
+    def from_hex_convention_MTEX(cls) -> Self:
         """Generate a unit cell alignment from MTEX's default convention for hexagonal
         symmetry.
 
@@ -222,7 +222,7 @@ class Orientations(ParameterValue):
     _typ: ClassVar[str] = "orientations"
 
     #: Orientation data
-    data: ArrayLike
+    data: NDArray
     #: Alignment of the unit cell.
     unit_cell_alignment: UnitCellAlignment
     #: How the orientation data is represented.
@@ -233,24 +233,29 @@ class Orientations(ParameterValue):
         # TypeGuard, not TypeIs; gets the correct type semantics
         return isinstance(value, dict)
 
+    @staticmethod
+    def __is_just_array_like(value: ArrayLike) -> TypeGuard[list]:
+        # TypeGuard, not TypeIs; gets the correct type semantics
+        # Type should really be "array like that isn't an ndarray" but that's
+        # horrible to express.
+        return not isinstance(value, np.ndarray)
+
     def __post_init__(self) -> None:
-        self.data = np.asarray(self.data)
+        if self.__is_just_array_like(self.data):
+            self.data = np.asarray(self.data)
         if self.__is_dict(self.representation):
             self.representation = OrientationRepresentation(**self.representation)
-
         if self.__is_dict(self.unit_cell_alignment):
             self.unit_cell_alignment = UnitCellAlignment(**self.unit_cell_alignment)
 
     def __eq__(self, other: object) -> bool:
-        if (
+        return (
             isinstance(other, self.__class__)
             and self.data.shape == other.data.shape
             and np.allclose(self.data, other.data)
             and self.unit_cell_alignment == other.unit_cell_alignment
             and self.representation == other.representation
-        ):
-            return True
-        return False
+        )
 
     @classmethod
     def save_from_HDF5_group(cls, group, param_id: int, workflow):
@@ -261,6 +266,8 @@ class Orientations(ParameterValue):
         We avoid loading the data into memory all at once by firstly generating an
         `Orientations` object with a small data array, and then copying from the HDF5
         group directly into the newly created Zarr group.
+
+        We assume that the workflow is using a Zarr datastore. This is not checked!
         """
 
         repr_type = int(group.attrs.get("representation_type")[0])
