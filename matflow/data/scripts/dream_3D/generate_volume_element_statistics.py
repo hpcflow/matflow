@@ -196,17 +196,19 @@ def generate_volume_element_statistics(
 
         phase_type = phase_stats["type"].lower()
         if phase_type not in ALLOWED_PHASE_TYPES:
-            raise ValueError(err_msg + f'`type` "{phase_stats["type"]}" not allowed.')
+            raise ValueError(f'{err_msg}`type` "{phase_stats["type"]}" not allowed.')
 
         given_keys = set(phase_stats.keys())
         miss_keys = REQUIRED_PHASE_KEYS[phase_type] - given_keys
         bad_keys = given_keys - ALLOWED_PHASE_KEYS[phase_type]
         if miss_keys:
-            msg = err_msg + f'Missing keys: {", ".join([f"{i}" for i in miss_keys])}'
-            raise ValueError(msg)
+            raise ValueError(
+                f'{err_msg}Missing keys: {", ".join([f"{i}" for i in miss_keys])}'
+            )
         if bad_keys:
-            msg = err_msg + f'Unknown keys: {", ".join([f"{i}" for i in bad_keys])}'
-            raise ValueError(msg)
+            raise ValueError(
+                f'{err_msg}Unknown keys: {", ".join([f"{i}" for i in bad_keys])}'
+            )
 
         size_dist = phase_stats["size_distribution"]
         given_size_keys = set(size_dist.keys())
@@ -214,19 +216,19 @@ def generate_volume_element_statistics(
         bad_size_keys = given_size_keys - ALLOWED_PHASE_SIZE_DIST_KEYS
         if miss_size_keys:
             raise ValueError(
-                err_msg + f"Missing `size_distribution` keys: "
+                f"{err_msg}Missing `size_distribution` keys: "
                 f'{", ".join([f"{i}" for i in miss_size_keys])}'
             )
         if bad_size_keys:
             raise ValueError(
-                err_msg + f"Unknown `size_distribution` keys: "
+                f"{err_msg}Unknown `size_distribution` keys: "
                 f'{", ".join([f"{i}" for i in bad_size_keys])}'
             )
         num_bins = size_dist.get("num_bins")
         bin_step_size = size_dist.get("bin_step_size")
         if sum([i is None for i in (num_bins, bin_step_size)]) != 1:
             raise ValueError(
-                err_msg + f'Specify exactly one of `num_bins` (given as "{num_bins}") '
+                f'{err_msg}Specify exactly one of `num_bins` (given as "{num_bins}") '
                 f'and `bin_step_size` (given as "{bin_step_size}").'
             )
 
@@ -238,22 +240,22 @@ def generate_volume_element_statistics(
 
             if miss_RDF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `radial_distribution_function` keys: "
+                    f"{err_msg}Missing `radial_distribution_function` keys: "
                     f'{", ".join([f"{i}" for i in miss_RDF_keys])}'
                 )
             if bad_RDF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `radial_distribution_function` keys: "
+                    f"{err_msg}Unknown `radial_distribution_function` keys: "
                     f'{", ".join([f"{i}" for i in bad_RDF_keys])}'
                 )
 
         phase_i_CS = phase_stats["crystal_structure"]
         if phase_i_CS not in ALLOWED_CRYSTAL_STRUCTURES:
-            msg = err_msg + (
-                f'`crystal_structure` value "{phase_i_CS}" unknown. Must be one of: '
+            raise ValueError(
+                f'{err_msg}`crystal_structure` value "{phase_i_CS}" unknown. '
+                f'Must be one of: '
                 f'{", ".join([f"{i}" for i in ALLOWED_CRYSTAL_STRUCTURES])}'
             )
-            raise ValueError(msg)
 
         preset = phase_stats.get("preset_statistics_model")
         if preset:
@@ -261,19 +263,19 @@ def generate_volume_element_statistics(
             preset_type = preset.get("type")
             if not preset_type:
                 raise ValueError(
-                    err_msg + f"Missing `preset_statistics_model` key: " f'"type".'
+                    f"{err_msg}Missing `preset_statistics_model` key: " f'"type".'
                 )
             miss_preset_keys = PRESETS_TYPE_KEYS[preset_type] - given_preset_keys
             bad_preset_keys = given_preset_keys - PRESETS_TYPE_KEYS[preset_type]
 
             if miss_preset_keys:
                 raise ValueError(
-                    err_msg + f"Missing `preset_statistics_model` keys: "
+                    f"{err_msg}Missing `preset_statistics_model` keys: "
                     f'{", ".join([f"{i}" for i in miss_preset_keys])}'
                 )
             if bad_preset_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `preset_statistics_model` keys: "
+                    f"{err_msg}Unknown `preset_statistics_model` keys: "
                     f'{", ".join([f"{i}" for i in bad_preset_keys])}'
                 )
 
@@ -285,7 +287,7 @@ def generate_volume_element_statistics(
                     >= preset["C_axis_length"]
                 ):
                     raise ValueError(
-                        err_msg + f"The following condition must be true: "
+                        f"{err_msg}The following condition must be true: "
                         f"`A_axis_length >= B_axis_length >= C_axis_length`, but these "
                         f'are, respectively: {preset["A_axis_length"]}, '
                         f'{preset["B_axis_length"]}, {preset["C_axis_length"]}.'
@@ -298,7 +300,7 @@ def generate_volume_element_statistics(
         mean = size_dist.get("ESD_mean")
         if sum([i is None for i in (log_mean, mean)]) != 1:
             raise ValueError(
-                err_msg + f"Specify exactly one of `ESD_log_mean` (given as "
+                f"{err_msg}Specify exactly one of `ESD_log_mean` (given as "
                 f'"{log_mean}") and `ESD_mean` (given as "{mean}").'
             )
 
@@ -333,7 +335,7 @@ def generate_volume_element_statistics(
             else:
                 if dist_key == "neighbours" and phase_type == "precipitate":
                     warnings.warn(
-                        err_msg + f"`neighbours` distribution not allowed with "
+                        f"{err_msg}`neighbours` distribution not allowed with "
                         f'"precipitate" phase type; ignoring.'
                     )
                     continue
@@ -345,12 +347,12 @@ def generate_volume_element_statistics(
             bad_dist_keys = given_dist_keys - required_dist_keys
             if miss_dist_keys:
                 raise ValueError(
-                    err_msg + f"Missing `{dist_key}` keys: "
+                    f"{err_msg}Missing `{dist_key}` keys: "
                     f'{", ".join([f"{i}" for i in miss_dist_keys])}'
                 )
             if bad_dist_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `{dist_key}` keys: "
+                    f"{err_msg}Unknown `{dist_key}` keys: "
                     f'{", ".join([f"{i}" for i in bad_dist_keys])}'
                 )
 
@@ -369,7 +371,7 @@ def generate_volume_element_statistics(
 
                 elif len(dist_param_val) != num_bins:
                     raise ValueError(
-                        err_msg + f'Distribution `{dist_key}` key "{dist_param}" must '
+                        f'{err_msg}Distribution `{dist_key}` key "{dist_param}" must '
                         f"have length one, or length equal to the number of size "
                         f"distribution bins, which is {num_bins}, but in fact has "
                         f"length {len(dist_param_val)}."
@@ -392,12 +394,12 @@ def generate_volume_element_statistics(
             bad_ODF_keys = given_ODF_keys - ALLOWED_PHASE_ODF_KEYS
             if miss_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `ODF` keys: "
+                    f"{err_msg}Missing `ODF` keys: "
                     f'{", ".join([f"{i}" for i in miss_ODF_keys])}'
                 )
             if bad_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `ODF` keys: "
+                    f"{err_msg}Unknown `ODF` keys: "
                     f'{", ".join([f"{i}" for i in bad_ODF_keys])}'
                 )
 
@@ -408,13 +410,13 @@ def generate_volume_element_statistics(
 
                 if ODF_presets:
                     warnings.warn(
-                        err_msg + f"Using locally defined ODF presets; not "
+                        f"{err_msg}Using locally defined ODF presets; not "
                         f"using `orientations` from a previous task."
                     )
 
                 elif "orientations" in ODF:
                     warnings.warn(
-                        err_msg + f"Using locally defined `orientations`, not "
+                        f"{err_msg}Using locally defined `orientations`, not "
                         f"those from a previous task!"
                     )
 
@@ -424,7 +426,7 @@ def generate_volume_element_statistics(
             if ODF_presets:
                 if any([ODF.get(i) is not None for i in ALLOWED_PHASE_AXIS_ODF_KEYS]):
                     raise ValueError(
-                        err_msg + f"Specify either `presets` or `orientations` (and "
+                        f"{err_msg}Specify either `presets` or `orientations` (and "
                         f"`sigmas and `weights)."
                     )
                 preset_eulers = []
@@ -436,7 +438,7 @@ def generate_volume_element_statistics(
                         or ODF_preset["name"].lower() not in ODF_CUBIC_PRESETS
                     ):
                         raise ValueError(
-                            err_msg + f"Specify `name` for ODF preset index "
+                            f"{err_msg}Specify `name` for ODF preset index "
                             f"{ODF_preset_idx}; one of: "
                             f'{", ".join([f"{i}" for i in ODF_CUBIC_PRESETS.keys()])}'
                         )
@@ -466,12 +468,11 @@ def generate_volume_element_statistics(
                             P=oris["P"],
                         )
                 elif oris["unit_cell_alignment"].get("x") != "a":
-                    msg = (
+                    NotImplementedError(
                         f"Cannot convert from the following specified unit cell "
                         f"alignment to Dream3D-compatible unit cell alignment (x//a): "
                         f'{oris["unit_cell_alignment"]}'
                     )
-                    NotImplementedError(msg)
 
             num_oris = oris["quaternions"].shape[0]
 
@@ -495,9 +496,9 @@ def generate_volume_element_statistics(
 
                 elif len(val) != num_oris:
                     raise ValueError(
-                        err_msg + f'ODF key "{i}" must have length one, or length equal '
-                        f"to the number of ODF orientations, which is {num_oris}, but in "
-                        f"fact has length {len(val)}."
+                        f'{err_msg}ODF key "{i}" must have length one, or length equal '
+                        f"to the number of ODF orientations, which is {num_oris}, but "
+                        f"in fact has length {len(val)}."
                     )
                 ODF[i] = val
 
@@ -518,12 +519,12 @@ def generate_volume_element_statistics(
             bad_axis_ODF_keys = given_axis_ODF_keys - ALLOWED_PHASE_AXIS_ODF_KEYS
             if miss_axis_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `axis_ODF` keys: "
+                    f"{err_msg}Missing `axis_ODF` keys: "
                     f'{", ".join([f"{i}" for i in miss_axis_ODF_keys])}'
                 )
             if bad_axis_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `axis_ODF` keys: "
+                    f"{err_msg}Unknown `axis_ODF` keys: "
                     f'{", ".join([f"{i}" for i in bad_axis_ODF_keys])}'
                 )
 
@@ -544,12 +545,12 @@ def generate_volume_element_statistics(
                             P=axis_oris["P"],
                         )
                 elif axis_oris["unit_cell_alignment"].get("x") != "a":
-                    msg = (
+                    # FIXME: missing raise
+                    NotImplementedError(
                         f"Cannot convert from the following specified unit cell "
                         f"alignment to Dream3D-compatible unit cell alignment (x//a): "
                         f'{axis_oris["unit_cell_alignment"]}'
                     )
-                    NotImplementedError(msg)
 
             num_oris = axis_oris["quaternions"].shape[0]
 
@@ -573,10 +574,9 @@ def generate_volume_element_statistics(
 
                 elif len(val) != num_oris:
                     raise ValueError(
-                        err_msg
-                        + f'axis_ODF key "{i}" must have length one, or length equal '
-                        f"to the number of axis_ODF orientations, which is {num_oris}, "
-                        f"but in fact has length {len(val)}."
+                        f'{err_msg}axis_ODF key "{i}" must have length one, or length '
+                        f"equal to the number of axis_ODF orientations, which is "
+                        f"{num_oris}, but in fact has length {len(val)}."
                     )
                 axis_ODF[i] = val
 
