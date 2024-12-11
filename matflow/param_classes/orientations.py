@@ -308,10 +308,20 @@ class Orientations(ParameterValue):
         ]
 
     @classmethod
-    def from_JSON_like(cls, data: ArrayLike, ori_format) -> Self:
+    def from_JSON_like(cls, data: ArrayLike, ori_format: str) -> Self:
         """For custom initialisation via YAML or JSON."""
-        # FIXME: no parameter: ori_format
-        return cls(data=np.asarray(data), ori_format=ori_format)
+        if ori_format.lower() in ("quaternion", "quaternions"):
+            ori = OrientationRepresentation.quaternion()
+        elif ori_format.lower() == "euler":
+            ori = OrientationRepresentation.euler()
+        else:
+            raise ValueError("unsupported orientation format")
+
+        return cls(
+            data=np.asarray(data),
+            unit_cell_alignment=UnitCellAlignment.from_hex_convention_DAMASK(),
+            representation=ori,
+        )
 
     @classmethod
     def from_random(cls, number: int) -> Self:
@@ -326,10 +336,7 @@ class Orientations(ParameterValue):
         return cls(
             data=cls.quat_sample_random(number),
             unit_cell_alignment=UnitCellAlignment.from_hex_convention_DAMASK(),
-            representation=OrientationRepresentation(
-                type=OrientationRepresentationType.QUATERNION,
-                quat_order=QuatOrder.SCALAR_VECTOR,
-            ),
+            representation=OrientationRepresentation.quaternion(),
         )
 
     @classmethod

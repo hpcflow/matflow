@@ -66,8 +66,10 @@ class MicrostructureSeeds(ParameterValue):
         """For custom initialisation via YAML or JSON."""
         # TODO: is this needed?
         if orientations:
-            orientations = Orientations.from_JSON_like(**orientations)
-        return cls(position=np.asarray(position), orientations=orientations, **kwargs)
+            orient = Orientations.from_JSON_like(**orientations)
+        else:
+            orient = None
+        return cls(position=np.asarray(position), orientations=orient, **kwargs)
 
     @property
     def num_seeds(self) -> int:
