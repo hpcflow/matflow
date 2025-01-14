@@ -1,7 +1,4 @@
-name: benchmark
-
-env:
-  POETRY_VERSION: "1.4"
+name: Benchmark
 
 on:
   workflow_dispatch: # manual invocation
@@ -17,62 +14,14 @@ on:
         default: '["ubuntu-latest", "macos-13", "windows-latest"]'
 
 jobs:
-  make-workflow-benchmark:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: {% raw %}${{ fromJSON(github.event.inputs.python)}}{% endraw %}
-        os: {% raw %}${{ fromJSON(github.event.inputs.platform)}}{% endraw %}
-        num_elements: {% raw %}${{ fromJSON(github.event.inputs.num_elements)}}{% endraw %}
-    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: {% raw %}${{ github.ref }}{% endraw %}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
-
-      - name: Install and configure poetry
-        run: |
-          python -m pip install poetry=={% raw %}${{ env.POETRY_VERSION }}{% endraw %}
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v4
-        with:
-          path: ./.venv
-          key: {% raw %}${{ runner.os }}-test-${{ matrix.python-version }}-venv-${{ hashFiles('**/poetry.lock') }}{% endraw %}
-
-      - name: Install dependencies
-        run: |
-          poetry install --without dev,pyinstaller
-
-      - name: Run app make workflow command
-        run: |
-          poetry run {{ executable_name }} --timeit-file benchmark_make_workflow_{% raw %}${{ matrix.num_elements }}{% endraw %}_elements-{% raw %}${{ runner.os }}-py-${{ matrix.python-version }}.txt{% endraw %} make {{ benchmark_make_workflow }} --var N {% raw %}${{ matrix.num_elements }}{% endraw %}
-
-      - uses: actions/upload-artifact@v4
-        with:
-            name: {% raw %}benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt{% endraw %}
-            path: {% raw %}benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt{% endraw %}
-
-  make-workflow-benchmark-upload:
-    needs: make-workflow-benchmark
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: {% raw %}${{ github.ref }}{% endraw %}
-      - run: |
-          mkdir benchmarks
-      - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-          path: benchmarks
-      - uses: actions/upload-artifact@v4
-        with:
-          name: benchmarks
-          path: benchmarks
+  workflow-benchmark:
+    uses: hpcflow/github-support/.github/workflows/benchmark-impl.yml@main
+    with:
+      executable_name: {{ executable_name }}
+      benchmark_make_workflow: {{ benchmark_make_workflow }}
+{% raw %}
+      python: ${{ github.event.inputs.python }}
+      num_elements: ${{ github.event.inputs.num_elements }}
+      platform: ${{ github.event.inputs.platform }}
+      ref: ${{ github.ref }}
+{% endraw %}
