@@ -626,6 +626,23 @@
           script: <<script:damask/high_concurrency/process_HDF5.py>>
           inputs: [damask_post_processing, VE_response_data, damask_viz]
 
+- objective: generate_load_case
+  method: import_npz
+  inputs:
+    - parameter: npz_file_path
+    - parameter: idx
+  outputs:
+    - parameter: load_case
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: formable_env
+      script: <<script:formable/read_FE_model_npz.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+
 - objective: read_tensile_test
   method: from_CSV
   inputs:
