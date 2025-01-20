@@ -1,19 +1,33 @@
-from typing import List
+"""
+Miscellaneous utility functions.
+"""
+from __future__ import annotations
+from typing_extensions import TypeIs
 import numpy as np
+from numpy.typing import NDArray
 
 
-def masked_array_from_list(arr, fill_value="x"):
+def _is_list_of_lists(
+    arr: list[float] | list[list[float]]
+) -> TypeIs[list[list[float]]]:
+    return isinstance(arr[0], list)
+
+
+def masked_array_from_list(
+    arr: list[float] | list[list[float]],
+    fill_value: str = "x"
+) -> NDArray:
     """Generate a (masked) array from a 1D or 2D list whose elements may contain a fill
     value."""
 
     is_2D = False
-    if isinstance(arr[0], list):
+    if _is_list_of_lists(arr):
         is_2D = True
         n_rows = len(arr)
         arr = [item for row in arr for item in row]
 
     data = np.empty(len(arr))
-    mask = np.zeros(len(arr))
+    mask = np.full(len(arr), False)
     has_mask = False
     for idx, i in enumerate(arr):
         if i == fill_value:
