@@ -1334,3 +1334,22 @@
         - path: inputs.compile
           condition:
             value.equal_to: false
+
+- objective: generate_rve
+  method: from_damask_input_files
+  inputs: 
+  - parameter: geom_path
+  - parameter: material_path
+  - parameter: orientations
+    default_value: null
+  outputs:
+  - parameter: volume_element
+  actions:
+  - environments:
+    - scope:
+        type: any
+      environment: damask_parse_env
+    script: <<script:damask/generate_volume_element_from_damask_input_files.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
