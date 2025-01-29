@@ -18,6 +18,7 @@ class MicrostructureSeeds(ParameterValue):
     """
     The seeds for crystalline microstructure.
     """
+
     _typ = "microstructure_seeds"
 
     #: The positions of the seeds.
@@ -58,10 +59,7 @@ class MicrostructureSeeds(ParameterValue):
 
     @classmethod
     def from_JSON_like(
-        cls,
-        position: ArrayLike,
-        orientations: dict | None = None,
-        **kwargs
+        cls, position: ArrayLike, orientations: dict | None = None, **kwargs
     ) -> Self:
         """For custom initialisation via YAML or JSON."""
         # TODO: is this needed?
@@ -181,7 +179,7 @@ class MicrostructureSeeds(ParameterValue):
 
         Note
         ----
-        Requires matplotlib to be installed and configured. 
+        Requires matplotlib to be installed and configured.
         """
         from matplotlib import pyplot as plt
 

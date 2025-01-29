@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 from pathlib import Path
 from damask_parse.utils import validate_orientations
 from damask_parse.quats import axang2quat, multiply_quaternions
+
 if TYPE_CHECKING:
     from matflow.param_classes.orientations import Orientations
 
@@ -253,7 +254,7 @@ def generate_volume_element_statistics(
         if phase_i_CS not in ALLOWED_CRYSTAL_STRUCTURES:
             raise ValueError(
                 f'{err_msg}`crystal_structure` value "{phase_i_CS}" unknown. '
-                f'Must be one of: '
+                f"Must be one of: "
                 f'{", ".join([f"{i}" for i in ALLOWED_CRYSTAL_STRUCTURES])}'
             )
 
@@ -1175,9 +1176,7 @@ def _generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
 
 
 def _generate_shape_dist_from_preset(
-    num_bins: int,
-    aspect_ratio: float,
-    preset_type: str
+    num_bins: int, aspect_ratio: float, preset_type: str
 ) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L88"""
     if preset_type in ("primary_rolled", "precipitate_rolled"):
@@ -1192,8 +1191,7 @@ def _generate_shape_dist_from_preset(
 
 
 def _generate_neighbour_dist_from_preset(
-    num_bins: int,
-    preset_type: str
+    num_bins: int, preset_type: str
 ) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L140"""
     middlebin = num_bins // 2

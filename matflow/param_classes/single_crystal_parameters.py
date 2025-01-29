@@ -14,6 +14,7 @@ class Perturbation(TypedDict):
     """
     A single perturbation to apply.
     """
+
     #: Where to apply the perturbation to.
     path: list[str | int]
     #: The multiplicative perturbation to apply.
@@ -31,12 +32,13 @@ class SingleCrystalParameters(ParameterValue):
     perturbations
         The perturbations to apply to the phases.
     """
+
     _typ = "single_crystal_parameters"
 
     def __init__(
         self,
         phases: dict[str, dict[str, list[float]]],
-        perturbations: Perturbation | list[Perturbation] | None = None
+        perturbations: Perturbation | list[Perturbation] | None = None,
     ):
         self._base = phases
         if perturbations is not None:

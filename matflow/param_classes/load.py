@@ -27,6 +27,7 @@ class _StrainRateMode:
     """
     Model of the state of a :py:class:`StrainRateMode`.
     """
+
     _value: int
     #: Symbol associated with this mode.
     symbol: str
@@ -37,6 +38,7 @@ class StrainRateMode(_StrainRateMode, enum.Enum):
     """
     The mode of the strain rate.
     """
+
     #: Deformation gradient rate.
     DEF_GRAD_RATE = (0, "F_rate", "Deformation gradient rate.")
     #: Velocity gradient.
@@ -512,8 +514,9 @@ class LoadStep(ParameterValue):
             )
             raise ValueError(msg)
 
-        zero_stress_dir = next(iter(
-            set(cls._DIR_IDX).difference([loading_dir, zero_strain_dir])))
+        zero_stress_dir = next(
+            iter(set(cls._DIR_IDX).difference([loading_dir, zero_strain_dir]))
+        )
         zero_stress_dir_idx = cls._DIR_IDX.index(zero_stress_dir)
 
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
@@ -609,7 +612,8 @@ class LoadStep(ParameterValue):
         # Validation:
         if sum(t is not None for t in [target_def_grad_rate, target_def_grad]) != 1:
             raise ValueError(
-                "Specify either `target_def_grad_rate` or `target_def_grad`.")
+                "Specify either `target_def_grad_rate` or `target_def_grad`."
+            )
         if target_def_grad_rate is not None:
             def_grad_vals = target_def_grad_rate
         else:
@@ -819,7 +823,7 @@ class LoadStep(ParameterValue):
         except ValueError:
             raise ValueError(
                 f'Loading direction "{direction}" not allowed. It should be one of "x", '
-                f'"y" or "z".'                
+                f'"y" or "z".'
             )
 
         cycle_time = 1 / cycle_frequency
@@ -831,9 +835,7 @@ class LoadStep(ParameterValue):
         sig_diff = max_stress - min_stress
 
         A = 2 * np.pi / cycle_time
-        time = (
-            np.linspace(0, 2 * np.pi, num=num_increments_per_cycle, endpoint=True) / A
-        )
+        time = np.linspace(0, 2 * np.pi, num=num_increments_per_cycle, endpoint=True) / A
         sig = (sig_diff / 2) * np.sin(A * time) + sig_mean
 
         time_per_inc = cycle_time / num_increments_per_cycle
@@ -875,6 +877,7 @@ class LoadCase(ParameterValue):
     """
     A loading case, consisting of a sequence of loadings to apply.
     """
+
     # TODO: store step data (e.g. stress tensor for each step) in combined arrays; steps
     # can be a (cached) property that indexes those arrays?
 
@@ -896,7 +899,7 @@ class LoadCase(ParameterValue):
 
     def __len__(self) -> int:
         return len(self.steps)
-    
+
     def __iter__(self) -> Iterator[LoadStep]:
         yield from self.steps
 
@@ -1022,11 +1025,13 @@ class LoadCase(ParameterValue):
                 # assume a dict
                 step_dict = copy.deepcopy(step_i)  # don't mutate
                 if (step_i_type := step_dict.pop("type", None)) and (
-                        step_i_type != LoadStep.__name__):
+                    step_i_type != LoadStep.__name__
+                ):
                     # assume a LoadStep class method:
                     try:
                         method: Callable[..., LoadStep | list[LoadStep]] = getattr(
-                            LoadStep, step_i_type)
+                            LoadStep, step_i_type
+                        )
                     except AttributeError:
                         raise ValueError(
                             f"No `LoadStep` method named {step_i_type!r} for load step "

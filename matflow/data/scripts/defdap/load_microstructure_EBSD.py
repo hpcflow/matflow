@@ -28,10 +28,7 @@ def load_microstructure_EBSD(
 
 
 def _load_EBSD_map(
-    root_path: str,
-    ebsd_filename: str,
-    ebsd_boundary_tol: float,
-    ebsd_min_grain_size: int
+    root_path: str, ebsd_filename: str, ebsd_boundary_tol: float, ebsd_min_grain_size: int
 ) -> ebsd.Map:
     "Load EBSD map and detect grains."
 
@@ -105,10 +102,7 @@ def _get_EBSD_image(ebsd_map: ebsd.Map, scaling_factor: float) -> dict:
 
 
 def _select_area(
-    i: int,
-    j: int,
-    grain_image: NDArray,
-    kind: str | None = None
+    i: int, j: int, grain_image: NDArray, kind: str | None = None
 ) -> tuple[NDArray, int]:
     on_edge = 0
 

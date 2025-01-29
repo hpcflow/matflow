@@ -2,11 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import numpy as np
 from numpy.typing import ArrayLike
+
 try:
     from damask import GeomGrid as grid_cls
 except ImportError:
     from damask import Grid as grid_cls
 from damask_parse.utils import validate_volume_element, validate_orientations
+
 if TYPE_CHECKING:
     from matflow.param_classes.orientations import Orientations
     from matflow.param_classes.seeds import MicrostructureSeeds
