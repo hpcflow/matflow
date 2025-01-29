@@ -36,3 +36,6 @@ jobs:
       commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '}}' }}
       pypi-token: {{ '${{' }} secrets.{{ PYPI_token_name }} {{ '}}' }}
       website-token: {{ '${{' }} secrets.{{ website_source_token_name }} {{ '}}' }}
+    permissions:
+      id-token: write
+      contents: write
