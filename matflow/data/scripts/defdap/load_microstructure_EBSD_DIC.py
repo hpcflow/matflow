@@ -47,10 +47,7 @@ def load_microstructure_EBSD_DIC(
 
 
 def _load_EBSD_map(
-    root_path: str,
-    ebsd_filename: str,
-    ebsd_boundary_tol: float,
-    ebsd_min_grain_size: int
+    root_path: str, ebsd_filename: str, ebsd_boundary_tol: float, ebsd_min_grain_size: int
 ) -> ebsd.Map:
     "Load EBSD map and detect grains."
 
@@ -70,10 +67,7 @@ def _load_EBSD_map(
 
 
 def _load_DIC_map(
-    root_path: str,
-    dic_filename: str,
-    dic_crop: list[int] | None,
-    dic_scale: float | None
+    root_path: str, dic_filename: str, dic_crop: list[int] | None, dic_scale: float | None
 ) -> hrdic.Map:
     "Load in DIC, crop and set scale."
 
@@ -191,9 +185,7 @@ def _select_area(i: int, j: int, grain_image: NDArray) -> tuple[NDArray, int]:
 
 
 def _remove_boundary_points(
-    grain_image: NDArray, *,
-    force_remove: bool = False,
-    max_iterations: int = 200
+    grain_image: NDArray, *, force_remove: bool = False, max_iterations: int = 200
 ) -> None:
     num_bad_prev = 0
     iteration = 0
@@ -260,8 +252,7 @@ def _remove_boundary_points(
 
 
 def _remove_small_grain_points(
-    grain_image: NDArray, *,
-    max_iterations: int = 200
+    grain_image: NDArray, *, max_iterations: int = 200
 ) -> None:
     # num_neighbours - must have at least this many pixels surrounding
     # start checking for 8 neighbours, then 7 until 2

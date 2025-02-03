@@ -26,6 +26,7 @@ class EulerDefinition(_EulerDefinition, enum.Enum):
     """
     How to apply Euler angles.
     """
+
     #: Convention typically used in crystallography.
     BUNGE = (0, "ZXZ", "Convention typically used in crystallography.")
 
@@ -48,6 +49,7 @@ class QuatOrder(enum.Enum):
     [1] http://dream3d.bluequartz.net/Help/Filters/OrientationAnalysisFilters/ConvertQuaternion/
 
     """
+
     #: Scalar first.
     SCALAR_VECTOR = 0
     #: Vector first.
@@ -58,6 +60,7 @@ class OrientationRepresentationType(enum.Enum):
     """
     How the orientation is represented.
     """
+
     #: Representation is a quaternion.
     QUATERNION = 0
     #: Representation is by Euler angles.
@@ -80,6 +83,7 @@ class OrientationRepresentation(ParameterValue):
     quat_order
         For quaternions, what is the order of the scalar wrt the vector.
     """
+
     #: How the orientation is represented.
     type: OrientationRepresentationType
     #: For Euler angles, how the angles are applied.
@@ -106,9 +110,7 @@ class OrientationRepresentation(ParameterValue):
 
     @classmethod
     def euler(
-        cls,
-        is_degrees: bool = False,
-        definition: EulerDefinition = EulerDefinition.BUNGE
+        cls, is_degrees: bool = False, definition: EulerDefinition = EulerDefinition.BUNGE
     ) -> Self:
         """
         Make a representation of an orientation that uses Euler angles.
@@ -121,7 +123,7 @@ class OrientationRepresentation(ParameterValue):
             How the angles are applied.
         """
         return cls(OrientationRepresentationType.EULER, definition, is_degrees)
-    
+
     @classmethod
     def quaternion(cls, order: QuatOrder = QuatOrder.SCALAR_VECTOR) -> Self:
         """
@@ -139,6 +141,7 @@ class LatticeDirection(enum.Enum):
     """
     Lattice directions for unit cells.
     """
+
     #: Real-space A.
     A = 0
     #: Real-space B.
@@ -168,6 +171,7 @@ class UnitCellAlignment(ParameterValue):
     z: str | LatticeDirection
         The direction of the Z component.
     """
+
     _typ: ClassVar[str] = "unit_cell_alignment"
 
     #: The direction of the X component.
@@ -219,6 +223,7 @@ class Orientations(ParameterValue):
     representation
         The orientation representation descriptor.
     """
+
     _typ: ClassVar[str] = "orientations"
 
     #: Orientation data

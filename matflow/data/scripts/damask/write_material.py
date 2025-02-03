@@ -119,7 +119,7 @@ def write_material(
                 SC_params = single_crystal_parameters[SC_params_name]
                 damask_phases[phase_label]["mechanical"]["plastic"].update(**SC_params)
 
-    path_  = Path(path)
+    path_ = Path(path)
     write_material_(
         dir_path=path_.parent,
         homog_schemes=homogenization,

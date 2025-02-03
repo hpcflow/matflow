@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from damask import __version__ as damask_version
 from damask_parse.writers import write_geom, write_load_case, write_material
 from damask_parse import write_numerics
+
 if TYPE_CHECKING:
     from matflow.param_classes.load import LoadCase
 

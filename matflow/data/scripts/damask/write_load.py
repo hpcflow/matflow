@@ -3,14 +3,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from damask import __version__
 from damask_parse.writers import write_load_case
+
 if TYPE_CHECKING:
     from matflow.param_classes.load import LoadCase
 
 
 def write_load(
-    path: Path | str,
-    load_case: LoadCase,
-    damask_solver: dict[str, str] | None
+    path: Path | str, load_case: LoadCase, damask_solver: dict[str, str] | None
 ) -> None:
     """Write the load file for a DAMASK simulation.
 

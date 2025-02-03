@@ -35,10 +35,7 @@ def pytest_configure(config: pytest.Config):
     mf.run_time_info.in_pytest = True
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config,
-    items: list[pytest.Item]
-):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
     if config.getoption("--integration"):
         # --integration in CLI: only run these tests
         for item in items:

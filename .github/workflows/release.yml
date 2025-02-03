@@ -32,3 +32,6 @@ jobs:
       commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN }}
       pypi-token: ${{ secrets.PYPI }}
       website-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN }}
+    permissions:
+      id-token: write
+      contents: write

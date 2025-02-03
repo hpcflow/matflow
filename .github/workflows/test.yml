@@ -58,3 +58,6 @@ jobs:
       pytest_args: --verbose --exitfirst
     secrets:
       pre-commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
+    permissions:
+      id-token: write
+      contents: write

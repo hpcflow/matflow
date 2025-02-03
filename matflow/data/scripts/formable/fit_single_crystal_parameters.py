@@ -7,6 +7,7 @@ from formable.levenberg_marquardt import (
     LMFitter,
 )
 from formable.tensile_test import TensileTest
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
     from matflow.param_classes.single_crystal_parameters import SingleCrystalParameters

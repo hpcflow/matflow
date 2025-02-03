@@ -72,10 +72,10 @@ def generate_download_links_table():
     links_table = (
         '<table class="binary-downloads-table">'
         + "".join(
-            f'<tr>'
+            f"<tr>"
             f'<td>{EXE_PLAT_LOOKUP["-".join(exe_name.split("-")[2:])]}</td>'
             f'<td><a href="{link}">{exe_name}</a></td>'
-            f'</tr>'
+            f"</tr>"
             for exe_name, link in sorted(bins_dat.items())
         )
         + "</table>"

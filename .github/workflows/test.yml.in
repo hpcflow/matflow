@@ -60,3 +60,6 @@ jobs:
       pytest_args: {{ pytest_args }}
     secrets:
       pre-commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '|| secrets.GITHUB_TOKEN }}' }}
+    permissions:
+      id-token: write
+      contents: write
