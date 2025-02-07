@@ -39,7 +39,7 @@ def generate_next_state(x, prop_std):
     xi = np.empty(dim)
 
     proposal = norm(loc=current_state, scale=prop_std)
-    xi_hat = proposal.rvs()
+    xi_hat = np.atleast_1d(proposal.rvs())
     accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
     accept_idx = rng.random(len(accept_ratios)) < np.minimum(1, accept_ratios)
 
