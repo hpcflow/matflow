@@ -57,6 +57,24 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
         x = np.vstack([i[:] for i in x])
         accept_rate = None
 
+        # consider missing data in `g` by copying from non-missing data:
+        bad_bool = g == None
+        if np.any(bad_bool):
+            bad_idx = np.where(bad_bool)[0]
+            print(
+                f"Collate results: missing {len(bad_idx)} system performance "
+                f"evaluation(s) at indices: {bad_idx!r}."
+            )
+            good_idx = np.where(~bad_bool)[0]
+            replace_idx = good_idx[: len(bad_idx)]
+            replace_g = g[replace_idx]
+            replace_x = x[replace_idx]
+            x[bad_idx] = replace_x
+            g_corrected = np.empty(len(g))
+            g_corrected[good_idx] = g[good_idx]
+            g_corrected[bad_idx] = replace_g
+            g = g_corrected
+
     num_failed = int(np.sum(g > 0))
     num_chains = int(len(g) * p_0)
     num_states = int(num_samples / num_chains)
