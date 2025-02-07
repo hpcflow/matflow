@@ -358,9 +358,9 @@ def test_subset_sim_DAMASK_Mg_two_level_parameter_flow(null_config, tmp_path):
 
         # final inner MC chain iterations only:
         inc_chain_inner_max_iters = {}
-        max_inner_iter = -1
+        max_inner_iter = wk.loops.inner_markov_chain.num_iterations - 1
         for i in wk.tasks.increment_chain_inner.elements[elem_idx].iterations:
-            if i.loop_idx["inner_markov_chain"] > max_inner_iter:
+            if i.loop_idx["inner_markov_chain"] == max_inner_iter:
                 inc_chain_inner_max_iters[
                     (i.loop_idx["outer_markov_chain"], i.loop_idx["levels"])
                 ] = i
@@ -368,6 +368,10 @@ def test_subset_sim_DAMASK_Mg_two_level_parameter_flow(null_config, tmp_path):
         for l_idx, iter_i in inc_chain_inner_max_iters.items():
             assert (
                 pre_proc_iters[l_idx].get_data_idx()["inputs.x"]
+                == iter_i.get_data_idx()["outputs.x"]
+            )
+            assert (
+                inc_chain_iters[l_idx].get_data_idx()["inputs.x"]
                 == iter_i.get_data_idx()["outputs.x"]
             )
 
