@@ -71,6 +71,8 @@
     {{ app_name }} Python package
     *****************************
 
+    We recommend you `create a virtual Python environment <https://docs.python.org/3/tutorial/venv.html>`_ to work with MatFlow to separate versions for different projects and avoid dependency conflicts.
+
     Using pip
     ==========================
 
