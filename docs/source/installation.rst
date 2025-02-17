@@ -50,7 +50,7 @@
     .. admonition:: What does this script do?
         :class: note dropdown
         
-        The above command downloads a script from the {{ app_name }} GitHub repository and runs it. The script does the following:
+        The above command downloads a `script from the {{ app_name }} GitHub repository <https://github.com/hpcflow/install-scripts/blob/5b47fa287aaef8d4b7c7970116f13b72b674ed77/src/install-matflow.sh>`_ and runs it. The script does the following:
 
         #. It downloads the latest prerelease version of {{ app_name }} zip archived in a single folder.
         #. The archive is extracted and the folder placed in an accessible location. The location depends on the operating system. In Linux it is ``/.local/share/{{ app_package_name }}``. In macOS it is ``~/Library/Application Support/{{ app_package_name }}``. In Windows it is ``Username\AppData\Local\{{ app_package_name }}``.
