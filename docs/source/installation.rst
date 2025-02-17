@@ -60,6 +60,13 @@
         If the script detects that the version of {{ app_name }} it is trying to install is already there, it will stop 
         running and exit.
 
+        To check if the installation was successful, run the following command in your terminal:
+
+        .. code-block:: bash
+
+            {{ app_name }} --version
+
+        This should print the version of {{ app_name }} that was installed, and will givean error if the installation was not successful.
 
 
     .. hint::
@@ -72,6 +79,7 @@
     *****************************
 
     We recommend you `create a virtual Python environment <https://docs.python.org/3/tutorial/venv.html>`_ to work with MatFlow to separate versions for different projects and avoid dependency conflicts.
+    Check that you have the correct environment activated by confirming that the name of the environment appears in brackets in your prompt.
 
     Using pip
     ==========================
