@@ -78,10 +78,6 @@
 
       pip install {{ dist_name }}=="{{ app_version }}"
 
-    Using conda
-    ===========
-
-    Coming soon!
 
     ********************************
     Download CLI binaries (advanced)
