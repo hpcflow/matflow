@@ -1,10 +1,6 @@
 Glossary
 ========
 
-workflow
---------
-
-A pipeline that processes data in some way.
 
 API
 ---
@@ -70,3 +66,8 @@ MatFlow
 -------
 
 MatFlow is a computational workflow management package for materials science.
+
+workflow
+--------
+
+A pipeline that processes data in some way.
