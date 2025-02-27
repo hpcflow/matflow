@@ -95,6 +95,7 @@ Clear the known-submissions file
     .. tab-set::
 
         .. tab-item:: CLI
+            
             .. code-block:: console
 
                 {{ app_package_name }} manage clear-known-subs
