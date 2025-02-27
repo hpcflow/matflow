@@ -27,7 +27,7 @@ DAMASK
 
 Fortran package for multi-physics crystal plasticity simulation. Official documentation and installation [on their webpage](https://damask-multiphysics.org/)
 
-DAMAKS-parse
+DAMASK-parse
 ------------
 
 Python package to translate input and output files between formats needed for DAMASK and MatFlow. Download from the [GitHub repository](https://github.com/LightForm-group/damask-parse)
