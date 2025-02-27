@@ -60,13 +60,13 @@
         If the script detects that the version of {{ app_name }} it is trying to install is already there, it will stop 
         running and exit.
 
-        To check if the installation was successful, run the following command in your terminal:
+    To check if the installation was successful, run the following command in your terminal:
 
-        .. code-block:: bash
+    .. code-block:: bash
 
-            {{ app_name }} --version
+        {{ app_name }} --version
 
-        This should print the version of {{ app_name }} that was installed, and will givean error if the installation was not successful.
+    This should print the version of {{ app_name }} that was installed, and will give an error if the installation was not successful.
 
 
     .. hint::
