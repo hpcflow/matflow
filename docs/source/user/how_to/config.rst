@@ -6,54 +6,58 @@ Get and set config items
 
 .. jinja:: first_ctx
 
-.. tab-set::
+    The configuration file is used to store settings that control the behavior, 
+    such as the machine name, the log level, and the location of the template component source files. 
+    These can also be set and retrieved using the CLI or Python API.
 
-    .. tab-item:: CLI
+    .. tab-set::
 
-        Using the config sub-command in the |app_name| CLI, we can get configuration items like this:
-    
-        .. code-block:: console
+        .. tab-item:: CLI
 
-            {{ app_package_name }} config get machine
+            Using the config sub-command in the |app_name| CLI, we can get configuration items like this:
+        
+            .. code-block:: console
 
-        Items can be set like this:
+                {{ app_package_name }} config get machine
 
-        .. code-block:: console
+            Items can be set like this:
 
-            {{ app_package_name }} config set machine my-machine-name
+            .. code-block:: console
 
-    .. tab-item:: Python API
+                {{ app_package_name }} config set machine my-machine-name
 
-        In the Python API, we can interact with the |app_name| configuration as below. Note that we must call :meth:`config.save <hpcflow.sdk.config.config.Config.save>` to make the config changes persistent, otherwise any changes made will only be temporary.
+        .. tab-item:: Python API
 
-        .. code-block:: python
+            In the Python API, we can interact with the |app_name| configuration as below. Note that we must call :meth:`config.save <hpcflow.sdk.config.config.Config.save>` to make the config changes persistent, otherwise any changes made will only be temporary.
 
-            import {{ app_module }} as {{ app_docs_import_conv }}
+            .. code-block:: python
 
-            # print the value of the `machine` item:
-            print({{ app_docs_import_conv }}.config.machine)
+                import {{ app_module }} as {{ app_docs_import_conv }}
 
-            # set the value of the `machine` item:
-            {{ app_docs_import_conv }}.config.machine = "my-machine-name"
+                # print the value of the `machine` item:
+                print({{ app_docs_import_conv }}.config.machine)
 
-            # optionally save the changes to the config file:
-            {{ app_docs_import_conv }}.config.save()
+                # set the value of the `machine` item:
+                {{ app_docs_import_conv }}.config.machine = "my-machine-name"
 
-        If you want to change a configuration item temporarily (just for the current session), you can also provide configuration item values to `load_config` and `reload_config`, like this:
+                # optionally save the changes to the config file:
+                {{ app_docs_import_conv }}.config.save()
 
-        .. code-block:: python
+            If you want to change a configuration item temporarily (just for the current session), you can also provide configuration item values to `load_config` and `reload_config`, like this:
 
-            import {{ app_module }} as {{ app_docs_import_conv }}
+            .. code-block:: python
 
-            # modify the log console level just for this session:
-            {{ app_docs_import_conv }}.load_config(log_console_level="debug")
+                import {{ app_module }} as {{ app_docs_import_conv }}
+
+                # modify the log console level just for this session:
+                {{ app_docs_import_conv }}.load_config(log_console_level="debug")
 
     See the configuration :ref:`reference documentation <reference/config_file:Configuration file>` for a listing of configurable items.
 
-Reset the config to default values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Reset the config to default values
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Usually, when |app_name| is invoked, the first thing it does is load the configuration file. However, if you have updated to a newer, incompatible version, sometime your existing configuration file will fail validation. In this case, you can reset the configuration file to its default value by running the following CLI command:
+    Usually, when |app_name| is invoked, the first thing it does is load the configuration file. However, if you have updated to a newer, incompatible version, sometime your existing configuration file will fail validation. In this case, you can reset the configuration file to its default value by running the following CLI command:
 
 .. jinja:: first_ctx
 
