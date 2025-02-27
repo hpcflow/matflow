@@ -57,21 +57,29 @@ Get and set config items
     Reset the config to default values
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Usually, when |app_name| is invoked, the first thing it does is load the configuration file. However, if you have updated to a newer, incompatible version, sometime your existing configuration file will fail validation. In this case, you can reset the configuration file to its default value by running the following CLI command:
+    Usually, when |app_name| is invoked, the first thing it does is load the configuration file. However, if you have updated to a newer, incompatible version, sometime your existing configuration file will fail validation. In this case, you can reset the configuration file to its default value.
 
 .. jinja:: first_ctx
 
-    .. code-block:: console
+    .. tab-set::
 
-        {{ app_package_name }} manage reset-config
+        .. tab-item:: CLI
 
-    Within the Python API, the config can be reset like this:
+            Reset configuration to the default value by running the following CLI command:
+            
+            .. code-block:: console
 
-    .. code-block:: python
+                {{ app_package_name }} manage reset-config
 
-        import {{ app_module }} as {{ app_docs_import_conv }}
+        .. tab-item:: Python API
 
-        {{ app_docs_import_conv }}.reset_config()
+            Within the Python API, the config can be reset like this:
+
+            .. code-block:: python
+
+                import {{ app_module }} as {{ app_docs_import_conv }}
+
+                {{ app_docs_import_conv }}.reset_config()
 
     .. warning::
         
@@ -84,14 +92,19 @@ Clear the known-submissions file
 
     The known-submissions file is used to track running and recent workflow, and is used by the :code:`{{ app_docs_import_conv }}.show` / :code:`{{ app_package_name }} show` command. Sometimes you might need to clear this file, which can be done like this:
 
-    .. code-block:: console
+    .. tab-set::
 
-        {{ app_package_name }} manage clear-known-subs
+        .. tab-item:: CLI
+            .. code-block:: console
 
-    Within the Python API, the equivalent command is:
+                {{ app_package_name }} manage clear-known-subs
 
-    .. code-block:: python
+        .. tab-item:: Python API
+            
+            Within the Python API, the equivalent command is:
 
-        import {{ app_module }} as {{ app_docs_import_conv }}
+            .. code-block:: python
 
-        {{ app_docs_import_conv }}.clear_known_submissions_file()
+                import {{ app_module }} as {{ app_docs_import_conv }}
+
+                {{ app_docs_import_conv }}.clear_known_submissions_file()
