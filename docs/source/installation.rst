@@ -41,7 +41,8 @@
     Release notes for this version ({{app_version}}) are `available on GitHub <https://github.com/{{ github_user }}/{{ github_repo }}/releases/tag/v{{ app_version }}>`_.
     Use the version switcher in the top-right corner of the page to download/install other versions.
 
-    ################################
+
     Alternative installation methods
-    ################################
-    Advanced users may wish to refer to the :ref:`alternative_install`.
+    ================================
+    Although *not currently recommended*,
+    advanced users may wish to use one of the :ref:`alternative installation methods <alternative_install>`.
