@@ -11,6 +11,7 @@ Welcome to MatFlow's documentation!
    :caption: Contents:
 
    Install <installation>
+   Config <configuration>
    User Guide <user/index>
    Reference <reference/index>
    Development <development/index>
