@@ -61,3 +61,6 @@
 
     `Some examples <https://github.com/hpcflow/matflow-configs>`_ are given
     for the University of Manchester's CSF.
+
+    The path to your config file can be found using ``matflow manage get-config-path``,
+    or to open the config file directly, use ``matflow open config``.
