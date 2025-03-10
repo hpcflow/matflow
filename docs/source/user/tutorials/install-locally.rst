@@ -55,3 +55,16 @@ This should print the version of MatFlow that you have installed.
 If you see an error message, check that you have activated the correct virtual environment and that you have installed MatFlow correctly.
 
 Step 3: Configure MatFlow for your machine
+========================================
+
+Now that you have installed MatFlow, you need to set it up for your machine.
+MatFlow uses a configuration file to store information about the machine you are running on, such as the number of cores available and the locations of important folders.
+This file is called `config.yml` and is stored in the `~/.matflow` directory.
+
+When you have first installed MatFlow, this directory will not exist.
+You can either make it yourself or run the following command to create it:
+``` bash
+matflow init
+```
+
+MatFlow will create the `~/.matflow` directory and a `config.yml` file with the minimum settings.
