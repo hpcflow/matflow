@@ -16,7 +16,7 @@ The first step is to set up a Python environment on your local machine.
 Follow the instructions on the website for your operating system.
 
 **If you have already installed Python**, you can check the version of Python installed on your machine by running
-``python --version``
+``python --version``.
 
 Check that your version matches one of the ones upported by MatFlow. 
 You can find the supported versions in the `MatFlow PyPI package description <https://pypi.org/project/matflow-new/>`_.
@@ -41,11 +41,11 @@ Step 2: Install MatFlow
 =======================
 
 Once you have created and activated a Python environment (check for the environment name in brackets in your prompt), you can install MatFlow using pip by running
-``pip install matflow-new``
+``pip install matflow-new``.
 
 This will install the latest version of MatFlow from the Python Package Index (PyPI), and all the dependencies it needs.
 Once it has finished, check that MatFlow has been installed correctlyby running
-``matflow --version``
+``matflow --version``.
 
 This should print the version of MatFlow that you have installed.
 If you see an error message saying it doesn't recognise "matflow" as a command name, check that you have activated the correct virtual environment and that you have installed MatFlow correctly.
@@ -55,12 +55,8 @@ Step 3: Configure MatFlow for your machine
 
 Now that you have installed MatFlow, you need to set it up for your machine.
 MatFlow uses a configuration file to store information about the machine you are running on, such as the number of cores available and the locations of important folders.
-This file is called `config.yml` and is stored in the `~/.matflow` directory.
+This will be stored in your user home directory so that it can be read by MatFlow no matter what project you are working on, or what folder you are working in.
 
-When you have first installed MatFlow, this directory will not exist.
-You can either make it yourself or run the following command to create it:
-`` bash
-matflow init
-``
-
-MatFlow will create the ``~/.matflow`` directory and a ``config.yml`` file with the minimum settings.
+The configuration file is called `config.yml` and is stored in the `~/.matflow-new` directory (`~` is a shortcut for your user home directory, and the `.` at the start of the filename indicates that this is a hidden folder).
+When you first install MatFlow, the directory and file will not exist.
+You can either make it yourself or run ``matflow init`` to create the ``~/.matflow-new`` directory and a ``config.yml`` file inside it with the minimum default settings.
