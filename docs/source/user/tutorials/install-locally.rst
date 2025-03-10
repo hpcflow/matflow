@@ -40,4 +40,18 @@ Now you can install MatFlow and its dependencies in this virtual environment.
 Step 2: Install MatFlow
 =======================
 
-Once you have set up a Python environment, you can install MatFlow using the following command:
+Once you have created and activated a Python environment (check for the environment name in brackets in your prompt), you can install MatFlow using the following command:
+``` bash
+pip install matflow-new
+``` 
+
+This will install the latest version of MatFlow from the Python Package Index (PyPI).
+To check that MatFlow has been installed correctly, you can run the following command:
+``` bash
+matflow --version
+```
+
+This should print the version of MatFlow that you have installed.
+If you see an error message, check that you have activated the correct virtual environment and that you have installed MatFlow correctly.
+
+Step 3: Configure MatFlow for your machine
