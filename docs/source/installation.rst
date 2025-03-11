@@ -84,7 +84,6 @@
 
 	- name: damask_parse_env
 	  setup: |
-	    module purge
 	    source /full/path/to/.venv/bin/activate
 	  executables:
 	    - label: python_script
@@ -97,7 +96,6 @@
 
 	- name: formable_env
 	  setup: |
-	    module purge
 	    source /full/path/to/.venv/bin/activate
 	  executables:
 	    - label: python_script
@@ -110,7 +108,6 @@
 
 	- name: defdap_env
 	  setup: |
-	    module purge
 	    source /full/path/to/.venv/bin/activate
 	  executables:
 	    - label: python_script
