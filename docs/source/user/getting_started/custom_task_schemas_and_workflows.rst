@@ -277,6 +277,8 @@ directory using ``save_files``:
 Example workflow
 -----------------
 
+.. _command_files_example_workflow:
+
 Here we have an example workflow which illustrates use of command files.
 To run this example, create a ``workflow.yaml`` file with the contents below,
 along with the ``generate_input_file.py`` and ``process_input_file.py`` files.
