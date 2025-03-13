@@ -62,7 +62,7 @@ by ``scope`` e.g.
 MatFlow is then looking for a match within your environment definitions for the requested
 resources, and will run the command which matches those resources.
 
-There are lots of `resource options <https://docs.matflow.io/stable/reference/_autosummary/matflow.ResourceSpec.html>`_
+There are lots of :ref:`resource options <reference/_autosummary/matflow.ResourceSpec:matflow.ResourceSpec>`
 available that can be requested.
 
 Scheduler arguments can be passed like this e.g. to target high memory nodes:
