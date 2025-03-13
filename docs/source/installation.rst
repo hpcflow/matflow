@@ -121,7 +121,7 @@
 	- name: damask_env
 	  setup: |
 	    module load mpi/intel-18.0/openmpi/4.1.0
-	    IMG_PATH=/mnt/eps01-rds/jf01-home01/shared/software/DAMASK-docker-images/damask-grid_3.0.0-alpha7.sif
+	    IMG_PATH=/full/path/to/DAMASK-docker-images/damask-grid_3.0.0-alpha7.sif
 	    export HDF5_USE_FILE_LOCKING=FALSE
 	  executables:
 	    - label: damask_grid
@@ -178,7 +178,7 @@
 	  executables:
 	  - label: dream_3D_runner
 	    instances:
-	    - command: /full/path/to/dream3/DREAM3D-6.5.171-Linux-x86_64/bin/PipelineRunner
+	    - command: /full/path/to/dream3d/DREAM3D-6.5.171-Linux-x86_64/bin/PipelineRunner
 	      num_cores: 1
 	      parallel_mode: null
 	  - label: python_script
