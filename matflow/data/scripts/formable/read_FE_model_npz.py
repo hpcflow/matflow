@@ -9,13 +9,14 @@ def format_1D_masked_array(arr, fill_symbol='x'):
 
 
 def read_FE_model_npz(npz_file_path, idx):
-
+    """
+    Read loading data from a numpy .npz file and format it for use in a matflow workflow
+    """
     data = np.load(npz_file_path)
     num_incs = data['num_incs']
     inc_size = data['inc_size']
     inc_size_final = data['inc_size_final']
     u_sampled_split = data['u_sampled_split']
-    # l_sample_split = data['l_sample_split']
     strain_rate = data['strain_rate']
     i = idx
 
@@ -34,11 +35,5 @@ def read_FE_model_npz(npz_file_path, idx):
             'total_time': dt.item(),
             'num_increments': 1,
         })
-
-        # load_cases.append({
-        #     'vel_grad': format_1D_masked_array(l_sample_split[i, j].flat),
-        #     'total_time': dt.item(),
-        #     'num_increments': 1,
-        # })
 
     return {"load_case": {"steps":load_cases}}
