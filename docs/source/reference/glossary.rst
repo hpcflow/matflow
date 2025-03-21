@@ -5,22 +5,17 @@ Glossary
 API
 ---
 
-application programming interface
+Application programming interface. MatFlow's API allows us to design and execute workflows from within a Python interpreter or Jupyter notebook.
 
 CLI
 ---
 
-command line interface
-
-CSF/CSF3
---------
-
-University of Manchester's Computational Shared Facility
+Command line interface. The CLI is typically how we interact with MatFlow on HPC systems.
 
 cluster
 -------
 
-see HPC
+See HPC
 
 DAMASK
 ------
@@ -50,12 +45,12 @@ Python package for formability analysis in materials science. Used to create loa
 HPC
 ---
 
-high-performance comptuer/computing
+High-performance computer/computing
 
 HPCFlow
 -------
 
-A package to interface between MatFlow and your HPC cluster, understanding the hardware, scheduler and tools and allowing MatFlow and otehr packages to call on them.
+The underlying workflow management tool that MatFlow uses to interface with your computing resources or scheduler. MatFlow exists as a layer on top of HPCFlow that focuses on common workflows and tools within computational materials science.
 
 loadcase
 --------
