@@ -60,7 +60,7 @@ A package to interface between MatFlow and your HPC cluster, understanding the h
 loadcase
 --------
 
-numerical description of how the simulated material is loaded (stretched, compressed, rolled, ...)
+Numerical description of how the simulated material is loaded (stretched, compressed, rolled, ...). A corresponding MatFlow parameter is documented here.
 
 MatFlow
 -------

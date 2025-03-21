@@ -7,10 +7,10 @@ Welcome to MatFlow's documentation!
 ===================================
 
 MatFlow is an open source Python framework for managing computational materials science workflows.
-It is designed to be flexible and extensible, allowing users to link together existing tools and anlaysis scripts into a workflow.
-These workflows are saved in the form of YAML files which can be shared and reused to reproduce results.
+It is designed to be flexible and extensible, allowing users to link together existing tools and anlaysis scripts into cohesive workflows, that can be deployed either locally or on powerful HPC systems.
+These workflows are described in the form of simple YAML text files, which can be shared and reused to reproduce results.
 
-It was originally developed by [Adam Plowman](https://lightform.org.uk/people/dr-adam-plowman) and is actively supported by researchers at the University of Manchester's [LightForm group](https://lightform.org.uk/) and collaborators.
+It was originally developed by [Adam Plowman](https://lightform.org.uk/people/dr-adam-plowman) and is actively supported by researchers at the University of Manchester's [CLARI (formerly LightForm) group](https://lightform.org.uk/) and collaborators, and at UKAEA.
 For an example of usage, see [Plowman et al. 2023](https://doi.org/10.12688/materialsopenres.17516.1).
 
 .. toctree::
