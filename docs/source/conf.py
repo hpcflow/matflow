@@ -232,6 +232,7 @@ Path("./reference/_generated").mkdir(exist_ok=True)
 # distribution name (i.e. name on PyPI):
 with open("../../pyproject.toml") as fp:
     dist_name = tomlkit.load(fp)["tool"]["poetry"]["name"]
+    supported_python_versions = tomlkit.load(fp)["tool"]["poetry"]["dependencies"]["python"]
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -278,6 +279,7 @@ jinja_contexts = {
         "download_links_table_html": generate_download_links_table(),
         "github_user": github_user,
         "github_repo": github_repo,
+        "supported_python": supported_python_versions,
     }
 }
 

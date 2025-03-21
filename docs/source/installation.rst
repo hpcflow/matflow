@@ -81,7 +81,7 @@
     We recommend you `create a virtual Python environment <https://docs.python.org/3/tutorial/venv.html>`_ to work with MatFlow to separate versions for different projects and avoid dependency conflicts.
     Check that you have the correct environment activated by confirming that the name of the environment appears in brackets in your prompt.
 
-    {{ app_name }} is compatible with Python 3.9, 3.10, 3.11, and 3.12.
+    {{ app_name }} is compatible with Python versions {{ supported_python }}.
     We recommend using the newest version available to you.
 
     Using pip
@@ -89,7 +89,7 @@
 
     Use pip to install the Python package from PyPI::
 
-      pip install {{ dist_name }}=="{{ app_version }}"
+      pip install {{ dist_name }}
 
     Using conda
     ===========
