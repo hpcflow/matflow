@@ -232,7 +232,9 @@ Path("./reference/_generated").mkdir(exist_ok=True)
 # distribution name (i.e. name on PyPI):
 with open("../../pyproject.toml") as fp:
     dist_name = tomlkit.load(fp)["tool"]["poetry"]["name"]
-    supported_python_versions = tomlkit.load(fp)["tool"]["poetry"]["dependencies"]["python"]
+    supported_python_versions = tomlkit.load(fp)["tool"]["poetry"]["dependencies"][
+        "python"
+    ]
 
 extensions = [
     "sphinx.ext.autodoc",
