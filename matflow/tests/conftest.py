@@ -1,3 +1,8 @@
+"""
+Configuration and standard fixtures for PyTest.
+"""
+from __future__ import annotations
+from pathlib import Path
 import numpy as np
 import pytest
 import matflow as mf
@@ -13,7 +18,7 @@ from matflow.param_classes.orientations import (
 from matflow.param_classes.seeds import MicrostructureSeeds
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
         "--integration",
         action="store_true",
@@ -22,7 +27,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config):
     config.addinivalue_line(
         "markers",
         "integration: mark test as an integration-like workflow submission test to run",
@@ -30,7 +35,7 @@ def pytest_configure(config):
     mf.run_time_info.in_pytest = True
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
     if config.getoption("--integration"):
         # --integration in CLI: only run these tests
         for item in items:
@@ -46,19 +51,19 @@ def pytest_collection_modifyitems(config, items):
                 )
 
 
-def pytest_unconfigure(config):
+def pytest_unconfigure(config: pytest.Config):
     mf.run_time_info.in_pytest = False
 
 
 @pytest.fixture
-def null_config(tmp_path):
+def null_config(tmp_path: Path):
     if not mf.is_config_loaded:
         mf.load_config(config_dir=tmp_path)
     mf.run_time_info.in_pytest = True
 
 
 @pytest.fixture
-def new_null_config(tmp_path):
+def new_null_config(tmp_path: Path):
     mf.load_config(config_dir=tmp_path)
     mf.load_template_components(warn=False)
     mf.run_time_info.in_pytest = True

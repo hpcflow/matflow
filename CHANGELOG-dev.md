@@ -1,4 +1,24 @@
 
+<a name="v0.3.0a140"></a>
+## [v0.3.0a140](https://github.com/hpcflow/matflow-new/compare/v0.3.0a139...v0.3.0a140) - 2025.03.05
+
+
+<a name="v0.3.0a139"></a>
+## [v0.3.0a139](https://github.com/hpcflow/matflow-new/compare/v0.3.0a138...v0.3.0a139) - 2025.02.03
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a138"></a>
+## [v0.3.0a138](https://github.com/hpcflow/matflow-new/compare/v0.3.0a137...v0.3.0a138) - 2025.01.17
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a137"></a>
 ## [v0.3.0a137](https://github.com/hpcflow/matflow-new/compare/v0.3.0a136...v0.3.0a137) - 2024.12.08
 

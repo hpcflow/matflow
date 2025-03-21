@@ -52,7 +52,9 @@ def _write_valida_tree_html(
 
 
 def generate_download_links_table():
-    """Generate install/index.rst file programmatically, including binary download links."""
+    """
+    Generate install/index.rst file programmatically, including binary download links.
+    """
     EXE_PLAT_LOOKUP = {
         "win.exe": "Windows executable",
         "macOS": "macOS executable",
@@ -70,7 +72,10 @@ def generate_download_links_table():
     links_table = (
         '<table class="binary-downloads-table">'
         + "".join(
-            f'<tr><td>{EXE_PLAT_LOOKUP["-".join(exe_name.split("-")[2:])]}</td><td><a href="{link}">{exe_name}</a></td></tr>'
+            f"<tr>"
+            f'<td>{EXE_PLAT_LOOKUP["-".join(exe_name.split("-")[2:])]}</td>'
+            f'<td><a href="{link}">{exe_name}</a></td>'
+            f"</tr>"
             for exe_name, link in sorted(bins_dat.items())
         )
         + "</table>"

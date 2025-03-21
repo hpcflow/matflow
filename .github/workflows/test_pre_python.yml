@@ -1,53 +1,10 @@
-name: test-pre-python
-concurrency:
-  | # e.g. don't run simultaneously on the same branch (since we may commit to that branch)
-  ci-${{ format('{0}github.head_ref', 'refs/heads') || github.ref }}
-
-env:
-  POETRY_VERSION: "1.4"
-
+name: Test pre-python
 on:
   workflow_dispatch: # manual invocation
-
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - "3.13-dev"
-        os:
-          - ubuntu-latest
-          - macos-13
-          - windows-latest
-
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
-
-      - name: Install and configure poetry
-        run: |
-          python -m pip install poetry==${{ env.POETRY_VERSION }}
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v4
-        with:
-          path: ./.venv
-          key: ${{ runner.os }}-test-${{ matrix.python-version }}-venv-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        run: |
-          poetry install --without dev,pyinstaller
-
-      - name: Run tests
-        run: |
-          poetry run python -m pytest --verbose --exitfirst
+    uses: hpcflow/github-support/.github/workflows/test-pre-python-impl.yml@main
+    with:
+      ref: ${{ github.ref }}
+      head-ref: ${{ github.head_ref }}
+      pytest-args: --verbose --exitfirst

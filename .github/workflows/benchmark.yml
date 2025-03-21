@@ -1,7 +1,4 @@
-name: benchmark
-
-env:
-  POETRY_VERSION: "1.4"
+name: Benchmark
 
 on:
   workflow_dispatch: # manual invocation
@@ -17,62 +14,12 @@ on:
         default: '["ubuntu-latest", "macos-13", "windows-latest"]'
 
 jobs:
-  make-workflow-benchmark:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ${{ fromJSON(github.event.inputs.python)}}
-        os: ${{ fromJSON(github.event.inputs.platform)}}
-        num_elements: ${{ fromJSON(github.event.inputs.num_elements)}}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install and configure poetry
-        run: |
-          python -m pip install poetry==${{ env.POETRY_VERSION }}
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v4
-        with:
-          path: ./.venv
-          key: ${{ runner.os }}-test-${{ matrix.python-version }}-venv-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        run: |
-          poetry install --without dev,pyinstaller
-
-      - name: Run app make workflow command
-        run: |
-          poetry run matflow --timeit-file benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt make ./matflow/data/workflows/tension_DAMASK_Al_N_repeats.yaml --var N ${{ matrix.num_elements }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-            name: benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt
-            path: benchmark_make_workflow_${{ matrix.num_elements }}_elements-${{ runner.os }}-py-${{ matrix.python-version }}.txt
-
-  make-workflow-benchmark-upload:
-    needs: make-workflow-benchmark
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-      - run: |
-          mkdir benchmarks
-      - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-          path: benchmarks
-      - uses: actions/upload-artifact@v4
-        with:
-          name: benchmarks
-          path: benchmarks
+  workflow-benchmark:
+    uses: hpcflow/github-support/.github/workflows/benchmark-impl.yml@main
+    with:
+      executable_name: matflow
+      benchmark_make_workflow: ./matflow/data/workflows/tension_DAMASK_Al_N_repeats.yaml
+      python: ${{ github.event.inputs.python }}
+      num_elements: ${{ github.event.inputs.num_elements }}
+      platform: ${{ github.event.inputs.platform }}
+      ref: ${{ github.ref }}
