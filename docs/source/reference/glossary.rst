@@ -28,7 +28,7 @@ Task schema
 This is a template for a task you want to run,
 with definitions of the input and outputs that are expected.
 
-Matflow has many built-in task schemas, but you may want to
+Matflow has many :ref:`built-in task schemas <task_schemas>`, but you may want to
 write your own.
 
 .. _def_workflow:
