@@ -48,5 +48,6 @@ Workflow template
 A workflow template parameterises a workflow,
 providing the required input values for the task schemas of the workflow.
 However, it doesn't actually run the :ref:`workflow <def_workflow>`.
-A workflow template consists of the matflow environment,
+A workflow template is usually just the list of tasks,
+but can optionally include matflow environment,
 the :ref:`task schemas <def_task_schema>`, and the :ref:`command files <def_command_files>`.
