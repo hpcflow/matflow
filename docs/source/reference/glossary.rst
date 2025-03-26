@@ -45,9 +45,8 @@ A workflow is a list of tasks that run one after the other.
 Workflow template
 ------------------
 
-A workflow template can be thought of like a function definition
-in python: it shows the required inputs,
-the steps which would be executed, and the resulting outputs.
+A workflow template parameterises a workflow,
+providing the required input values for the task schemas of the workflow.
 However, it doesn't actually run the :ref:`workflow <def_workflow>`.
 A workflow template consists of the matflow environment,
 the :ref:`task schemas <def_task_schema>`, and the :ref:`command files <def_command_files>`.
