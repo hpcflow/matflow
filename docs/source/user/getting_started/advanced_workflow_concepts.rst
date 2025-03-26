@@ -166,7 +166,7 @@ Here is an example workflow using sequences and groups that you might wish to ru
             - commands:
                 - command: echo <<parameter:p2>> # This one is printed to stdout
                 - command: echo $(( <<sum(parameter:p2)>> )) # This is captured as p3
-                  stdout: <<parameter:p3>>
+                  stdout: <<int(parameter:p3)>>
     tasks:
       - schema: s1
         sequences:
