@@ -95,7 +95,7 @@ the task schemas needs to set the input and output type accordingly:
 It might however be more appropriate to save results to files instead.
 
 In addition to passing variables directly,
-tasks can read parameters from (and save to) various file formats including json and HDF5.
+tasks can read parameters from (and save to) various file formats including JSON and HDF5.
 
 An example of passing variables directly and via json files is given below.
 MatFlow writes the input parameters into a json file ``js_0_act_0_inputs.json``,
