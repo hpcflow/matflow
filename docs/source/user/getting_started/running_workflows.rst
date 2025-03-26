@@ -65,4 +65,4 @@ Sometimes you might want to cancel a workflow that is running. Use
     matflow cancel WORKFLOW_REF
 
 where ``WORKFLOW_REF`` is either the path to the workflow directory, 
-or the number of the workflow displayed by ``matflow show``.
+or the ID of the workflow displayed by ``matflow show``.

@@ -256,7 +256,7 @@ in combination with the dot notation e.g.
 
 When running a workflow with Matflow, the required files are copied into a directory
 that Matflow creates, and any output files are saved into the ``execute`` directory.
-If you want to keep any of theses files, you should copy them to the ``artifacts``
+If you want to keep any of theses files, you should tell MatFlow to copy them to the ``artifacts``
 directory using ``save_files``:
 
 .. code-block:: yaml
