@@ -10,26 +10,26 @@ Requesting resources can be done using a ``resources`` block, either for the who
 
     resources:
     any:
-        scheduler: sge # Setting the scheduler is not normally needed because a
-                    # `default_scheduler` will be set in the config file.
-        scheduler_args:
+      scheduler: sge # Setting the scheduler is not normally needed because a
+                     # `default_scheduler` will be set in the config file.
+      scheduler_args:
         shebang_args: --login
         options:
-            -l: short
+          -l: short
 
 
 or at the task level
 
 .. code-block:: yaml
 
-    - schema: simulate_VE_loading_damask
+  - schema: simulate_VE_loading_damask
     resources:
-        any:
-        # This will use two cores for input file generators and output file parsers
-        num_cores: 2
-        main:
-        # Use 16 cores for the "main" part of the task (the simulation in this case)
-        num_cores: 16
+      any:
+      # This will use two cores for input file generators and output file parsers
+      num_cores: 2
+      main:
+      # Use 16 cores for the "main" part of the task (the simulation in this case)
+      num_cores: 16
     inputs:
         ...
 
@@ -71,11 +71,11 @@ Scheduler arguments can be passed like this e.g. to target high memory nodes:
 
     resources:
     any:
-        num_cores: 10
-        SGE_parallel_env: smp.pe
-        scheduler_args:
+      num_cores: 10
+      SGE_parallel_env: smp.pe
+      scheduler_args:
         options:
-            -l: mem512
+          -l: mem512
 
 
 If you have set resource options at the top level (for the whole workflow), but would like to "unset" them for a particular task,
@@ -84,12 +84,12 @@ you can pass an empty dictionary:
 
 .. code-block:: yaml
 
-    - schema: simulate_VE_loading_damask
+  - schema: simulate_VE_loading_damask
     resources:
-        main:
-        num_cores: 16
-        scheduler_args:
-            options: {} # "Clear" any previous options which have been set.
+      main:
+      num_cores: 16
+      scheduler_args:
+          options: {} # "Clear" any previous options which have been set.
     inputs:
 
 
@@ -120,7 +120,7 @@ To combine outputs from multiple sequences, you can use a ``group`` in a task sc
 
 .. code-block:: yaml
 
-    - objective: my_task_schema
+  - objective: my_task_schema
     inputs:
     - parameter: p2
         group: my_group
@@ -129,8 +129,8 @@ combined with a ``groups`` entry in the task itself.
 
 .. code-block:: yaml
 
-    - schema: my_task_schema
-      groups:
+  - schema: my_task_schema
+    groups:
     - name: my_group
 
 
@@ -198,7 +198,7 @@ The ``input_file`` must point to the label of a file in ``command_files``.
     - objective: my_task_schema
     actions:
     - input_file_generators:
-        - input_file: my_command_file
+      - input_file: my_command_file
         from_inputs:
         - my_input_1
         - my_input_2
