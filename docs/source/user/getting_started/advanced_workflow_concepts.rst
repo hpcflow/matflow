@@ -77,6 +77,7 @@ Scheduler arguments can be passed like this e.g. to target high memory nodes:
         options:
           -l: mem512
 
+Anything specified under `options` is passed directly to the scheduler as a jobscript command (i.e. isn't processed by MatFlow at all).
 
 If you have set resource options at the top level (for the whole workflow), but would like to "unset" them for a particular task,
 
