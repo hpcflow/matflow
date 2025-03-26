@@ -97,7 +97,7 @@ you can pass an empty dictionary:
 Task sequences
 ----------------
 
-Matflow can run tasks over a set of inputs values, if the iterations are independent.
+Matflow can run tasks over a set of independent input values.
 For this, you use a ``sequence``, and a ``nesting_order`` to control the nesting of the loops
 but you can also "zip" two or more lists of inputs by using the same level of nesting.
 Lower values of ``nesting_order`` act like the "outer" loop.
