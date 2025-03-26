@@ -117,7 +117,7 @@ Lower values of ``nesting_order`` act like the "outer" loop.
 Groups
 -------
 
-To combine outputs from multiple sequences, you can use a ``group`` in a task schema:
+To combine outputs from multiple elements, you can use a ``group`` in a task schema:
 
 .. code-block:: yaml
 
