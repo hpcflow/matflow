@@ -5,8 +5,6 @@ jobs:
   test:
     uses: hpcflow/github-support/.github/workflows/test-pre-python-impl.yml@main
     with:
-{% raw %}
-      ref: ${{ github.ref }}
-      head-ref: ${{ github.head_ref }}
-{% endraw %}
+      {% raw %}ref: ${{ github.ref }}
+      head-ref: ${{ github.head_ref }}{% endraw %}
       pytest-args: {{ pytest_args }}

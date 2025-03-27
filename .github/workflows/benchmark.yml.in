@@ -19,9 +19,7 @@ jobs:
     with:
       executable_name: {{ executable_name }}
       benchmark_make_workflow: {{ benchmark_make_workflow }}
-{% raw %}
-      python: ${{ github.event.inputs.python }}
+      {% raw %}python: ${{ github.event.inputs.python }}
       num_elements: ${{ github.event.inputs.num_elements }}
       platform: ${{ github.event.inputs.platform }}
-      ref: ${{ github.ref }}
-{% endraw %}
+      ref: ${{ github.ref }}{% endraw -%}

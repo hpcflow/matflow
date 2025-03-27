@@ -42,14 +42,12 @@ jobs:
   build-exes:
     uses: hpcflow/github-support/.github/workflows/build-exes-impl.yml@main
     with:
-{% raw %}
-      build_linux: ${{ github.event.inputs.build_linux }}
+      {% raw %}build_linux: ${{ github.event.inputs.build_linux }}
       build_macos: ${{ github.event.inputs.build_macos }}
       build_windows: ${{ github.event.inputs.build_windows }}
       build_onedir: ${{ github.event.inputs.build_onedir }}
       build_onefile: ${{ github.event.inputs.build_onefile }}
       logLevel: ${{ github.event.inputs.logLevel }}
       unit_test_args: ${{ github.event.inputs.unit_test_args }}
-{% endraw %}
-      executable_name: {{ executable_name }}
+      {% endraw %}executable_name: {{ executable_name }}
       pyinstaller_dir: {{ pyinstaller_dir }}
