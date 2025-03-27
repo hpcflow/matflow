@@ -48,9 +48,9 @@ are referenced using ``<<file:your_command_file>>`` e.g.
 
 Note that while command files can be referenced in an action, they cannot be referenced in this way as an input to a task schema.
 
-Python scripts however are executed slightly differently, and run the first
-function defined in your python file, which must have the same name as the python file.
-The ``<<script:...`` syntax adds some extra processing so you can call the (first)
+Python scripts however are executed slightly differently, and run the
+function defined in your python file which has the same name as the python file.
+The ``<<script:...`` syntax adds some extra processing so you can call the
 function in your python file with arguments, and pass any returned values back to matflow e.g:
 
 .. code-block:: console
