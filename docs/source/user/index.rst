@@ -9,4 +9,4 @@
       :maxdepth: 3
 
       How-to guides <how_to/index>
-      Tutorials <tutorials>
+      Tutorials <tutorials/index>
