@@ -10,14 +10,12 @@ jobs:
   release:
     uses: hpcflow/github-support/.github/workflows/release-impl.yml@main
     with:
-{% raw %}
-      gh-run-attempt: ${{ github.run_attempt }}
+      {% raw %}gh-run-attempt: ${{ github.run_attempt }}
       pr-merged: ${{ github.event.pull_request.merged }}
       pr-title: ${{ github.event.pull_request.title }}
       pr-base-ref: ${{ github.event.pull_request.base.ref }}
       pr-head-ref: ${{ github.event.pull_request.head.ref }}
-{% endraw %}
-      pre_release_branch: {{ pre_release_branch }}
+      {% endraw %}pre_release_branch: {{ pre_release_branch }}
       release_branch: {{ release_branch }}
       app_name: {{ app_name }}
       benchmark_make_workflow: {{ benchmark_make_workflow }}
@@ -30,9 +28,7 @@ jobs:
       website_source_org: {{ website_source_org }}
       website_source_repo: {{ website_source_repo }}
     secrets:
-{% raw %}
-      general-token: ${{ secrets.GITHUB_TOKEN }}
-{% endraw %}
+      {% raw %}general-token: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
       commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '}}' }}
       pypi-token: {{ '${{' }} secrets.{{ PYPI_token_name }} {{ '}}' }}
       website-token: {{ '${{' }} secrets.{{ website_source_token_name }} {{ '}}' }}

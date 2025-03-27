@@ -9,7 +9,7 @@ jobs:
     # Note that we only do this on one platform and with one Python version
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      {% raw %}- name: Checkout
         uses: actions/checkout@v4
       - name: Init Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
@@ -23,7 +23,7 @@ jobs:
         uses: hpcflow/github-support/init-cache@0.1
         with:
           name: sphinx
-          version: ${{ env.PYTHON_VERSION }}
+          version: ${{ env.PYTHON_VERSION }}{% endraw %}
       - name: Install Dependencies
         run: |
           poetry install --without pyinstaller
@@ -38,7 +38,7 @@ jobs:
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v4
         with:
-          name: matflow-documentation (${{ github.sha }})
+          name: {{ executable_name }}-documentation {% raw %}(${{ github.sha }}){% endraw %}
           path: docs/build/html
           if-no-files-found: error
   # TODO: Publish the docs to an internal site
