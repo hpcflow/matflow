@@ -13,7 +13,7 @@ def pad_version(version: str, pad_length: int = 3):
     for n in _NUMBER_RE.findall(version):
         p += n.zfill(pad_length)
     if "a" not in version:
-        p += "999"  # stable versions before pre-releases (with `reverse=True`)
+        p += "9" * pad_length  # stable versions before pre-releases (with `reverse=True`)
     return p
 
 
