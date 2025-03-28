@@ -43,7 +43,7 @@ papermill = "^2.5.0"
 ipykernel = "^6.25.1"
 
 [tool.poetry.group.pyinstaller.dependencies]
-pyinstaller = "^6.8.0"
+pyinstaller = "^6.12.0"
 
 [tool.poetry.group.typecheck]
 optional = true
