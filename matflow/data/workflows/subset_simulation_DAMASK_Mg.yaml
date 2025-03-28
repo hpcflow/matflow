@@ -1,162 +1,7 @@
+doc:
+  - "Resources strategy: consider setting a top-level `any`-scope resources block with `combine_scripts: True`, and a time of, say, 20 minutes. Then on the `simulate_VE_loading_damask` task, set an `any`-scope resources block  with `combine_scripts: False`, and a `main`-scope resources with the requirements for the simulations (e.g. `num_cores: 8`)."
+
 template_components:
-  task_schemas:
-    - objective: sample_direct_MC
-      inputs:
-        - parameter: dimension
-      outputs:
-        - parameter: x
-      actions:
-        - script: <<script:uq/sample_direct_MC.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: evaluate_yield_stress_limit_state
-      inputs:
-        - parameter: x # required to ensure group defined on input x (not needed by this task)
-        - parameter: threshold_yield_stress
-        - parameter: yield_stress
-      outputs:
-        - parameter: g
-      actions:
-        - script: <<script:uq/evaluate_yield_stress_limit_state.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: collate_results
-      inputs:
-        - parameter: g
-          group: all
-        - parameter: x
-          group: all
-        - parameter: all_g
-          group: all
-          default_value: null
-        - parameter: all_x
-          group: all
-          default_value: null
-        - parameter: all_accept
-          group: all
-          default_value: null
-        - parameter: p_0
-      outputs:
-        - parameter: chain_seeds
-        - parameter: chain_g
-        - parameter: threshold
-        - parameter: num_chains
-        - parameter: num_failed
-        - parameter: level_pf
-        - parameter: level_cov
-        - parameter: pf
-        - parameter: is_finished
-        - parameter: accept_rate
-      actions:
-        - script: <<script:uq/collate_results.py>>
-          script_data_in:
-            g: { format: direct, all_iterations: true }
-            "*": direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: initialise_markov_chains
-      inputs:
-        - parameter: chain_index
-        - parameter: chain_seeds
-        - parameter: chain_g
-      outputs:
-        - parameter: x
-        - parameter: g
-        - parameter: all_x
-        - parameter: all_g
-        - parameter: all_accept
-      actions:
-        - script: <<script:uq/initialise_markov_chains.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: generate_next_state
-      inputs:
-        - parameter: x
-        - parameter: prop_std
-      outputs:
-        - parameter: x
-      actions:
-        - script: <<script:uq/generate_next_state.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: increment_chain
-      inputs:
-        - parameter: x
-        - parameter: g
-        - parameter: all_x
-        - parameter: all_g
-        - parameter: all_accept
-        - parameter: threshold
-      outputs:
-        - parameter: x
-        - parameter: g
-        - parameter: all_x
-        - parameter: all_g
-        - parameter: all_accept
-      actions:
-        - script: <<script:uq/increment_chain.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
-    - objective: generate_volume_element
-      method: from_voronoi_random_variates
-      inputs:
-        - parameter: x # random variates
-        - parameter: VE_grid_size
-        - parameter: VE_size
-        - parameter: phase_label
-        - parameter: homog_label
-          default_value: SX
-        - parameter: scale_morphology
-          default_value: null
-        - parameter: scale_update_size
-          default_value: true
-      outputs:
-        - parameter: volume_element
-      actions:
-        - script: <<script:damask/generate_volume_element_voronoi_variates.py>>
-          script_data_in: direct
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-            - scope:
-                type: any
-              environment: damask_parse_env
-
   meta_task_schemas:
     - objective: system_analysis
       inputs:
@@ -178,17 +23,7 @@ loops:
 
 resources:
   any:
-    scheduler_args:
-      options:
-        --time: 00:20:00
-        --partition: sapphire
     combine_scripts: true
-
-environments:
-  python_env:
-    poetry_env: true
-  damask_parse_env:
-    poetry_env: true
 
 meta_tasks:
   system_analysis:
@@ -203,11 +38,6 @@ meta_tasks:
           combine_scripts: false
         main:
           num_cores: 8
-          scheduler_args:
-            options:
-              --time: 00:20:00
-              --partition: sapphire
-              --exclude: cpu-r-37 # singularity doesn't work on this node
       inputs:
         load_case::uniaxial:
           total_time: 5

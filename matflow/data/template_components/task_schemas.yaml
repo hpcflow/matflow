@@ -1499,19 +1499,402 @@
 
 - objective: generate_rve
   method: from_damask_input_files
-  inputs: 
-  - parameter: geom_path
-  - parameter: material_path
-  - parameter: orientations
-    default_value: null
+  inputs:
+    - parameter: geom_path
+    - parameter: material_path
+    - parameter: orientations
+      default_value: null
   outputs:
-  - parameter: volume_element
+    - parameter: volume_element
   actions:
-  - environments:
-    - scope:
-        type: any
-      environment: damask_parse_env
-    script: <<script:damask/generate_volume_element_from_damask_input_files.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
+    - environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+      script: <<script:damask/generate_volume_element_from_damask_input_files.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: sample_direct_MC
+  inputs:
+    - parameter: dimension
+  outputs:
+    - parameter: x
+  actions:
+    - script: <<script:uq/sample_direct_MC.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: evaluate_yield_stress_limit_state
+  inputs:
+    - parameter: x # required to ensure group defined on input x (not needed by this task)
+    - parameter: threshold_yield_stress
+    - parameter: yield_stress
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/evaluate_yield_stress_limit_state.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: collate_results
+  inputs:
+    - parameter: g
+      group: all
+      allow_failed_dependencies: 0.03 # i.e. let 3% of simulations fail
+    - parameter: x
+      group: all
+    - parameter: all_g
+      group: all
+      default_value: null
+    - parameter: all_x
+      group: all
+      default_value: null
+    - parameter: all_accept
+      group: all
+      default_value: null
+    - parameter: p_0
+  outputs:
+    - parameter: chain_seeds
+    - parameter: chain_g
+    - parameter: threshold
+    - parameter: num_chains
+    - parameter: num_failed
+    - parameter: level_pf
+    - parameter: level_cov
+    - parameter: pf
+    - parameter: is_finished
+    - parameter: accept_rate
+  actions:
+    - script: <<script:uq/collate_results.py>>
+      script_data_in:
+        g: { format: direct, all_iterations: true }
+        "*": direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: initialise_markov_chains
+  inputs:
+    - parameter: chain_index
+    - parameter: chain_seeds
+    - parameter: chain_g
+  outputs:
+    - parameter: x
+    - parameter: g
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_accept
+  actions:
+    - script: <<script:uq/initialise_markov_chains.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: initialise_markov_chains
+  method: ACS
+  inputs:
+    - parameter: chain_index
+    - parameter: chain_seeds
+    - parameter: chain_g
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: num_chains_per_update
+    - parameter: all_accept
+  outputs:
+    - parameter: x
+    - parameter: g
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_accept
+  actions:
+    - script: <<script:uq/initialise_markov_chains_ACS.py>>
+      script_data_in:
+        chain_index: { format: direct, all_iterations: true }
+        "*": direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_next_state
+  inputs:
+    - parameter: x
+    - parameter: prop_std
+  outputs:
+    - parameter: x
+  actions:
+    - script: <<script:uq/generate_next_state.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_next_state
+  method: CS
+  inputs:
+    - parameter: x
+    - parameter: prop_std
+  outputs:
+    - parameter: x
+  actions:
+    - script: <<script:uq/generate_next_state_CS.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_next_state
+  method: ACS
+  inputs:
+    - parameter: x
+    - parameter: prop_std
+    - parameter: lambda_
+  outputs:
+    - parameter: x
+  actions:
+    - script: <<script:uq/generate_next_state_ACS.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: increment_chain
+  inputs:
+    - parameter: x
+    - parameter: g
+      allow_failed_dependencies: True
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_accept
+    - parameter: threshold
+  outputs:
+    - parameter: x
+    - parameter: g
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_accept
+  actions:
+    - script: <<script:uq/increment_chain.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: increment_chain_inner
+  inputs:
+    - parameter: x
+    - parameter: g
+      allow_failed_dependencies: True
+    - parameter: threshold
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_x_inner
+      default_value: null
+    - parameter: all_g_inner
+      default_value: null
+  outputs:
+    - parameter: x
+    - parameter: all_x_inner
+    - parameter: all_g_inner
+  actions:
+    - script: <<script:uq/increment_chain_inner.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_volume_element
+  method: from_voronoi_random_variates
+  inputs:
+    - parameter: x # random variates
+    - parameter: VE_grid_size
+    - parameter: VE_size
+    - parameter: phase_label
+    - parameter: homog_label
+      default_value: SX
+    - parameter: scale_morphology
+      default_value: null
+    - parameter: scale_update_size
+      default_value: true
+  outputs:
+    - parameter: volume_element
+  actions:
+    - script: <<script:damask/generate_volume_element_voronoi_variates.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: update_proposal
+  inputs:
+    - parameter: lambda_
+      default_value: 1.0
+    - parameter: all_accept
+      group: all
+      default_value: null
+    - parameter: all_x
+      group: all
+      default_value: null
+    - parameter: all_g
+      group: all
+      default_value: null
+  outputs:
+    - parameter: lambda_
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_accept
+  actions:
+    - script: <<script:uq/update_proposal.py>>
+      script_data_in:
+        lambda_: { format: direct, all_iterations: true }
+        "*": direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: dummy_pre_processor
+  inputs:
+    - parameter: x
+  outputs:
+    - parameter: "y"
+  actions:
+    - script: <<script:uq/dummy_pre_processor.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: model_sum_x
+  inputs:
+    - parameter: "y"
+  outputs:
+    - parameter: sum_y
+  actions:
+    - rules:
+        - path: resources.os_name
+          condition: { value.equal_to: nt }
+      commands:
+        - command: 'Write-Output $(<<join[delim=" + "](parameter:y)>>)'
+          stdout: "<<float(parameter:sum_y)>>"
+    - rules:
+        - path: resources.os_name
+          condition: { value.equal_to: posix }
+      commands:
+        - command: echo 'print(<<join[delim=" + "](parameter:y)>>)' | python
+          stdout: "<<float(parameter:sum_y)>>"
+
+- objective: evaluate_limit_state_normal_sum
+  inputs:
+    - parameter: x # required to ensure group defined on input x (not needed by this task)
+    - parameter: sum_y
+    - parameter: target_pf
+    - parameter: dimension
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/evaluate_limit_state_normal_sum.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: system_analysis_toy_model
+  inputs:
+    - parameter: x
+    - parameter: target_pf
+    - parameter: dimension
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/system_analysis_toy_model.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: system_analysis_DA_fine
+  inputs:
+    - parameter: x
+    - parameter: x_0
+    - parameter: stddev
+    - parameter: y_star
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/system_analysis_toy_model_DA_fine.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: system_analysis_DA_coarse
+  inputs:
+    - parameter: x
+    - parameter: x_0
+    - parameter: stddev
+    - parameter: y_star
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/system_analysis_toy_model_DA_coarse.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env

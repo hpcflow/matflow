@@ -9,7 +9,7 @@ loops:
 
   - name: levels # [outer loop]
     tasks: [2, 3, 4, 5, 6, 7, 8]
-    num_iterations: 4
+    num_iterations: 9
     termination_task: 2
     termination:
       path: outputs.is_finished
@@ -22,12 +22,16 @@ resources:
 tasks:
   - schema: sample_direct_MC
     inputs:
-      dimension: 200
+      dimension: 1
     repeats: 100 # num_samples
-  - schema: system_analysis_toy_model
+  - schema: system_analysis_DA_fine
+    resources:
+      any:
+        skip_downstream_on_failure: False
     inputs:
-      dimension: 200
-      target_pf: 1.0e-4
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
     groups:
       - name: all
   - schema: collate_results # [subset loop]
@@ -44,16 +48,26 @@ tasks:
   - schema: generate_next_state # [inner MC loop; outer MC loop]
     inputs:
       prop_std: 1.0
-  - schema: system_analysis_toy_model # [inner MC loop; outer MC loop]
+
+  - schema: system_analysis_DA_coarse # [inner MC loop; outer MC loop]
+    resources:
+      any:
+        skip_downstream_on_failure: False
     inputs:
-      dimension: 200
-      target_pf: 1.0e-4
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
+
   - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does
 
-  - schema: system_analysis_toy_model # [outer MC loop]  [task idx 7]
+  - schema: system_analysis_DA_fine # [outer MC loop]  [task idx 7]
+    resources:
+      any:
+        skip_downstream_on_failure: False
     inputs:
-      dimension: 200
-      target_pf: 1.0e-4
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
   - schema: increment_chain # [outer MC loop]
     groups:
       - name: all
