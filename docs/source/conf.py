@@ -1,12 +1,12 @@
 # Configuration file for the Sphinx documentation builder -- Common config content
-
+from __future__ import annotations
 import copy
 import importlib
 import json
 import re
 from pathlib import Path
 from textwrap import dedent
-from typing import Type
+from typing import TYPE_CHECKING
 
 from ruamel.yaml import YAML
 import tomlkit
@@ -15,31 +15,33 @@ from valida.schema import write_tree_html
 
 from hpcflow.sdk.config.callbacks import callback_vars as config_callback_vars
 
+if TYPE_CHECKING:
+    from hpcflow.sdk.app import BaseApp
+    from hpcflow.sdk.core.validation import Schema
 
-def get_classmethods(cls: Type):
+
+def get_classmethods(cls: type) -> list[str]:
     """Get a list of class methods of a given class."""
     return sorted(
-        [
-            k
-            for k, v in cls.__dict__.items()
-            if callable(getattr(cls, k))
-            and not k.startswith("_")
-            and isinstance(v, classmethod)
-        ]
+        k
+        for k, v in cls.__dict__.items()
+        if callable(getattr(cls, k))
+        and not k.startswith("_")
+        and isinstance(v, classmethod)
     )
 
 
 def _write_valida_tree_html(
-    schema,
-    path,
+    schema: Schema,
+    path: str | Path,
     from_path=None,
     anchor_root=None,
     heading_start_level=1,
     show_root_heading=True,
-):
+) -> Path:
     tree = schema.to_tree(nested=True, from_path=from_path)
-    path = Path(path).resolve()
-    with path.open(mode="wt", encoding="utf-8") as fp:
+    path_ = Path(path).resolve()
+    with path_.open(mode="wt", encoding="utf-8") as fp:
         fp.write(
             write_tree_html(
                 tree,
@@ -48,42 +50,39 @@ def _write_valida_tree_html(
                 show_root_heading=show_root_heading,
             )
         )
-    return path
+    return path_
 
 
-def generate_download_links_table():
-    """
-    Generate install/index.rst file programmatically, including binary download links.
-    """
-    EXE_PLAT_LOOKUP = {
-        "win.exe": "Windows executable",
-        "macOS": "macOS executable",
-        "linux": "Linux executable",
-        "win-dir.zip": "Windows folder",
-        "linux-dir.zip": "Linux folder",
-        "macOS-dir.zip": "macOS folder",
-    }
+_EXE_PLAT_LOOKUP = {
+    "win.exe": "Windows executable",
+    "macOS": "macOS executable",
+    "linux": "Linux executable",
+    "win-dir.zip": "Windows folder",
+    "linux-dir.zip": "Linux folder",
+    "macOS-dir.zip": "macOS folder",
+}
 
+
+def generate_download_links_table() -> str:
+    """Generate install/index.rst file programmatically, including binary download links."""
     # Get just-released binaries:
     yaml = YAML()
     with Path("released_binaries.yml") as fh:
-        bins_dat = yaml.load(fh)
+        bins_dat: dict[str, str] = yaml.load(fh)
 
-    links_table = (
+    return (
         '<table class="binary-downloads-table">'
         + "".join(
-            f"<tr>"
-            f'<td>{EXE_PLAT_LOOKUP["-".join(exe_name.split("-")[2:])]}</td>'
-            f'<td><a href="{link}">{exe_name}</a></td>'
-            f"</tr>"
+            f"""<tr><td>{
+                _EXE_PLAT_LOOKUP["-".join(exe_name.split("-")[2:])]
+            }</td><td><a href="{link}">{exe_name}</a></td></tr>"""
             for exe_name, link in sorted(bins_dat.items())
         )
         + "</table>"
     )
-    return links_table
 
 
-def expose_variables(app):
+def expose_variables(app: BaseApp):
     """Expose some variables' reprs as string variables to be used in the docs.
 
     See: https://stackoverflow.com/a/69211912/5042280
@@ -100,7 +99,7 @@ def expose_variables(app):
     return rst_epilog
 
 
-def generate_config_file_validation_schema(app):
+def generate_config_file_validation_schema(app: BaseApp):
     all_cfg_schema = app.config._file.file_schema
 
     # merge built-in schema with custom schemas:
@@ -131,7 +130,7 @@ def generate_config_file_validation_schema(app):
     )
 
 
-def generate_parameter_validation_schemas(app):
+def generate_parameter_validation_schemas(app: BaseApp):
     for param in app.parameters:
         schema = param._validation
         if schema:
@@ -145,25 +144,23 @@ def generate_parameter_validation_schemas(app):
             jinja_contexts["first_ctx"]["tree_files"][param.typ] = str(full_path)
 
 
-def copy_all_demo_workflows(app):
+def copy_all_demo_workflows(app: BaseApp):
     """Load WorkflowTemplate objects and copy template files from all builtin demo
     template files to the reference source directory (adjacent to the workflows.rst file
     within which they are included)."""
-    out = {}
-    for name in app.list_demo_workflows():
-        obj = app.load_demo_workflow(name)
-        dst = Path(f"reference/demo_workflow_{name}")
-        file_name = app.copy_demo_workflow(name, dst=dst, doc=False)
-        value = {
-            "obj": obj,
+    return {
+        name: {
+            "obj": app.load_demo_workflow(name),
             "file_path": f"demo_workflow_{name}",
-            "file_name": file_name,
+            "file_name": app.copy_demo_workflow(
+                name, dst=Path(f"reference/demo_workflow_{name}"), doc=False
+            ),
         }
-        out[name] = value
-    return out
+        for name in app.list_demo_workflows()
+    }
 
 
-def prepare_API_reference_stub(app):
+def prepare_API_reference_stub(app: BaseApp):
     contents = dedent(
         f"""\
         Python API
@@ -181,9 +178,9 @@ def prepare_API_reference_stub(app):
         fp.write(contents)
 
 
-def prepare_task_schema_action_info(app):
+def prepare_task_schema_action_info(app: BaseApp):
     """Write an HTML file for each task schema that lists the actions."""
-    out = {}
+    out: dict[str, dict[str, str]] = {}
     for ts_i in app.task_schemas:
         if not ts_i.web_doc:
             continue
@@ -196,10 +193,8 @@ def prepare_task_schema_action_info(app):
             "file_path": str(dst.resolve()),
             "file_name": dst.name,
         }
-        if ts_i.objective.name not in out:
-            out[ts_i.objective.name] = {}
 
-        out[ts_i.objective.name][
+        out.setdefault(ts_i.objective.name, {})[
             ts_i.name if ts_i.method or ts_i.implementation else None
         ] = value
 
@@ -213,7 +208,7 @@ with open("config.jsonc") as fp:
     )
     config_dat = json.loads(json_str)
 
-app = importlib.import_module(config_dat["package"], "app")
+app: BaseApp = importlib.import_module(config_dat["package"], "app")
 release = app.version
 project = config_dat["project"]
 copyright = config_dat["copyright"]
@@ -231,7 +226,9 @@ Path("./reference/_generated").mkdir(exist_ok=True)
 
 # distribution name (i.e. name on PyPI):
 with open("../../pyproject.toml") as fp:
-    dist_name = tomlkit.load(fp)["tool"]["poetry"]["name"]
+    pyproject_config = tomlkit.load(fp)
+    dist_name = pyproject_config["tool"]["poetry"]["name"]
+    supported_python = pyproject_config["tool"]["poetry"]["dependencies"]["python"]
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -251,6 +248,7 @@ extensions = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     **additional_intersphinx,
 }
 
@@ -278,6 +276,7 @@ jinja_contexts = {
         "download_links_table_html": generate_download_links_table(),
         "github_user": github_user,
         "github_repo": github_repo,
+        "supported_python": supported_python,
     }
 }
 

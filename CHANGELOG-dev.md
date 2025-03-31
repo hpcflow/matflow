@@ -1,4 +1,55 @@
 
+<a name="v0.3.0a145"></a>
+## [v0.3.0a145](https://github.com/hpcflow/matflow-new/compare/v0.3.0a144...v0.3.0a145) - 2025.03.30
+
+### ✨ Features
+
+* bump hpcflow version
+
+
+<a name="v0.3.0a144"></a>
+## [v0.3.0a144](https://github.com/hpcflow/matflow-new/compare/v0.3.0a143...v0.3.0a144) - 2025.03.29
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a143"></a>
+## [v0.3.0a143](https://github.com/hpcflow/matflow-new/compare/v0.3.0a142...v0.3.0a143) - 2025.03.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a142"></a>
+## [v0.3.0a142](https://github.com/hpcflow/matflow-new/compare/v0.3.0a141...v0.3.0a142) - 2025.03.28
+
+### 🐛 Bug Fixes
+
+* fix scipy pyinstaller issue
+
+
+<a name="v0.3.0a141"></a>
+## [v0.3.0a141](https://github.com/hpcflow/matflow-new/compare/v0.3.0a140...v0.3.0a141) - 2025.03.28
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* update envs examples
+* sync upstream shared docs and GHAs workflows
+* sync upstream shared docs and GHAs workflows
+
+
+<a name="v0.3.0a140"></a>
+## [v0.3.0a140](https://github.com/hpcflow/matflow-new/compare/v0.3.0a139...v0.3.0a140) - 2025.03.05
+
+
 <a name="v0.3.0a139"></a>
 ## [v0.3.0a139](https://github.com/hpcflow/matflow-new/compare/v0.3.0a138...v0.3.0a139) - 2025.02.03
 

@@ -23,7 +23,7 @@ Example environment definition - Windows
       - label: run_mtex
         instances:
           - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
+              & 'C:\path\to\matlab.exe' -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
             num_cores: 1
             parallel_mode: null
 
@@ -31,14 +31,13 @@ Example environment definition - Windows
         instances:
           - command: |
               $mtex_path = 'C:\path\to\mtex\folder'
-              $mtex_include = ((Get-ChildItem -Recurse -Directory -Path $mtex_path | %{ "-I `"$_.FullName`"" }) -join ' ') + " -a `"$mtex_path\data`""
-              $mtex_include | & 'C:\path\to\mcc.bat' -R -singleCompThread -m .\<<script_name>> <<args>>
+              & 'C:\path\to\mcc.bat' -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$mtex_path/data" -a "$mtex_path/plotting/plotting_tools/colors.mat"
             num_cores: 1
             parallel_mode: null
 
       - label: run_compiled_mtex
         instances:
-          - command: .\<<script_name>>.exe <<args>>
+          - command: .\matlab_exe.exe <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -55,13 +54,15 @@ Example environment definition - Linux/MacOS
       - label: run_mtex
         instances:
           - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
+              /path/to/matlab -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
             num_cores: 1
             parallel_mode: null
 
       - label: compile_mtex
         instances:
-          - command: compile-mtex <<script_name>> <<args>> # TODO - define this 
+          - command: |
+              MTEX_PATH="/path/to/MTEX/folder"
+              /path/to/mcc -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$MTEX_PATH/data" -a "$MTEX_PATH/plotting/plotting_tools/colors.mat"
             num_cores: 1
             parallel_mode: null
 
@@ -69,7 +70,7 @@ Example environment definition - Linux/MacOS
         instances:
           - command: |
               MATLAB_DIR=/path/to/matlab/runtime/directory
-              ./run_<<script_name>>.sh $MATLAB_DIR <<args>>
+              ./matlab_exe $MATLAB_DIR <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -95,7 +96,7 @@ Example environment definition - Linux/MacOS
             parallel_mode: null
       - label: python_script
         instances:
-          - command: python <<script_name>> <<args>>
+          - command: python "<<script_path>>" <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -113,7 +114,7 @@ Example environment definition - Windows
             parallel_mode: null
       - label: python_script
         instances:
-          - command: python <<script_name>> <<args>>
+          - command: python "<<script_path>>" <<args>>
             num_cores: 1
             parallel_mode: null
 

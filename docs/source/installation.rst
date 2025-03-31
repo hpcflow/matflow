@@ -50,16 +50,23 @@
     .. admonition:: What does this script do?
         :class: note dropdown
         
-        The above command downloads a script from the {{ app_name }} GitHub repository and runs it. The script does the following:
+        The above command downloads a `script from the {{ app_name }} GitHub repository <https://github.com/hpcflow/install-scripts/blob/5b47fa287aaef8d4b7c7970116f13b72b674ed77/src/install-matflow.sh>`_ and runs it. The script does the following:
 
         #. It downloads the latest prerelease version of {{ app_name }} zip archived in a single folder.
-        #. The archive is extracted and the folder placed in an accessible location. The location depends on the operating system. In Linux it is ``/.local/share/{{ app_package_name }}``. In macOS it is ``~/Library/Application Support/{{ app_package_name }}``. In Windows it is ``Username\AppData\Local\{{ app_package_name }}``.
+        #. The archive is extracted and the folder placed in an accessible location. The location depends on the operating system. In Linux it is ``~/.local/share/{{ app_package_name }}``. In macOS it is ``~/Library/Application Support/{{ app_package_name }}``. In Windows it is ``Username\AppData\Local\{{ app_package_name }}``.
         #. A symbolic link (Linux/macOS) or an alias pointing to the file is created. This allows {{ app_name }} to be run by entering a simple command.
         #. A command is added to ``.bashrc``/``.zshrc`` (linux/macOS) or the Powershell profile (Windows) that allows {{ app_name }} to be run from any folder.
 
         If the script detects that the version of {{ app_name }} it is trying to install is already there, it will stop 
         running and exit.
 
+    To check if the installation was successful, run the following command in your terminal:
+
+    .. code-block:: bash
+
+        {{ app_name }} --version
+
+    This should print the version of {{ app_name }} that was installed, and will give an error if the installation was not successful.
 
 
     .. hint::
@@ -71,12 +78,18 @@
     {{ app_name }} Python package
     *****************************
 
+    We recommend you `create a virtual Python environment <https://docs.python.org/3/tutorial/venv.html>`_ to work with MatFlow to separate versions for different projects and avoid dependency conflicts.
+    Check that you have the correct environment activated by confirming that the name of the environment appears in brackets in your prompt.
+
+    {{ app_name }} is compatible with Python versions {{ supported_python }}.
+    We recommend using the newest version available to you.
+
     Using pip
     ==========================
 
     Use pip to install the Python package from PyPI::
 
-      pip install {{ dist_name }}=="{{ app_version }}"
+      pip install {{ dist_name }}
 
     Using conda
     ===========
