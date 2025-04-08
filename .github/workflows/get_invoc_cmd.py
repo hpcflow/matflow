@@ -3,6 +3,7 @@
 This is used in the test GHA workflow to check that we get the expected result.
 
 """
+
 import sys
 import importlib
 

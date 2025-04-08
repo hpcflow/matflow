@@ -4,22 +4,22 @@ on:
   workflow_dispatch: # manual invocation
     inputs:
       pre_commit:
-        description: "Run pre-commit."
+        description: "Run pre-commit?"
         required: true
         type: boolean
         default: true
       unit_tests:
-        description: "Run unit tests"
+        description: "Run unit tests?"
         required: true
         type: boolean
         default: true
       invocation_tests:
-        description: "Run invocation tests."
+        description: "Run invocation tests?"
         required: true
         type: boolean
         default: true
       integration_tests:
-        description: "Run integration-like workflow submission tests."
+        description: "Run integration-like workflow submission tests?"
         required: true
         type: boolean
         default: true
@@ -41,23 +41,21 @@ jobs:
   test:
     uses: hpcflow/github-support/.github/workflows/test-impl.yml@main
     with:
-{% raw %}
-      pre_commit: ${{ github.event_name == 'pull_request' || github.event.inputs.pre_commit }}
-      unit_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.unit_tests }}
-      integration_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.integration_tests }}
-      invocation_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.invocation_tests }}
+      {% raw %}pre_commit: ${{ github.event_name == 'pull_request' || github.event.inputs.pre_commit == 'true' }}
+      unit_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.unit_tests == 'true' }}
+      integration_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.integration_tests == 'true' }}
+      invocation_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.invocation_tests == 'true' }}
       unit_test_args: ${{ github.event.inputs.unit_test_args }}
       integration_test_args: ${{ github.event.inputs.integration_test_args }}
       ref: ${{ github.ref }}
       head-ref: ${{ github.head_ref }}
-      full-repo-name: ${{ github.event.pull_request.head.repo.full_name }}
-{% endraw %}
+      full-repo-name: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
       app_package: {{ app_package }}
       CLI_module: {{ CLI_module }}
       CLI_path: {{ CLI_path }}
       CLI_path_win: {{ CLI_path_win }}
       executable_name: {{ executable_name }}
-      pytest_args: {{ pytest_args }}
+      pytest_args:{%- if pytest_args %} {{ pytest_args }}{%- else %} ""{%- endif %}
     secrets:
       pre-commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '|| secrets.GITHUB_TOKEN }}' }}
     permissions:
