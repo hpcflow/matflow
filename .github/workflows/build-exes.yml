@@ -51,3 +51,4 @@ jobs:
       unit_test_args: ${{ github.event.inputs.unit_test_args }}
       executable_name: matflow
       pyinstaller_dir: pyinstaller
+      python-version: "3.13"
