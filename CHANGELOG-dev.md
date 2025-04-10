@@ -1,4 +1,22 @@
 
+<a name="v0.3.0a151"></a>
+## [v0.3.0a151](https://github.com/hpcflow/matflow-new/compare/v0.3.0a150...v0.3.0a151) - 2025.04.10
+
+### ✨ Features
+
+* bump hpcflow version
+* support python 3.13, and use it github actions workflows
+
+### 🐛 Bug Fixes
+
+* run poetry lock
+* do not trigger testing on PR edit event
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a150"></a>
 ## [v0.3.0a150](https://github.com/hpcflow/matflow-new/compare/v0.3.0a149...v0.3.0a150) - 2025.04.09
 
