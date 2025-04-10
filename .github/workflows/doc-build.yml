@@ -1,7 +1,7 @@
 name: Documentation
 run-name: doc
 env:
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.13"
   POETRY_VERSION: "1.4"
 on: push
 jobs:
