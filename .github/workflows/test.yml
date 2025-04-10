@@ -34,7 +34,7 @@ on:
         type: string
         default: ""
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, synchronize]
     branches: [main, develop] # have to manually change these
 
 jobs:

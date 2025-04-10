@@ -1239,13 +1239,13 @@ numpy = ">=1.19.3"
 
 [[package]]
 name = "hpcflow-new2"
-version = "0.2.0a209"
+version = "0.2.0a210"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.9"
 files = [
-    {file = "hpcflow_new2-0.2.0a209-py3-none-any.whl", hash = "sha256:d52cb45209a979040ff104bb74ded2fe958cc8a06320164a77c0113aedce05dd"},
-    {file = "hpcflow_new2-0.2.0a209.tar.gz", hash = "sha256:ec0458c6654d848dffba4df8d31f0deffb6e2625129613212de6996e07113b39"},
+    {file = "hpcflow_new2-0.2.0a210-py3-none-any.whl", hash = "sha256:acb7eecd7f55bd83c13793b53c59763ea30c8fe33dd7b5450178ad1afc72332f"},
+    {file = "hpcflow_new2-0.2.0a210.tar.gz", hash = "sha256:a0b072c400a851379a147e0b857ae07afab034e4df90af1e6bf35e6b26f3ee09"},
 ]
 
 [package.dependencies]
