@@ -26,11 +26,11 @@ If your version is not supported, you may need to update to a newer version of P
 Next, you will need to set up a virtual environment to install MatFlow and its dependencies.
 A virtual environment is a self-contained directory that contains a particular version of Python with the all libraries and dependencies you install.
 This allows you to install packages without affecting the system Python installation or other projects,
-and when you run a command inside that environemnt you are certain which versions are being used.
+and when you run a command inside that environment you are certain which versions are being used.
 
 To create a virtual environment, you can use the `venv <https://docs.python.org/3/library/venv.html>`_ module that comes with Python.
 Follow the instructions in the `Python Packaging Guide <https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments>`_ to create and activate a virtual environment.
-They recommend calling your environment ``.venv``, but you can call it whatever you like.
+The convention is to call your environment ``.venv``, but you can call it whatever you like.
 We recommend calling it ``matflow-env`` to make it clear that this environment is for MatFlow.
 
 When the environment is activated, you should see the name of the virtual environment in brackets in your terminal prompt.
