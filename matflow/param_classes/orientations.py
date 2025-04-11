@@ -1,6 +1,7 @@
 """
 Crystal orientation information.
 """
+
 from __future__ import annotations
 from dataclasses import dataclass
 import enum
@@ -311,6 +312,21 @@ class Orientations(ParameterValue):
             self.unit_cell_alignment.y.value,
             self.unit_cell_alignment.z.value,
         ]
+
+    @classmethod
+    def dump_element_group_to_HDF5_group(cls, objs: list[Orientations], group):
+        # merge all orientation data into one array, and assume all metadata is the same
+        # for all objects:
+        first = objs[0]
+        group.create_dataset("data", data=np.vstack([np.asarray(i.data) for i in objs]))
+        group.attrs["representation_type"] = first.representation.type.value
+        group.attrs["representation_quat_order"] = first.representation.quat_order.value
+        group.attrs["unit_cell_alignment"] = [
+            first.unit_cell_alignment.x.value,
+            first.unit_cell_alignment.y.value,
+            first.unit_cell_alignment.z.value,
+        ]
+        group.attrs["number_of_orientation_sets"] = len(objs)
 
     @classmethod
     def from_JSON_like(cls, data: ArrayLike, ori_format: str) -> Self:

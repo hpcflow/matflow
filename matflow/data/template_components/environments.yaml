@@ -5,7 +5,7 @@
   executables:
     - label: python_script
       instances:
-        - command: python <<script_name>> <<args>>
+        - command: python "<<script_path>>" <<args>>
           num_cores: 1
           parallel_mode: null
   doc: For running Python; a Python virtual environment. Needs numpy and h5py.

@@ -44,10 +44,15 @@
     name: pole_figure.png
   doc: MTEX figures of poles.
 
-- label: mtex_IPF_figure
+- label: mtex_inverse_pole_figures
+  name:
+    name: inverse_pole_figure.png
+  doc: MTEX figure of inverse pole.
+
+- label: mtex_IPF_key
   name:
     name: IPF_key.png
-  doc: MTEX figure of inverse pole.
+  doc: Key image for MTEX inverse pole figures.
 
 - label: dream_3D_pipeline
   name:

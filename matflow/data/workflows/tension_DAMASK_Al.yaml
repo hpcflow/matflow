@@ -82,6 +82,9 @@ tasks:
           - field_name: O
             increments: [{ values: [0, -1] }]
       damask_viz:
-        fields: [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
+        fields:
+          [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
         increments:
           - step: 20
+      calculate_yield_stress:
+        yield_point: 0.002
