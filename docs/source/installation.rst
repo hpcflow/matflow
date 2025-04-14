@@ -28,7 +28,7 @@
     The recommended way to install MatFlow is to
     use pip to install the Python package from PyPI::
 
-      pip install {{ dist_name }}=="{{ app_version }}"
+      pip install {{ dist_name }}
 
     This installs the python package, which also gives the CLI version of MatFlow.
 

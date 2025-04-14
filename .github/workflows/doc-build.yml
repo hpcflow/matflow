@@ -1,7 +1,7 @@
 name: Documentation
 run-name: doc
 env:
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.13"
   POETRY_VERSION: "1.4"
 on: push
 jobs:
@@ -15,16 +15,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Init Poetry ${{ env.POETRY_VERSION }}
-        run: |
-          python -m pip install poetry==${{ env.POETRY_VERSION }}
-          poetry config virtualenvs.in-project true
-          poetry config installer.modern-installation false
-      - name: Cache Virtual Environment
-        uses: actions/cache@v4
+      - name: Install and configure poetry ${{ env.POETRY_VERSION }}
+        uses: hpcflow/github-support/setup-poetry@0.1
         with:
-          path: ./.venv
-          key: ${{ runner.os }}-sphinx-${{ env.PYTHON_VERSION }}-venv-${{ hashFiles('**/poetry.lock') }}
+          version: ${{ env.POETRY_VERSION }}
+      - name: Cache Virtual Environment
+        uses: hpcflow/github-support/init-cache@0.1
+        with:
+          name: sphinx
+          version: ${{ env.PYTHON_VERSION }}
       - name: Install Dependencies
         run: |
           poetry install --without pyinstaller

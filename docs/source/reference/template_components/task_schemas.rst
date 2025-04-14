@@ -1,3 +1,5 @@
+.. _task_schemas:
+
 Task schemas
 ============
 

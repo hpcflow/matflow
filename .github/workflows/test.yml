@@ -4,22 +4,22 @@ on:
   workflow_dispatch: # manual invocation
     inputs:
       pre_commit:
-        description: "Run pre-commit."
+        description: "Run pre-commit?"
         required: true
         type: boolean
         default: true
       unit_tests:
-        description: "Run unit tests"
+        description: "Run unit tests?"
         required: true
         type: boolean
         default: true
       invocation_tests:
-        description: "Run invocation tests."
+        description: "Run invocation tests?"
         required: true
         type: boolean
         default: true
       integration_tests:
-        description: "Run integration-like workflow submission tests."
+        description: "Run integration-like workflow submission tests?"
         required: true
         type: boolean
         default: true
@@ -34,17 +34,17 @@ on:
         type: string
         default: ""
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, synchronize]
     branches: [main, develop] # have to manually change these
 
 jobs:
   test:
     uses: hpcflow/github-support/.github/workflows/test-impl.yml@main
     with:
-      pre_commit: ${{ github.event_name == 'pull_request' || github.event.inputs.pre_commit }}
-      unit_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.unit_tests }}
-      integration_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.integration_tests }}
-      invocation_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.invocation_tests }}
+      pre_commit: ${{ github.event_name == 'pull_request' || github.event.inputs.pre_commit == 'true' }}
+      unit_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.unit_tests == 'true' }}
+      integration_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.integration_tests == 'true' }}
+      invocation_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.invocation_tests == 'true' }}
       unit_test_args: ${{ github.event.inputs.unit_test_args }}
       integration_test_args: ${{ github.event.inputs.integration_test_args }}
       ref: ${{ github.ref }}
@@ -56,6 +56,8 @@ jobs:
       CLI_path_win: matflow\cli.py
       executable_name: matflow
       pytest_args: --verbose --exitfirst
+      python-versions: |
+        ["3.9", "3.10", "3.11", "3.12", "3.13"]
     secrets:
       pre-commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
     permissions:
