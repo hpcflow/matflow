@@ -48,7 +48,7 @@ Example environment definition - Linux/MacOS
   - name: matlab_env
     setup: |
       # set up commands (e.g. `module load ...`)
-      MTEX_DIR=/path/to/mtex-toolbox
+      MTEX_DIR=/path/to/mtex-5.3
     executables:
       - label: run_mtex
         instances:
@@ -62,8 +62,12 @@ Example environment definition - Linux/MacOS
       - label: compile_mtex
         instances:
           - command: |
-              for dir in $(find ${MTEX_DIR} -type d | grep -v -e "@" -e "private"); do MTEX_INCLUDE="-I ${dir} ${MTEX_INCLUDE}"; done
-              mcc -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe $(cat ${MTEX_INCLUDE})
+              for dir in $(find ${MTEX_DIR} -type d | grep -v -e "@" -e "private" -e "data" -e "makeDoc" -e "templates" -e "nfft_openMP" -e "compatibility/")
+              do
+                MTEX_INCLUDE="-I ${dir} ${MTEX_INCLUDE}"
+              done
+              export MTEX_INCLUDE="${MTEX_INCLUDE} -a ${MTEX_DIR}/data"
+              mcc -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe ${MTEX_INCLUDE}
             num_cores: 1
             parallel_mode: null
 
