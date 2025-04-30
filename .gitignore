@@ -141,3 +141,6 @@ docs/source/reference/api.rst
 demo_workflows/
 
 problems/
+
+# MacOS
+*.DS_Store
