@@ -67,7 +67,7 @@ def generate_download_links_table() -> str:
     """Generate install/index.rst file programmatically, including binary download links."""
     # Get just-released binaries:
     yaml = YAML()
-    with Path("released_binaries.yml") as fh:
+    with Path("released_binaries.yml").open("rt") as fh:
         bins_dat: dict[str, str] = yaml.load(fh)
 
     return (

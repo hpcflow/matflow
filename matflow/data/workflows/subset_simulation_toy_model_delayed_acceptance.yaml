@@ -1,0 +1,73 @@
+loops:
+  - name: inner_markov_chain # [inner MC state loop]
+    tasks: [4, 5, 6]
+    num_iterations: 4
+
+  - name: outer_markov_chain # [outer MC state loop]
+    tasks: [4, 5, 6, 7, 8]
+    num_iterations: 9 # num_states - 1: (1 / p_0) - 1
+
+  - name: levels # [outer loop]
+    tasks: [2, 3, 4, 5, 6, 7, 8]
+    num_iterations: 9
+    termination_task: 2
+    termination:
+      path: outputs.is_finished
+      condition: { value.equal_to: true }
+
+resources:
+  any:
+    combine_scripts: true
+
+tasks:
+  - schema: sample_direct_MC
+    inputs:
+      dimension: 1
+    repeats: 100 # num_samples
+  - schema: system_analysis_DA_fine
+    resources:
+      any:
+        skip_downstream_on_failure: False
+    inputs:
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
+    groups:
+      - name: all
+  - schema: collate_results # [subset loop]
+    inputs:
+      p_0: 0.1
+  - schema: initialise_markov_chains # [subset loop]
+    sequences:
+      - path: inputs.chain_index
+        values::from_range:
+          start: 0
+          stop: 10 # num_chains: num_samples * p_0
+          step: 1
+
+  - schema: generate_next_state # [inner MC loop; outer MC loop]
+    inputs:
+      prop_std: 1.0
+
+  - schema: system_analysis_DA_coarse # [inner MC loop; outer MC loop]
+    resources:
+      any:
+        skip_downstream_on_failure: False
+    inputs:
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
+
+  - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does
+
+  - schema: system_analysis_DA_fine # [outer MC loop]  [task idx 7]
+    resources:
+      any:
+        skip_downstream_on_failure: False
+    inputs:
+      y_star: -0.98
+      x_0: 0.0
+      stddev: 0.4
+  - schema: increment_chain # [outer MC loop]
+    groups:
+      - name: all

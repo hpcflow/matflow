@@ -1,4 +1,107 @@
 
+<a name="v0.3.0a155"></a>
+## [v0.3.0a155](https://github.com/hpcflow/matflow-new/compare/v0.3.0a154...v0.3.0a155) - 2025.04.15
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a154"></a>
+## [v0.3.0a154](https://github.com/hpcflow/matflow-new/compare/v0.3.0a153...v0.3.0a154) - 2025.04.14
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a153"></a>
+## [v0.3.0a153](https://github.com/hpcflow/matflow-new/compare/v0.3.0a152...v0.3.0a153) - 2025.04.14
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a152"></a>
+## [v0.3.0a152](https://github.com/hpcflow/matflow-new/compare/v0.3.0a151...v0.3.0a152) - 2025.04.11
+
+### ✨ Features
+
+* support failure handling in subset sim workflows
+* add initial multi-level (two-level) MCMC subset-sim workflow
+* add subset-sim DAMASK-Mg adaptive proposal workflow
+* add toy model adaptive subset-sim workflow that uses a non-Python performance func
+* split subset-sim workflows into Al and Mg
+* add bool parameter to remove DAMASK hdf5 file in get_yield_stress OFP
+* add task generate_next_state_CS for subset-infinity/conditional sampling
+* add task to plot IPF with MTEX
+* add acceptance rate and propoal stddev parameter to subset workflows
+* add variations of subset simulation workflow
+* use `combine_scripts` and loop termination condition in subset sim workflow
+* update subset simulation demo workflow, simplify parameters
+* initial implementation of subset simulation
+
+### 🐛 Bug Fixes
+
+* some updates to SuS workflows
+* subset_simulation parameter flow tests
+* better support 1D subset-simulation problems
+* test test_subset_sim_DAMASK_Mg_two_level_parameter_flow
+* reuse env to reduce number of jobscripts in subset-sim two-level DAMASK
+* allow using pre-defined orientations in Dream 3D stats generator
+* delete damask HDF5 files in subset-sim workflows
+* quaternion vector sign in MTEX plot-IPF script
+* add missing scripts for adaptive subset-infinity
+* retrieval of loop iteration index in `collate_results`
+* improvments to DAMASK subset workflow
+* prevent `geom_load.hdf5` saving as artifact in `yield_stress` output file parser
+* update subset workflow to speed up MMA
+* logging in subset sim workflow script
+* **subset:** temp comment out logs and prints for now
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+
+
+<a name="v0.3.0a151"></a>
+## [v0.3.0a151](https://github.com/hpcflow/matflow-new/compare/v0.3.0a150...v0.3.0a151) - 2025.04.10
+
+### ✨ Features
+
+* bump hpcflow version
+* support python 3.13, and use it github actions workflows
+
+### 🐛 Bug Fixes
+
+* run poetry lock
+* do not trigger testing on PR edit event
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a150"></a>
+## [v0.3.0a150](https://github.com/hpcflow/matflow-new/compare/v0.3.0a149...v0.3.0a150) - 2025.04.09
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a149"></a>
 ## [v0.3.0a149](https://github.com/hpcflow/matflow-new/compare/v0.3.0a148...v0.3.0a149) - 2025.04.07
 
