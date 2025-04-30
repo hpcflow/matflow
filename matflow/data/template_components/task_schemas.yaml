@@ -135,6 +135,79 @@
 #           from_files: [my_file]
 #           script: <<script:read_my_file.py>>
 
+- objective: generate_ddd_config
+  doc: Generate an initial configuration of dislocations using Frank-Read sources.
+  method: frank_read
+  inputs:
+    - parameter: exadis_path
+    - parameter: Lbox
+    - parameter: n_sources
+    - parameter: n_nodes_per_source
+    - parameter: seed
+      default_value: null
+  outputs:
+    - parameter: Lbox
+    - parameter: nodes
+    - parameter: segs
+  actions:
+    - script: <<script:opendis/initial_config_frank_read.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: opendis_env
+
+- objective: generate_ddd_config
+  doc: Generate an initial configuration of dislocations using infinite line sources.
+  method: infinite_line
+  inputs:
+    - parameter: exadis_path
+    - parameter: Lbox
+    - parameter: n_sources
+    - parameter: seed
+      default_value: null
+  outputs:
+    - parameter: Lbox
+    - parameter: nodes
+    - parameter: segs
+  actions:
+    - script: <<script:opendis/initial_config_infinite_line.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: opendis_env
+
+- objective: exadis_strain_hardening
+  doc: Run DDD strain hardening simulation with ExaDiS for copper parameters.
+  method: Cu
+  inputs:
+    - parameter: exadis_path
+    - parameter: Lbox
+    - parameter: nodes
+    - parameter: segs
+    - parameter: strain_rate
+    - parameter: strain_tensor  # xx,yy,zz,yz,xz,xy
+    - parameter: max_strain
+    - parameter: max_step
+    - parameter: print_freq
+    - parameter: write_freq
+    - parameter: seed
+      default_value: null
+  actions:
+    - script: <<script:opendis/full_strain_tensor_loading.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: opendis_env
+
 - objective: generate_microstructure_seeds
   doc: Generate seeds for the crystalline microstructure.
   method: from_random

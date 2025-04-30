@@ -1,0 +1,27 @@
+tasks:
+  - schema: generate_ddd_config_frank_read
+    inputs:
+      exadis_path: "/Users/michaelwhite/Documents/software/OpenDiS/core/exadis/python"
+      Lbox: 60000.0
+      n_sources: 1600
+      n_nodes_per_source: 10
+      # seed: 10
+
+  - schema: exadis_strain_hardening_Cu
+    sequences:
+      - paths:
+        - "inputs.strain_tensor.0"
+        - "inputs.strain_tensor.1"
+        - "inputs.strain_tensor.2"
+        - "inputs.strain_tensor.3"
+        - "inputs.strain_tensor.4"
+        - "inputs.strain_tensor.5"
+        values::from_latin_hypercube:
+          num_samples: 2
+    inputs:
+      exadis_path: "/Users/michaelwhite/Documents/software/OpenDiS/core/exadis/python"
+      strain_rate: 1e3
+      max_strain: 2e-5
+      max_step: 100_000
+      print_freq: 1
+      write_freq: 10
