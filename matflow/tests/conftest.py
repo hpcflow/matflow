@@ -1,6 +1,7 @@
 """
 Configuration and standard fixtures for PyTest.
 """
+
 from __future__ import annotations
 from pathlib import Path
 import numpy as np
@@ -14,6 +15,7 @@ from matflow.param_classes.orientations import (
     OrientationRepresentationType,
     Orientations,
     UnitCellAlignment,
+    QuatOrder,
 )
 from matflow.param_classes.seeds import MicrostructureSeeds
 
@@ -116,7 +118,8 @@ def load_case_1() -> LoadCase:
 
 @pytest.fixture
 def orientations_1() -> Orientations:
-    """An orientations object to compare to that generated in `define_orientations.yaml`."""
+    """An orientations object to compare to that generated in task index 0 of
+    `define_orientations.yaml`."""
     return Orientations(
         data=np.array(
             [
@@ -129,6 +132,45 @@ def orientations_1() -> Orientations:
             type=OrientationRepresentationType.EULER,
             euler_definition=EulerDefinition.BUNGE,
             euler_is_degrees=True,
+        ),
+    )
+
+
+@pytest.fixture
+def orientations_2() -> Orientations:
+    """An orientations object to compare to that generated in task index 1 of
+    `define_orientations.yaml` (the demo data file `quaternions.txt`)."""
+    return Orientations(
+        data=np.array(
+            [
+                [
+                    0.979576633518360,
+                    -0.011699484277401,
+                    -0.031022749430343,
+                    0.198318758946959,
+                ],
+                [
+                    0.051741844582538,
+                    0.964477514397002,
+                    0.258166574789950,
+                    0.021352409770402,
+                ],
+                [
+                    0.051741844582538,
+                    0.964477514397002,
+                    0.258166574789950,
+                    0.021352409770402,
+                ],
+            ]
+        ),
+        unit_cell_alignment=UnitCellAlignment(
+            x=LatticeDirection.A,
+            y=LatticeDirection.B,
+            z=LatticeDirection.C,
+        ),
+        representation=OrientationRepresentation(
+            type=OrientationRepresentationType.QUATERNION,
+            quat_order=QuatOrder.VECTOR_SCALAR,
         ),
     )
 
