@@ -19,7 +19,6 @@ Example environment definition - Windows
 
   - name: matlab_env
     executables:
-
       - label: run_mtex
         instances:
           - command: |
@@ -49,28 +48,34 @@ Example environment definition - Linux/MacOS
   - name: matlab_env
     setup: |
       # set up commands (e.g. `module load ...`)
+      MTEX_DIR=/path/to/mtex-6.0.0
     executables:
-    
       - label: run_mtex
         instances:
           - command: |
-              /path/to/matlab -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
-            num_cores: 1
-            parallel_mode: null
+            for dir in $(find ${MTEX_DIR} -type d | grep -v -e ".git" -e "@" -e "private"); do MATLABPATH="${dir};${MATLABPATH}"; done
+            export MATLABPATH=${MATLABPATH}
+            matlab -softwareopengl -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
+          num_cores: 1
+          parallel_mode: null
 
       - label: compile_mtex
         instances:
           - command: |
-              MTEX_PATH="/path/to/MTEX/folder"
-              /path/to/mcc -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$MTEX_PATH/data" -a "$MTEX_PATH/plotting/plotting_tools/colors.mat"
-            num_cores: 1
-            parallel_mode: null
+            for dir in $(find ${MTEX_DIR} -type d | grep -v -e ".git" -e "@" -e "private" -e "data" -e "makeDoc" -e "templates" -e "nfft_openMP" -e "compatibility/")
+            do
+              MTEX_INCLUDE="-I ${dir} ${MTEX_INCLUDE}"
+            done
+            export MTEX_INCLUDE="${MTEX_INCLUDE} -a ${MTEX_DIR}/data -a ${MTEX_DIR}/plotting/plotting_tools/colors.mat"
+            mcc -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe ${MTEX_INCLUDE}
+          num_cores: 1
+          parallel_mode: null
 
       - label: run_compiled_mtex
         instances:
           - command: |
-              MATLAB_DIR=/path/to/matlab/runtime/directory
-              ./matlab_exe $MATLAB_DIR <<args>>
+              export MATLAB_RUNTIME=/path/to/matlab/runtime-or-installation
+              ./run_matlab_exe.sh ${MATLAB_RUNTIME} <<args>>
             num_cores: 1
             parallel_mode: null
 
