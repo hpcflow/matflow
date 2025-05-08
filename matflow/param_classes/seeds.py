@@ -158,7 +158,7 @@ class MicrostructureSeeds(ParameterValue):
             (and correspond to CSV and TSV files respectively).
         columns
             The columns in the file to read from.
-            Defaults to reading every column. 
+            Defaults to reading every column.
         """
         data: list[list[float]] = []
         with Path(path).open("rt") as fh:
@@ -169,7 +169,9 @@ class MicrostructureSeeds(ParameterValue):
                 elif len(data) < number if number is not None else True:
                     values = line.split(delimiter)
                     if columns:
-                        data.append([float(values[i]) for i in range(len(values)) if i in columns])
+                        data.append(
+                            [float(values[i]) for i in range(len(values)) if i in columns]
+                        )
                     else:
                         data.append([float(values[i]) for i in range(len(values))])
         if number is not None and len(data) < number:
