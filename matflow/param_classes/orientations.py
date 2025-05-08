@@ -370,6 +370,7 @@ class Orientations(ParameterValue):
         number: int | None = None,
         start_index: int = 0,
         delimiter: str = " ",
+        columns: list | None = None,
     ) -> Self:
         """
         Load orientation data from a text file.
@@ -391,6 +392,9 @@ class Orientations(ParameterValue):
             The delimiter separating values in the file.
             Defaults to space, but commas and tabs are also sensible
             (and correspond to CSV and TSV files respectively).
+        columns
+            The columns in the file to read from.
+            Defaults to reading every column. 
         """
         rep = OrientationRepresentation(**representation)
         data: list[list[float]] = []
@@ -400,7 +404,11 @@ class Orientations(ParameterValue):
                 if not line or idx < start_index:
                     continue
                 elif len(data) < number if number is not None else True:
-                    data.append([float(i) for i in line.split(delimiter)])
+                    values = line.split(delimiter)
+                    if columns:
+                        data.append([float(values[i]) for i in range(len(values)) if i in columns])
+                    else:
+                        data.append([float(values[i]) for i in range(len(values))])
         if number is not None and len(data) < number:
             raise ValueError("Not enough orientations in the file.")
 
