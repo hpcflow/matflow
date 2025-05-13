@@ -1,4 +1,67 @@
 
+<a name="v0.3.0a161"></a>
+## [v0.3.0a161](https://github.com/hpcflow/matflow-new/compare/v0.3.0a160...v0.3.0a161) - 2025.05.13
+
+### 🐛 Bug Fixes
+
+* missing import
+* failing macos (built executable) test due to rate limit
+
+
+<a name="v0.3.0a160"></a>
+## [v0.3.0a160](https://github.com/hpcflow/matflow-new/compare/v0.3.0a159...v0.3.0a160) - 2025.05.13
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a159"></a>
+## [v0.3.0a159](https://github.com/hpcflow/matflow-new/compare/v0.3.0a158...v0.3.0a159) - 2025.05.07
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a158"></a>
+## [v0.3.0a158](https://github.com/hpcflow/matflow-new/compare/v0.3.0a157...v0.3.0a158) - 2025.05.07
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a157"></a>
+## [v0.3.0a157](https://github.com/hpcflow/matflow-new/compare/v0.3.0a156...v0.3.0a157) - 2025.05.06
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a156"></a>
+## [v0.3.0a156](https://github.com/hpcflow/matflow-new/compare/v0.3.0a155...v0.3.0a156) - 2025.05.02
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a155"></a>
 ## [v0.3.0a155](https://github.com/hpcflow/matflow-new/compare/v0.3.0a154...v0.3.0a155) - 2025.04.15
 

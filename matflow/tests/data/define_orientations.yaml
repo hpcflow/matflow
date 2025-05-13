@@ -15,3 +15,17 @@ tasks:
           type: euler
           euler_definition: bunge
           euler_is_degrees: true
+
+  - schema: define_orientations
+    inputs:
+      orientations::from_file:
+        path: <<demo_data_file:quaternions.txt>>
+        delimiter: "   "
+        start_index: 1 # header row
+        unit_cell_alignment:
+          x: a
+          y: b
+          z: c
+        representation:
+          type: quaternion
+          quat_order: vector_scalar
