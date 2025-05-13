@@ -1,4 +1,13 @@
 
+<a name="v0.3.0a161"></a>
+## [v0.3.0a161](https://github.com/hpcflow/matflow-new/compare/v0.3.0a160...v0.3.0a161) - 2025.05.13
+
+### 🐛 Bug Fixes
+
+* missing import
+* failing macos (built executable) test due to rate limit
+
+
 <a name="v0.3.0a160"></a>
 ## [v0.3.0a160](https://github.com/hpcflow/matflow-new/compare/v0.3.0a159...v0.3.0a160) - 2025.05.13
 
