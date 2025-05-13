@@ -27,8 +27,38 @@ template_components:
                 type: any
               environment: damask_parse_env
 
+    - objective: group_mean_indicators
+      inputs:
+        - parameter: mean_indicator
+
+    - objective: evaluate_ML_MCMC_estimator
+      inputs:
+        - parameter: mean_indicator
+          group: all
+      output:
+        - parameter: ML_MCMC_estimator
+      actions:
+        - script: <<script:uq/evaluate_ML_MCMC_estimator.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+environments:
+  python_env:
+    poetry_env: true
+  damask_parse_env:
+    poetry_env: true
+
 resources:
   any:
+    scheduler_args:
+      directives:
+        --partition: ukaea-spr
+        --time: 00:30:00
     combine_scripts: true
 
 # TODO: support workflow inputs/outputs, and then can assign inputs/outputs for meta-tasks
@@ -52,11 +82,10 @@ meta_tasks:
       groups:
         - name: all
     - schema: simulate_VE_loading_damask
-      # resources:
-      #   any:
-      #     combine_scripts: false
-      #   main:
-      #     num_cores: 8
+      resources:
+        any:
+          combine_scripts: false
+          num_cores: 4
       inputs:
         load_case::uniaxial:
           total_time: 5
@@ -129,29 +158,39 @@ tasks:
   - schema: multi_level_estimator
     inputs:
       generate_volume_element_from_voronoi_random_variates:
-        VE_grid_size: [8, 8, 8] # [32, 32, 32]
+        VE_grid_size: [16, 16, 16]
     repeats:
-      sample_direct_MC: 3 # 1000 # N_0
+      sample_direct_MC: 1000 # N_0
 
   - schema: multi_level_estimator
     repeats:
-      sample_direct_MC: 2 # 500 # N_1
+      sample_direct_MC: 500 # N_1
     sequences:
       generate_volume_element_from_voronoi_random_variates:
         - path: inputs.VE_grid_size
           nesting_order: 1 # note: nested after x, so elements for different grid sizes will be adjacent
           values:
+            - [32, 32, 32]
             - [16, 16, 16]
-            - [8, 8, 8]
 
-  # - schema: multi_level_estimator
-  #   repeats:
-  #     sample_direct_MC: 250 # N_2
-  #   sequences:
-  #     generate_volume_element_from_voronoi_random_variates:
-  #       - path: inputs.VE_grid_size
-  #         values:
-  #           - [128, 128, 128]
-  #           - [64, 64, 64]
+  - schema: multi_level_estimator
+    repeats:
+      sample_direct_MC: 250 # N_2
+    sequences:
+      generate_volume_element_from_voronoi_random_variates:
+        - path: inputs.VE_grid_size
+          nesting_order: 1 # note: nested after x, so elements for different grid sizes will be adjacent
+          values:
+            - [64, 64, 64]
+            - [32, 32, 32]
 
-  # - schema: evaluate_ML_final_estimator # need to use all outputs from individual `evaluate_ML_level_estimator` tasks
+  - schema: group_mean_indicators # ideally, won't need this intermediate task
+    groups:
+      - name: all
+    input_sources:
+      mean_indicator:
+        - task.multi_level_estimator_1
+        - task.multi_level_estimator_2
+        - task.multi_level_estimator_3
+
+  - schema: evaluate_ML_MCMC_estimator

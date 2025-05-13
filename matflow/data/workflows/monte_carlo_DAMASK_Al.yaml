@@ -27,17 +27,21 @@ environments:
 
 resources:
   any:
+    num_cores: 8 # to reduce number of jobscripts
     scheduler_args:
       directives:
         --partition: ukaea-spr
         --time: 00:30:00
-    combine_scripts: true
 
 tasks:
   - schema: sample_direct_MC
     repeats: 1000
     inputs:
       dimension: 120 # 20 grains * (3 seed point dimensions + 3 orientation dimensions)
+    resources:
+      any:
+        num_cores: 1
+        combine_scripts: true
   - schema: generate_volume_element_from_voronoi_random_variates
     inputs:
       VE_grid_size: [64, 64, 64]
@@ -48,7 +52,6 @@ tasks:
   - schema: simulate_VE_loading_damask
     resources:
       any:
-        combine_scripts: false
         num_cores: 8
     inputs:
       load_case::uniaxial:
@@ -109,3 +112,6 @@ tasks:
     groups:
       - name: all
   - schema: evaluate_monte_carlo_estimator
+    resources:
+      any:
+        num_cores: 1
