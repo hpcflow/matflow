@@ -80,7 +80,7 @@ def read_numeric_csv_file(
                 continue
             elif len(data) < number if number is not None else True:
                 values = line.split(delimiter)
-                if idx == 0:
+                if idx == start_index:
                     columns = columns or list(range(len(values)))
                 data.append([float(values[i]) for i in columns])
     if number is not None and len(data) < number:
