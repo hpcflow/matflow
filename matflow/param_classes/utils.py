@@ -41,49 +41,50 @@ def masked_array_from_list(
         out = out.reshape(n_rows, -1, order="C")
     return out
 
+
 def read_numeric_csv_file(
-        path: str,
-        number: int | None = None,
-        start_index: int = 0,
-        delimiter: str = " ",
-        columns: list[int] | None = None,
-        exc_msg: str | None = None,
-    ) -> NDArray:
-        """
-        Load data from a text file.
+    path: str,
+    number: int | None = None,
+    start_index: int = 0,
+    delimiter: str = " ",
+    columns: list[int] | None = None,
+    exc_msg: str | None = None,
+) -> NDArray:
+    """
+    Load data from a text file.
 
-        Parameters
-        ----------
-        path
-            Path to the file to load from.
-        number
-            Number of lines to read from the file.
-        start_index
-            The line number of the file that the seeds start at.
-            Allows skipping headers.
-        delimiter
-            The delimiter separating values in the file.
-            Defaults to space, but commas and tabs are also sensible
-            (and correspond to CSV and TSV files respectively).
-        columns
-            The columns in the file to read from.
-            Defaults to reading every column.
-        exc_msg:
-            ValueError message to return.
-        """
-        data: list[list[float]] = []
-        with Path(path).open("rt") as fh:
-            for idx, line in enumerate(fh):
-                line = line.strip()
-                if not line or idx < start_index:
-                    continue
-                elif len(data) < number if number is not None else True:
-                    values = line.split(delimiter)
-                    if idx==0:
-                        columns = columns or list(range(len(values)))
-                    data.append([float(values[i]) for i in columns])
-        if number is not None and len(data) < number:
-            exc_msg = exc_msg or "Not enough lines in the file."
-            raise ValueError(exc_msg)
+    Parameters
+    ----------
+    path
+        Path to the file to load from.
+    number
+        Number of lines to read from the file.
+    start_index
+        The line number of the file that the seeds start at.
+        Allows skipping headers.
+    delimiter
+        The delimiter separating values in the file.
+        Defaults to space, but commas and tabs are also sensible
+        (and correspond to CSV and TSV files respectively).
+    columns
+        The columns in the file to read from.
+        Defaults to reading every column.
+    exc_msg:
+        ValueError message to return.
+    """
+    data: list[list[float]] = []
+    with Path(path).open("rt") as fh:
+        for idx, line in enumerate(fh):
+            line = line.strip()
+            if not line or idx < start_index:
+                continue
+            elif len(data) < number if number is not None else True:
+                values = line.split(delimiter)
+                if idx == 0:
+                    columns = columns or list(range(len(values)))
+                data.append([float(values[i]) for i in columns])
+    if number is not None and len(data) < number:
+        exc_msg = exc_msg or "Not enough lines in the file."
+        raise ValueError(exc_msg)
 
-        return np.asarray(data)
+    return np.asarray(data)

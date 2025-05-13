@@ -13,6 +13,7 @@ from hpcflow.sdk.core.parameters import ParameterValue
 from matflow.param_classes.orientations import Orientations
 from matflow.param_classes.utils import read_numeric_csv_file
 
+
 @dataclass
 class MicrostructureSeeds(ParameterValue):
     """
@@ -160,8 +161,10 @@ class MicrostructureSeeds(ParameterValue):
             The columns in the file to read from.
             Defaults to reading every column.
         """
-        exc_msg = 'Not enough seeds in the file.'
-        data = read_numeric_csv_file(path,number,start_index,delimiter,columns,exc_msg)
+        exc_msg = "Not enough seeds in the file."
+        data = read_numeric_csv_file(
+            path, number, start_index, delimiter, columns, exc_msg
+        )
 
         return cls(
             position=data,

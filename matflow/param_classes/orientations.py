@@ -15,6 +15,7 @@ from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 from matflow.param_classes.utils import read_numeric_csv_file
 
+
 @dataclass
 class _EulerDefinition:
     _value: int
@@ -398,7 +399,9 @@ class Orientations(ParameterValue):
         """
         exc_message = "Not enough orientations in the file."
         rep = OrientationRepresentation(**representation)
-        data = read_numeric_csv_file(path,number,start_index,delimiter,columns,exc_message)
+        data = read_numeric_csv_file(
+            path, number, start_index, delimiter, columns, exc_message
+        )
 
         return cls(
             data=data,
