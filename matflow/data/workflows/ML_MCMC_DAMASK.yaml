@@ -35,7 +35,7 @@ template_components:
       inputs:
         - parameter: mean_indicator
           group: all
-      output:
+      outputs:
         - parameter: ML_MCMC_estimator
       actions:
         - script: <<script:uq/evaluate_ML_MCMC_estimator.py>>
