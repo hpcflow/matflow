@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from pathlib import Path
+import sys
 import requests
 from typing import TYPE_CHECKING
 import pytest
