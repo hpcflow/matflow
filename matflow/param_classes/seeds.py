@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import NDArray, ArrayLike
 from hpcflow.sdk.core.parameters import ParameterValue
 from matflow.param_classes.orientations import Orientations
+from matflow.param_classes.utils import read_numeric_csv_file
 
 
 @dataclass
@@ -134,6 +135,7 @@ class MicrostructureSeeds(ParameterValue):
         number: int | None = None,
         start_index: int = 0,
         delimiter: str = " ",
+        columns: list[int] | None = None,
     ) -> Self:
         """
         Load a microstructure definition from a text file.
@@ -155,20 +157,17 @@ class MicrostructureSeeds(ParameterValue):
             The delimiter separating values in the file.
             Defaults to space, but commas and tabs are also sensible
             (and correspond to CSV and TSV files respectively).
+        columns
+            The columns in the file to read from.
+            Defaults to reading every column.
         """
-        data: list[list[float]] = []
-        with Path(path).open("rt") as fh:
-            for idx, line in enumerate(fh):
-                line = line.strip()
-                if not line or idx < start_index:
-                    continue
-                elif len(data) < number if number is not None else True:
-                    data.append([float(i) for i in line.split(delimiter)])
-        if number is not None and len(data) < number:
-            raise ValueError("Not enough seed points in the file.")
+        exc_msg = "Not enough seeds in the file."
+        data = read_numeric_csv_file(
+            path, number, start_index, delimiter, columns, exc_msg
+        )
 
         return cls(
-            position=np.asarray(data),
+            position=data,
             box_size=box_size,
             phase_label=phase_label,
         )
