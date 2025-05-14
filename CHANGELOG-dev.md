@@ -1,4 +1,18 @@
 
+<a name="v0.3.0a162"></a>
+## [v0.3.0a162](https://github.com/hpcflow/matflow-new/compare/v0.3.0a161...v0.3.0a162) - 2025.05.14
+
+### ✨ Features
+
+* added optional columns parameter to the from_file methods in microstructure seeds
+* add non-periodic option to generate volume element by voronoi
+
+### 👷 Build changes
+
+* merge branch 'develop' into feat/microstructure_generation
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a161"></a>
 ## [v0.3.0a161](https://github.com/hpcflow/matflow-new/compare/v0.3.0a160...v0.3.0a161) - 2025.05.13
 
