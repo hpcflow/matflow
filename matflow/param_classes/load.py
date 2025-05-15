@@ -916,9 +916,9 @@ class LoadStep(ParameterValue):
             )
 
         obj = cls(
-            total_time=total_time,
-            num_increments=num_increments,
-            target_def_grad=dg_arr,
+            total_time=load_cases[idx]['total_time'],
+            num_increments=load_cases[idx]['num_increments'],
+            target_def_grad=load_cases[idx]['target_def_grad'],
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )
