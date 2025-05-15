@@ -52,6 +52,7 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     if useContours
         plotPDF(orientations, millerDirs, 'contourf');
         mtexColorbar;
+        plot_IPFKey = false;
     else
         ipfKey = ipfColorKey(crystalSym);
         ipfKey.inversePoleFigureDirection = vector3d.(upper(IPFRefDir));
