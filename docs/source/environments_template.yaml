@@ -4,7 +4,7 @@
   executables:
   - label: python_script
     instances:
-    - command: python <<script_name>> <<args>>
+    - command: python "<<script_path>>" <<args>>
       num_cores:
         start: 1
         stop: 32
@@ -16,7 +16,7 @@
   executables:
   - label: python_script
     instances:
-    - command: python <<script_name>> <<args>>
+    - command: python "<<script_path>>" <<args>>
       num_cores:
         start: 1
         stop: 32
@@ -28,7 +28,7 @@
   executables:
   - label: python_script
     instances:
-    - command: python <<script_name>> <<args>>
+    - command: python "<<script_path>>" <<args>>
       num_cores:
         start: 1
         stop: 32
@@ -78,7 +78,7 @@
   executables:
   - label: python_script
     instances:
-    - command: python <<script_name>> <<args>>
+    - command: python "<<script_path>>" <<args>>
       num_cores:
         start: 1
         stop: 32
@@ -93,6 +93,6 @@
       parallel_mode: null
   - label: python_script
     instances:
-    - command: python <<script_name>> <<args>>
+    - command: python "<<script_path>>" <<args>>
       num_cores: 1
       parallel_mode: null
