@@ -1048,7 +1048,6 @@ class LoadCase(ParameterValue):
 
         return cls(steps=step_objs)
 
-
     @classmethod
     def from_npz_file(npz_file_path, idx):
         """
@@ -1062,7 +1061,7 @@ class LoadCase(ParameterValue):
         npz_file_path
             A string of the filepath to the loadcase.npz file.
         idx
-            int index of desired loadcase to use. 
+            int index of desired loadcase to use.
         """
         data = np.load(npz_file_path)
         num_incs = data["num_incs"]
@@ -1082,9 +1081,10 @@ class LoadCase(ParameterValue):
             dt = abs(dt) / strain_rate
 
             load_cases.append(
-                {"target_def_grad": u_sampled_split[idx, j],
-                 "total_time": dt.item(),
-                 "num_increments": 1,
+                {
+                    "target_def_grad": u_sampled_split[idx, j],
+                    "total_time": dt.item(),
+                    "num_increments": 1,
                 }
             )
 
