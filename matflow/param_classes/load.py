@@ -871,6 +871,59 @@ class LoadStep(ParameterValue):
             out.extend(cycle_i)
         return [cls(**i)._remember_name_args(None, i) for i in out]
 
+    @classmethod
+    def from_npz_file(
+        cls,
+        npz_file_path,
+        idx,
+    ) -> list[Self]:
+        """
+        Read loading data from a numpy .npz file and format it appropriately.
+        Designed for running large arrays of simulations which each use loadcase of the
+        corresponding index.
+
+        Parameters
+        ----------
+        npz_file_path
+            A string of the filepath to the loadcase.npz file.
+        idx
+            int index of desired loadcase to use.
+        """
+        
+        data = np.load(npz_file_path)
+        num_incs = data["num_incs"]
+        inc_size = data["inc_size"]
+        inc_size_final = data["inc_size_final"]
+        u_sampled_split = data["u_sampled_split"]
+        strain_rate = data["strain_rate"]
+
+        load_cases = []
+        for j in range(num_incs[idx]):
+            inc_size_idx = (idx,) + (2,) * (len(inc_size.shape) - 1)
+            if j == num_incs[idx] - 1:
+                # final inc
+                dt = inc_size_final[inc_size_idx]
+            else:
+                dt = inc_size[inc_size_idx]
+            dt = abs(dt) / strain_rate
+
+            load_cases.append(
+                {
+                    "target_def_grad": u_sampled_split[idx, j],
+                    "total_time": dt.item(),
+                    "num_increments": 1,
+                }
+            )
+            
+        obj = cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=dg_arr,
+            stress=stress_arr,
+            dump_frequency=dump_frequency,
+        )
+        return obj._remember_name_args(_method_name, _method_args)
+
 
 @dataclass
 class LoadCase(ParameterValue):
@@ -1049,43 +1102,10 @@ class LoadCase(ParameterValue):
         return cls(steps=step_objs)
 
     @classmethod
-    def from_npz_file(npz_file_path, idx):
+    def from_npz_file(cls, **kwargs) -> Self:
+        """ Importing loadcase from npz file.
+
+        See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
+        
         """
-        Read loading data from a numpy .npz file and format it into a dictionary which
-        can be interpreted by the simulate_volume_element_loading task.
-        Designed for running large arrays of simulations which each use loadcase of the
-        corresponding index.
-
-        Parameters
-        ----------
-        npz_file_path
-            A string of the filepath to the loadcase.npz file.
-        idx
-            int index of desired loadcase to use.
-        """
-        data = np.load(npz_file_path)
-        num_incs = data["num_incs"]
-        inc_size = data["inc_size"]
-        inc_size_final = data["inc_size_final"]
-        u_sampled_split = data["u_sampled_split"]
-        strain_rate = data["strain_rate"]
-
-        load_cases = []
-        for j in range(num_incs[idx]):
-            inc_size_idx = (idx,) + (2,) * (len(inc_size.shape) - 1)
-            if j == num_incs[idx] - 1:
-                # final inc
-                dt = inc_size_final[inc_size_idx]
-            else:
-                dt = inc_size[inc_size_idx]
-            dt = abs(dt) / strain_rate
-
-            load_cases.append(
-                {
-                    "target_def_grad": u_sampled_split[idx, j],
-                    "total_time": dt.item(),
-                    "num_increments": 1,
-                }
-            )
-
-        return {"load_case": {"steps": load_cases}}
+        return cls(steps=[LoadStep.from_npz_file(**kwargs)])
