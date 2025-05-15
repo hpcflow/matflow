@@ -813,7 +813,7 @@
         - scope:
             type: any
           environment: formable_env
-      script: <<script:formable/read_FE_model_npz.py>>
+      script: <<param_class:/load.py>>
       script_data_in: direct
       script_data_out: direct
       script_exe: python_script
