@@ -889,7 +889,7 @@ class LoadStep(ParameterValue):
         idx
             int index of desired loadcase to use.
         """
-        
+
         data = np.load(npz_file_path)
         num_incs = data["num_incs"]
         inc_size = data["inc_size"]
@@ -914,7 +914,7 @@ class LoadStep(ParameterValue):
                     "num_increments": 1,
                 }
             )
-            
+
         obj = cls(
             total_time=total_time,
             num_increments=num_increments,
@@ -1103,9 +1103,9 @@ class LoadCase(ParameterValue):
 
     @classmethod
     def from_npz_file(cls, **kwargs) -> Self:
-        """ Importing loadcase from npz file.
+        """Importing loadcase from npz file.
 
         See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
-        
+
         """
         return cls(steps=[LoadStep.from_npz_file(**kwargs)])
