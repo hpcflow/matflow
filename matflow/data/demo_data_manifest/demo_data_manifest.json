@@ -25,5 +25,8 @@
     },
     "numerics_example.yaml": {
         "in_zip": "numerics_example.zip"
+    },
+    "quaternions.txt": {
+        "in_zip": "quaternions.zip"
     }
 }

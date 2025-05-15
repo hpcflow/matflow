@@ -19,11 +19,10 @@ Example environment definition - Windows
 
   - name: matlab_env
     executables:
-
       - label: run_mtex
         instances:
           - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
+              & 'C:\path\to\matlab.exe' -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
             num_cores: 1
             parallel_mode: null
 
@@ -31,14 +30,13 @@ Example environment definition - Windows
         instances:
           - command: |
               $mtex_path = 'C:\path\to\mtex\folder'
-              $mtex_include = ((Get-ChildItem -Recurse -Directory -Path $mtex_path | %{ "-I `"$_.FullName`"" }) -join ' ') + " -a `"$mtex_path\data`""
-              $mtex_include | & 'C:\path\to\mcc.bat' -R -singleCompThread -m .\<<script_name>> <<args>>
+              & 'C:\path\to\mcc.bat' -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$mtex_path/data" -a "$mtex_path/plotting/plotting_tools/colors.mat"
             num_cores: 1
             parallel_mode: null
 
       - label: run_compiled_mtex
         instances:
-          - command: .\<<script_name>>.exe <<args>>
+          - command: .\matlab_exe.exe <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -50,26 +48,34 @@ Example environment definition - Linux/MacOS
   - name: matlab_env
     setup: |
       # set up commands (e.g. `module load ...`)
+      MTEX_DIR=/path/to/mtex-6.0.0
     executables:
-    
       - label: run_mtex
         instances:
           - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
-            num_cores: 1
-            parallel_mode: null
+            for dir in $(find ${MTEX_DIR} -type d | grep -v -e ".git" -e "@" -e "private"); do MATLABPATH="${dir};${MATLABPATH}"; done
+            export MATLABPATH=${MATLABPATH}
+            matlab -softwareopengl -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
+          num_cores: 1
+          parallel_mode: null
 
       - label: compile_mtex
         instances:
-          - command: compile-mtex <<script_name>> <<args>> # TODO - define this 
-            num_cores: 1
-            parallel_mode: null
+          - command: |
+            for dir in $(find ${MTEX_DIR} -type d | grep -v -e ".git" -e "@" -e "private" -e "data" -e "makeDoc" -e "templates" -e "nfft_openMP" -e "compatibility/")
+            do
+              MTEX_INCLUDE="-I ${dir} ${MTEX_INCLUDE}"
+            done
+            export MTEX_INCLUDE="${MTEX_INCLUDE} -a ${MTEX_DIR}/data -a ${MTEX_DIR}/plotting/plotting_tools/colors.mat"
+            mcc -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe ${MTEX_INCLUDE}
+          num_cores: 1
+          parallel_mode: null
 
       - label: run_compiled_mtex
         instances:
           - command: |
-              MATLAB_DIR=/path/to/matlab/runtime/directory
-              ./run_<<script_name>>.sh $MATLAB_DIR <<args>>
+              export MATLAB_RUNTIME=/path/to/matlab/runtime-or-installation
+              ./run_matlab_exe.sh ${MATLAB_RUNTIME} <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -95,7 +101,7 @@ Example environment definition - Linux/MacOS
             parallel_mode: null
       - label: python_script
         instances:
-          - command: python <<script_name>> <<args>>
+          - command: python "<<script_path>>" <<args>>
             num_cores: 1
             parallel_mode: null
 
@@ -113,7 +119,7 @@ Example environment definition - Windows
             parallel_mode: null
       - label: python_script
         instances:
-          - command: python <<script_name>> <<args>>
+          - command: python "<<script_path>>" <<args>>
             num_cores: 1
             parallel_mode: null
 

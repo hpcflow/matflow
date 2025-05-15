@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any, TYPE_CHECKING
 import numpy as np
 from formable.levenberg_marquardt import (
     FittingParameter,
@@ -6,23 +8,28 @@ from formable.levenberg_marquardt import (
 )
 from formable.tensile_test import TensileTest
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from matflow.param_classes.single_crystal_parameters import SingleCrystalParameters
+
 
 def fit_single_crystal_parameters(
-    VE_response,
-    single_crystal_parameters,
-    tensile_test,
-    initial_damping,
-):
+    VE_response: dict,
+    single_crystal_parameters: dict,
+    tensile_test: dict,
+    initial_damping: list[float] | None = None,
+) -> dict[str, Any]:
     """Perform Levenberg-Marquardt optimisation."""
 
     # Generate FittingParameter objects:
     fitting_params = []
     null_perturbation_idx = None
+    params: SingleCrystalParameters
     for idx, params in enumerate(single_crystal_parameters["iteration_0"]["value"]):
         if params.perturbations:
             path = params.perturbations["path"]
             name = "__".join([str(i) for i in path])
-            value = get_by_path(params.base, path)
+            value = _get_by_path(params.base, path)
 
             fitting_param_i = FittingParameter(
                 name=name,
@@ -85,7 +92,7 @@ def fit_single_crystal_parameters(
     return outputs
 
 
-def get_by_path(root, path):
+def _get_by_path(root: list | dict, path: list) -> Any:
     """Get a nested dict or list item according to its "key path"
 
     Parameters
@@ -98,60 +105,10 @@ def get_by_path(root, path):
     Returns
     -------
     sub_data : any
-
     """
 
-    sub_data = root
+    sub_data: Any = root
     for key in path:
         sub_data = sub_data[key]
 
     return sub_data
-
-
-def get_hydrostatic_tensor(tensor):
-    """Returns the hydrostatic tensor from an input stress strain tensor
-
-    Parameters
-    ----------
-    tensor : ndarray of shape array (..., 3, 3)
-
-    Returns
-    -------
-    (..., 3, 3) array hydrostatic stress on the diagonal of tensor with 0 in shear values
-
-    """
-
-    hydro = np.zeros_like(tensor)
-    hydro[..., [0, 1, 2], [0, 1, 2]] = (np.trace(tensor, axis1=-2, axis2=-1) / 3)[
-        ..., None
-    ]
-    return hydro
-
-
-def get_von_mises(s, tensor):
-    """Returns the equivalent value of stress or strain tensor
-
-    Parameters
-    ----------
-    tensor : ndarray of shape (..., 3, 3)
-        Tensor of which to get the von Mises equivalent.
-    s : float
-        Scaling factor: 3/2 for stress, 2/3 for strain.
-
-    Returns
-    -------
-    Von Mises equivalent value of tensor.
-
-    """
-
-    deviatoric = tensor - get_hydrostatic_tensor(tensor)
-
-    return np.sqrt(s * np.sum(deviatoric**2.0, axis=(-2, -1)))
-
-
-def get_von_mises_stress(stress):
-    return get_von_mises(3 / 2, stress)
-
-
-def get_von_mises_strain(strain):
-    return get_von_mises(2 / 3, strain)

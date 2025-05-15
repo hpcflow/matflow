@@ -1,0 +1,44 @@
+name: Documentation
+run-name: doc
+env:
+  PYTHON_VERSION: "3.13"
+  POETRY_VERSION: "1.4"
+on: push
+jobs:
+  sphinx:
+    # Note that we only do this on one platform and with one Python version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Init Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install and configure poetry ${{ env.POETRY_VERSION }}
+        uses: hpcflow/github-support/setup-poetry@0.1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+      - name: Cache Virtual Environment
+        uses: hpcflow/github-support/init-cache@0.1
+        with:
+          name: sphinx
+          version: ${{ env.PYTHON_VERSION }}
+      - name: Install Dependencies
+        run: |
+          poetry install --without pyinstaller
+      - name: Configure Problem Matcher
+        run: echo "::add-matcher::.github/problem-matchers/sphinx.json"
+        # See: https://github.com/actions/toolkit/blob/main/docs/problem-matchers.md
+        # See: https://github.com/python/cpython/pull/20325
+      - name: Run Sphinx
+        run: |
+          poetry run make clean html
+        working-directory: docs
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: matflow-documentation (${{ github.sha }})
+          path: docs/build/html
+          if-no-files-found: error
+  # TODO: Publish the docs to an internal site
