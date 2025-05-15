@@ -1,5 +1,7 @@
 doc:
-  - WIP: multi-level Markov Chain Monte Carlo for estimate probability of failure (yield stress) with DAMASK.
+  - >
+    WIP: Multi-level Monte Carlo (MLMC) for estimating the probability of failure (yield
+    stress) with DAMASK.
 
 template_components:
   meta_task_schemas:
@@ -7,7 +9,7 @@ template_components:
       outputs:
         - parameter: mean_indicator
   task_schemas:
-    - objective: evaluate_ML_level_estimator
+    - objective: evaluate_ML_monte_carlo_level_estimator
       inputs:
         - parameter: g
           group: all
@@ -18,7 +20,7 @@ template_components:
       outputs:
         - parameter: mean_indicator
       actions:
-        - script: <<script:uq/evaluate_ML_level_estimator.py>>
+        - script: <<script:uq/evaluate_ML_monte_carlo_level_estimator.py>>
           script_data_in: direct
           script_data_out: direct
           script_exe: python_script
@@ -31,14 +33,14 @@ template_components:
       inputs:
         - parameter: mean_indicator
 
-    - objective: evaluate_ML_MCMC_estimator
+    - objective: evaluate_ML_monte_carlo_estimator
       inputs:
         - parameter: mean_indicator
           group: all
       outputs:
-        - parameter: ML_MCMC_estimator
+        - parameter: ML_monte_carlo_estimator
       actions:
-        - script: <<script:uq/evaluate_ML_MCMC_estimator.py>>
+        - script: <<script:uq/evaluate_ML_monte_carlo_estimator.py>>
           script_data_in: direct
           script_data_out: direct
           script_exe: python_script
@@ -66,7 +68,7 @@ resources:
 # should be a way to scope properly without meta-tasks, but the idea is this would make it
 # easier.
 
-# TODO: nested-metatasks (application bit shouldn't include sampling an evaluate_ML_level_estimator)
+# TODO: nested-metatasks (application bit shouldn't include sampling and evaluate_ML_monte_carlo_level_estimator)
 
 meta_tasks:
   multi_level_estimator:
@@ -144,7 +146,7 @@ meta_tasks:
         threshold_yield_stress: 83.0e+6 # 75.0e+6 # MPa
       groups:
         - name: all
-    - schema: evaluate_ML_level_estimator # use group for these sims in this meta-task
+    - schema: evaluate_ML_monte_carlo_level_estimator # use group for these sims in this meta-task
 
 # TODO: make separate workflow for just direct-MC yield stress prob. failure so we know
 # roughly what yield stress to target/test here
@@ -189,8 +191,8 @@ tasks:
       - name: all
     input_sources:
       mean_indicator:
-        - task.multi_level_estimator_1
-        - task.multi_level_estimator_2
-        - task.multi_level_estimator_3
+        - task.evaluate_ML_monte_carlo_level_estimator_1 # TODO: improve meta-tasks to allow referencing in input sources!
+        - task.evaluate_ML_monte_carlo_level_estimator_2
+        - task.evaluate_ML_monte_carlo_level_estimator_3
 
-  - schema: evaluate_ML_MCMC_estimator
+  - schema: evaluate_ML_monte_carlo_estimator

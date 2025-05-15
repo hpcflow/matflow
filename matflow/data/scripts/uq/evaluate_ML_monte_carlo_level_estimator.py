@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def evaluate_ML_level_estimator(x, VE_grid_size, g):
+def evaluate_ML_monte_carlo_level_estimator(x, VE_grid_size, g):
     """
     VE_grid_size
         Provided to associate the values of g with their grid sizes.
