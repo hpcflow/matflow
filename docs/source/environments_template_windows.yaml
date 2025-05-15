@@ -1,0 +1,34 @@
+- name: matlab_env
+  executables:
+    - label: run_mtex
+      instances:
+        - command: |
+            & 'C:\path\to\matlab.exe' -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
+          num_cores: 1
+          parallel_mode: null
+
+    - label: compile_mtex
+      instances:
+        - command: |
+            $mtex_path = 'C:\path\to\mtex\folder'
+            & 'C:\path\to\mcc.bat' -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$mtex_path/data" -a "$mtex_path/plotting/plotting_tools/colors.mat"
+          num_cores: 1
+          parallel_mode: null
+
+    - label: run_compiled_mtex
+      instances:
+        - command: .\matlab_exe.exe <<args>>
+          num_cores: 1
+          parallel_mode: null
+- name: dream_3D_env
+  executables:
+    - label: dream_3D_runner
+      instances:
+        - command: "& 'C:\\path\\to\\DREAM3D-directory\\PipelineRunner.exe'"
+          num_cores: 1
+          parallel_mode: null
+    - label: python_script
+      instances:
+        - command: python "<<script_path>>" <<args>>
+          num_cores: 1
+          parallel_mode: null

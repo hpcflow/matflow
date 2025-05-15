@@ -80,5 +80,15 @@
     You may wish to modify this template environments file for your own computer,
     in particular the ``setup`` sections for each environment.
 
-    .. literalinclude:: environments_template.yaml
-	  :language: YAML
+    Linux/macOS
+    ===========
+
+    .. literalinclude:: environments_template_linux.yaml
+      :language: YAML
+
+
+    Windows
+    =======
+
+    .. literalinclude:: environments_template_windows.yaml
+      :language: YAML
