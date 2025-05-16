@@ -1302,14 +1302,14 @@ numpy = ">=1.19.3"
 
 [[package]]
 name = "hpcflow-new2"
-version = "0.2.0a215"
+version = "0.2.0a216"
 description = "Computational workflow management"
 category = "main"
 optional = false
 python-versions = "<3.14,>=3.9"
 files = [
-    {file = "hpcflow_new2-0.2.0a215-py3-none-any.whl", hash = "sha256:fad53eec3ddfb8a4cbaa072aeb88c90db1b8e930ab70df8ca69aecf588946837"},
-    {file = "hpcflow_new2-0.2.0a215.tar.gz", hash = "sha256:7f0f493840151180f89110ed6786bd7ae7e4a872b1a9cc56c23b186cd1861f1a"},
+    {file = "hpcflow_new2-0.2.0a216-py3-none-any.whl", hash = "sha256:bf7f62fdbe3c0b539d6869bfd586d2ac44d29f719ace1b47b51338e6caed1836"},
+    {file = "hpcflow_new2-0.2.0a216.tar.gz", hash = "sha256:c95a093554d92e350b36f52b590a20c9543093d95369c82fa4e5f2193c673c90"},
 ]
 
 [package.dependencies]
@@ -1329,24 +1329,24 @@ numpy = [
 ]
 paramiko = ">=3.2.0,<4.0.0"
 platformdirs = ">=4.2.1,<5.0.0"
-psutil = ">=5.9.4,<6.0.0"
+psutil = ">=5.9.4,<8.0.0"
 pyzmq = ">=26.0.3,<27.0.0"
 requests = ">=2.31.0,<3.0.0"
 reretry = ">=0.11.8,<0.12.0"
-rich = ">=13.4.2,<14.0.0"
+rich = ">=13.4.2,<15.0.0"
 ruamel-yaml = ">=0.18.6,<0.19.0"
 scipy = [
     {version = ">=1.13.1,<2.0.0", markers = "python_version < \"3.10\""},
     {version = ">=1.15.2,<2.0.0", markers = "python_version >= \"3.10\""},
 ]
-termcolor = ">=1.1.0,<2.0.0"
+termcolor = ">=1.1,<3.0"
 typing-extensions = ">=4.12.2,<5.0.0"
 valida = ">=0.7.5,<0.8.0"
 watchdog = ">=6.0.0,<7.0.0"
 zarr = "2.17.2"
 
 [package.extras]
-test = ["pytest (>=7.2.0,<8.0.0)"]
+test = ["pytest (>=7.2,<9.0)"]
 
 [[package]]
 name = "identify"
@@ -3603,14 +3603,14 @@ files = [
 
 [[package]]
 name = "rich"
-version = "13.9.4"
+version = "14.0.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 category = "main"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "rich-13.9.4-py3-none-any.whl", hash = "sha256:6049d5e6ec054bf2779ab3358186963bac2ea89175919d699e378b99738c2a90"},
-    {file = "rich-13.9.4.tar.gz", hash = "sha256:439594978a49a09530cff7ebc4b5c7103ef57baf48d5ea3184f21d9a2befa098"},
+    {file = "rich-14.0.0-py3-none-any.whl", hash = "sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0"},
+    {file = "rich-14.0.0.tar.gz", hash = "sha256:82f1bc23a6a21ebca4ae0c45af9bdbc492ed20231dcb63f297d6d1021a9d5725"},
 ]
 
 [package.dependencies]
@@ -4864,4 +4864,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.14"
-content-hash = "bd1ade6d03d5562d9842a0847303aafa9f31902bc6fe3d428aed076073d98be2"
+content-hash = "096fe25588d10857ebad5044025d16033d19f349949b0d7e954d4ae224b27aeb"
