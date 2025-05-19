@@ -660,6 +660,7 @@
   implementation: damask
   inputs:
     - parameter: volume_element
+    - parameter: orientations
     - parameter: load_case
     - parameter: homogenization
     - parameter: damask_phases
@@ -701,6 +702,7 @@
         - input_file: damask_material_file
           from_inputs:
             - volume_element
+            - orientations
             - homogenization
             - damask_phases
             - single_crystal_parameters
