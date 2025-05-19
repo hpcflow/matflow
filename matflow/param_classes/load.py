@@ -1104,7 +1104,7 @@ class LoadCase(ParameterValue):
     @classmethod
     def from_npz_file(cls, **kwargs) -> Self:
         """Importing loadcase from npz file
-        
+
         See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
         """
         return cls(steps=LoadStep.from_npz_file(**kwargs))
