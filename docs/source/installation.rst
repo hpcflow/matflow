@@ -56,14 +56,24 @@
     A :ref:`default config file <default_config>` will be created the first time you submit a workflow.
     This will work without modification on a personal machine,
     however if you are using MatFlow on HPC you will likely need to make some
-    modifications to describe the job scheduler, and settings for multiple cores,
+    modifications to describe the job scheduler, settings for multiple cores,
     and to point to your MatFlow environments file.
 
     `Some examples <https://github.com/hpcflow/matflow-configs>`_ are given
     for the University of Manchester's CSF.
 
+    If there is a suitable config file for your HPC system,
+    you can pull the relevant file using the following syntax
+    (example shown for Manchester's CSF3)::
+
+      matflow config import github://hpcflow:matflow-configs@main/manchester-CSF3.yaml
+
+    After pulling a config file using the above command, you still need to edit it to set the path to
+    your :ref:`MatFlow environments<matflow-environments>` file.
     The path to your config file can be found using ``matflow manage get-config-path``,
     or to open the config file directly, use ``matflow open config``.
+
+    .. _matflow-environments:
 
     #############
     Environments
