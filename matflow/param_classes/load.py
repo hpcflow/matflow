@@ -915,14 +915,7 @@ class LoadStep(ParameterValue):
                 }
             )
 
-        obj = cls(
-            total_time=load_cases[idx]["total_time"],
-            num_increments=load_cases[idx]["num_increments"],
-            target_def_grad=load_cases[idx]["target_def_grad"],
-            stress=stress_arr,
-            dump_frequency=dump_frequency,
-        )
-        return obj._remember_name_args(_method_name, _method_args)
+        return [cls(**i)._remember_name_args(None, i) for i in load_cases]
 
 
 @dataclass
