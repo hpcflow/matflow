@@ -100,3 +100,25 @@
 
     .. literalinclude:: environments_template_windows.yaml
       :language: YAML
+
+    Tips for SLURM
+    **************
+
+    hpcFlow (which MatFlow uses) currently has a fault such that it doesn't select a SLURM partition
+    based on the resources requested in your workflow file.
+    As such, users must manually define this in their workflow files e.g.
+
+    .. code-block:: yaml
+
+      resources:
+        any:
+          scheduler_args:
+            directives:
+              --time: 00:30:00
+              --partition: serial
+
+    Note also that for many SLURM schedulers, a time limit must also be specified as shown above.
+
+    A `default time limit and partition <https://github.com/hpcflow/matflow-configs/blob/main/manchester-CSF3.yaml#L21-L25>`_
+    can be set in the config file, which will be used for tasks which don't have this set explicitly
+    in a ``resources`` block like the example above.
