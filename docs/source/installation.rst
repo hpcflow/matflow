@@ -87,7 +87,8 @@
     Once this has been done,
     your environment file can be be opened using ``matflow open env-source``.
 
-    You may wish to modify this template environments file for your own computer,
+    A template environments file is given below.
+    It is recommended to use this as a starting point, making modifications for your own computer/HPC system,
     in particular the ``setup`` sections for each environment.
 
     Linux/macOS
