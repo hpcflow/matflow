@@ -1,4 +1,71 @@
 
+<a name="v0.3.0a165"></a>
+## [v0.3.0a165](https://github.com/hpcflow/matflow-new/compare/v0.3.0a164...v0.3.0a165) - 2025.05.20
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a164"></a>
+## [v0.3.0a164](https://github.com/hpcflow/matflow-new/compare/v0.3.0a163...v0.3.0a164) - 2025.05.16
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a163"></a>
+## [v0.3.0a163](https://github.com/hpcflow/matflow-new/compare/v0.3.0a162...v0.3.0a163) - 2025.05.15
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a162"></a>
+## [v0.3.0a162](https://github.com/hpcflow/matflow-new/compare/v0.3.0a161...v0.3.0a162) - 2025.05.14
+
+### ✨ Features
+
+* added optional columns parameter to the from_file methods in microstructure seeds
+* add non-periodic option to generate volume element by voronoi
+
+### 👷 Build changes
+
+* merge branch 'develop' into feat/microstructure_generation
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a161"></a>
+## [v0.3.0a161](https://github.com/hpcflow/matflow-new/compare/v0.3.0a160...v0.3.0a161) - 2025.05.13
+
+### 🐛 Bug Fixes
+
+* missing import
+* failing macos (built executable) test due to rate limit
+
+
+<a name="v0.3.0a160"></a>
+## [v0.3.0a160](https://github.com/hpcflow/matflow-new/compare/v0.3.0a159...v0.3.0a160) - 2025.05.13
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a159"></a>
 ## [v0.3.0a159](https://github.com/hpcflow/matflow-new/compare/v0.3.0a158...v0.3.0a159) - 2025.05.07
 

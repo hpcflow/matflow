@@ -13,6 +13,7 @@ from numpy.typing import NDArray, ArrayLike
 import zarr
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_enum_by_name_or_val
+from matflow.param_classes.utils import read_numeric_csv_file
 
 
 @dataclass
@@ -370,6 +371,7 @@ class Orientations(ParameterValue):
         number: int | None = None,
         start_index: int = 0,
         delimiter: str = " ",
+        columns: list[int] | None = None,
     ) -> Self:
         """
         Load orientation data from a text file.
@@ -391,21 +393,18 @@ class Orientations(ParameterValue):
             The delimiter separating values in the file.
             Defaults to space, but commas and tabs are also sensible
             (and correspond to CSV and TSV files respectively).
+        columns
+            The columns in the file to read from.
+            Defaults to reading every column.
         """
+        exc_message = "Not enough orientations in the file."
         rep = OrientationRepresentation(**representation)
-        data: list[list[float]] = []
-        with Path(path).open("rt") as fh:
-            for idx, line in enumerate(fh):
-                line = line.strip()
-                if not line or idx < start_index:
-                    continue
-                elif len(data) < number if number is not None else True:
-                    data.append([float(i) for i in line.split(delimiter)])
-        if number is not None and len(data) < number:
-            raise ValueError("Not enough orientations in the file.")
+        data = read_numeric_csv_file(
+            path, number, start_index, delimiter, columns, exc_message
+        )
 
         return cls(
-            data=np.asarray(data),
+            data=data,
             representation=rep,
             unit_cell_alignment=unit_cell_alignment,
         )

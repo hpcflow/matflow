@@ -168,6 +168,8 @@
       default_value: null
     - parameter: scale_update_size
       default_value: true
+    - parameter: periodic
+      default_value: true
   outputs:
     - parameter: volume_element
   actions:

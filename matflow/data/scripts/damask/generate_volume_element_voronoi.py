@@ -21,6 +21,7 @@ def generate_volume_element_voronoi(
     orientations: Orientations | None,
     scale_morphology: ArrayLike | None,
     scale_update_size: bool,
+    periodic: bool,
 ) -> dict:
     """
     Generate a volume element by Voronoi tessellation from a provided set of seeds.
@@ -39,12 +40,15 @@ def generate_volume_element_voronoi(
         How to scale the morphology.
     scale_update_size
         Whether to update the grid size based on the morphology scaling.
+    periodic
+        Whether to use periodic boundary conditions on the tessellation.
+        Defaults to true.
     """
     grid_obj = grid_cls.from_Voronoi_tessellation(
         cells=np.array(VE_grid_size),
         size=np.array(microstructure_seeds.box_size),
         seeds=np.array(microstructure_seeds.position),
-        periodic=True,
+        periodic=periodic,
     )
 
     if scale_morphology is not None:
