@@ -23,7 +23,7 @@
     The CLI and the Python package can be used simultaneously.
 
     Using pip
-    ==========================
+    *********
 
     The recommended way to install MatFlow is to
     use pip to install the Python package from PyPI::
@@ -34,40 +34,47 @@
 
 
 
-    **************
     Release notes
-    **************
+    ==============
 
     Release notes for this version ({{app_version}}) are `available on GitHub <https://github.com/{{ github_user }}/{{ github_repo }}/releases/tag/v{{ app_version }}>`_.
     Use the version switcher in the top-right corner of the page to download/install other versions.
 
 
     Alternative installation methods
-    ================================
+    ********************************
     Although *not currently recommended*,
     advanced users may wish to use one of the :ref:`alternative installation methods <alternative_install>`.
 
 
-    #############
     Configuration
-    #############
+    *************
 
     MatFlow uses a config file to control details of how it executes workflows.
     A :ref:`default config file <default_config>` will be created the first time you submit a workflow.
     This will work without modification on a personal machine,
     however if you are using MatFlow on HPC you will likely need to make some
-    modifications to describe the job scheduler, and settings for multiple cores,
+    modifications to describe the job scheduler, settings for multiple cores,
     and to point to your MatFlow environments file.
 
     `Some examples <https://github.com/hpcflow/matflow-configs>`_ are given
     for the University of Manchester's CSF.
 
+    If there is a suitable config file for your HPC system,
+    you can pull the relevant file using the following syntax
+    (example shown for Manchester's CSF3)::
+
+      matflow config import github://hpcflow:matflow-configs@main/manchester-CSF3.yaml
+
+    After pulling a config file using the above command, you still need to edit it to set the path to
+    your :ref:`MatFlow environments<matflow-environments>` file.
     The path to your config file can be found using ``matflow manage get-config-path``,
     or to open the config file directly, use ``matflow open config``.
 
-    #############
+    .. _matflow-environments:
+
     Environments
-    #############
+    ************
 
     Matflow has the concept of environments, similar to python virtual environments.
     These are required so that tasks can run using the specific software they require.
@@ -77,112 +84,45 @@
     Once this has been done,
     your environment file can be be opened using ``matflow open env-source``.
 
-    You may wish to modify this template environments file for your own computer,
+    A template environments file is given below.
+    It is recommended to use this as a starting point, making modifications for your own computer/HPC system,
     in particular the ``setup`` sections for each environment.
+
+    Note that currently MatFlow works with DAMASK version ``3.0.0a7.post0``
+    but `not the latest versions <https://github.com/hpcflow/matflow-new/pull/284>`_.
+    As such the MatFlow ``damask_parse`` environment should use ``pip install damask==3.0.0a7.post0``.
+
+    Linux/macOS
+    ============
+
+    .. literalinclude:: environments_template_linux.yaml
+      :language: YAML
+
+
+    Windows
+    =======
+
+    .. literalinclude:: environments_template_windows.yaml
+      :language: YAML
+
+    Tips for SLURM
+    **************
+
+    hpcFlow (which MatFlow uses) currently has a fault such that it doesn't select a SLURM partition
+    based on the resources requested in your workflow file.
+    As such, users must manually define this in their workflow files e.g.
 
     .. code-block:: yaml
 
-	- name: damask_parse_env
-	  setup: |
-	    source /full/path/to/.venv/bin/activate
-	  executables:
-	    - label: python_script
-	      instances:
-		- command: python <<script_name>> <<args>>
-		  num_cores:
-		    start: 1
-		    stop: 32
-		  parallel_mode: null
+      resources:
+        any:
+          scheduler_args:
+            directives:
+              --time: 00:30:00
+              --partition: serial
 
-	- name: formable_env
-	  setup: |
-	    source /full/path/to/.venv/bin/activate
-	  executables:
-	    - label: python_script
-	      instances:
-		- command: python <<script_name>> <<args>>
-		  num_cores:
-		    start: 1
-		    stop: 32
-		  parallel_mode: null
+    Note also that for many SLURM schedulers, a time limit must also be specified as shown above.
 
-	- name: defdap_env
-	  setup: |
-	    source /full/path/to/.venv/bin/activate
-	  executables:
-	    - label: python_script
-	      instances:
-		- command: python <<script_name>> <<args>>
-		  num_cores:
-		    start: 1
-		    stop: 32
-		  parallel_mode: null
-
-	- name: damask_env
-	  setup: |
-	    module load mpi/intel-18.0/openmpi/4.1.0
-	    IMG_PATH=/full/path/to/DAMASK-docker-images/damask-grid_3.0.0-alpha7.sif
-	    export HDF5_USE_FILE_LOCKING=FALSE
-	  executables:
-	    - label: damask_grid
-	      instances:
-		- command: singularity run $IMG_PATH
-		  num_cores: 1
-		  parallel_mode: null
-		- command: mpirun -n $NSLOTS singularity run $IMG_PATH
-		  num_cores:
-		    start: 2
-		    stop: 32
-		  parallel_mode: null
-
-	- name: matlab_env
-	  setup: |
-	    module load apps/binapps/matlab/R2019a
-	    module load apps/binapps/matlab/third-party-toolboxes/mtex/5.3
-	  executables:
-
-	    - label: compile_mtex
-	      instances:
-		- command: compile-mtex <<script_name>> <<args>>
-		  num_cores: 1
-		  parallel_mode: null
-
-	    - label: run_compiled_mtex
-	      instances:
-		- command: ./run_<<script_name>>.sh $MATLAB_HOME <<args>>
-		  num_cores: 1
-		  parallel_mode: null
-
-	    - label: run_mtex
-	      instances:
-	      - command: matlab -singleCompThread -batch "<<script_name_no_ext>> <<args>>"
-		num_cores: 1
-		parallel_mode: null
-	      - command: matlab -batch "<<script_name_no_ext>> <<args>>"
-		num_cores:
-		  start: 2
-		  stop: 16
-		parallel_mode: null
-
-	- name: python_env
-	  executables:
-	    - label: python_script
-	      instances:
-		- command: python <<script_name>> <<args>>
-		  num_cores:
-		    start: 1
-		    stop: 32
-		  parallel_mode: null
-
-	- name: dream_3D_env
-	  executables:
-	  - label: dream_3D_runner
-	    instances:
-	    - command: /full/path/to/dream3d/DREAM3D-6.5.171-Linux-x86_64/bin/PipelineRunner
-	      num_cores: 1
-	      parallel_mode: null
-	  - label: python_script
-	    instances:
-	      - command: python <<script_name>> <<args>>
-		num_cores: 1
-		parallel_mode: null
+    A `default time limit and partition <https://github.com/hpcflow/matflow-configs/blob/main/manchester-CSF3.yaml#L21-L25>`_
+    can be set in the config file, which will be used for tasks which don't have this set explicitly
+    in a ``resources`` block like the example above.
