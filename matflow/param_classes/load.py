@@ -897,7 +897,7 @@ class LoadStep(ParameterValue):
         u_sampled_split = data["u_sampled_split"]
         strain_rate = data["strain_rate"]
 
-        load_cases = []
+        load_steps = []
         for j in range(num_incs[idx]):
             inc_size_idx = (idx,) + (2,) * (len(inc_size.shape) - 1)
             if j == num_incs[idx] - 1:
@@ -907,7 +907,7 @@ class LoadStep(ParameterValue):
                 dt = inc_size[inc_size_idx]
             dt = abs(dt) / strain_rate
 
-            load_cases.append(
+            load_steps.append(
                 {
                     "target_def_grad": u_sampled_split[idx, j],
                     "total_time": dt.item(),
@@ -915,7 +915,7 @@ class LoadStep(ParameterValue):
                 }
             )
 
-        return [cls(**i)._remember_name_args(None, i) for i in load_cases]
+        return [cls(**i)._remember_name_args(None, i) for i in load_steps]
 
 
 @dataclass
