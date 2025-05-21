@@ -7,7 +7,6 @@ from damask_parse.writers import write_material as write_material_
 def write_material(
     path: Path | str,
     volume_element: dict,
-    orientations: dict,
     homogenization: dict,
     damask_phases: dict,
     single_crystal_parameters: dict,
