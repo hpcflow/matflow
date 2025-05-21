@@ -1,0 +1,50 @@
+name: Integration Tests
+concurrency: integration
+on:
+  schedule:
+  - cron: "20 2 * * *"
+  workflow_dispatch:
+    inputs:
+      python-version2:
+        description: The Python versions to use for the test, as a JSON array.
+        default: "[12]"
+
+jobs:
+  matflow-user-documentation:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ fromJSON(inputs.python-version || '["12"]') }}
+        poetry-version: [ "1.4" ]
+    steps:
+    - name: Checkout matflow
+      uses: actions/checkout@v4
+    - name: Set up python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Set up poetry
+      uses: hpcflow/github-support/setup-poetry@main
+      timeout-minutes: 5
+      with:
+        version: ${{ matrix.poetry-version }}
+    - name: Cache dependencies
+      uses: hpcflow/github-support/init-cache@main
+      with:
+        name: integration
+        version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      timeout-minutes: 5
+      run: |
+        poetry install --without dev,pyinstaller
+    - name: Checkout user documentation
+      uses: actions/checkout@v4
+      with:
+        repository: LightForm-group/matflow-user-documentation
+        path: userdocs
+    - name: Run example workflows from user documentation
+      run: |
+        poetry run matflow go hello.yaml
+        poetry run matflow go groups.yaml
+      working-directory: userdocs
+      timeout-minutes: 30
