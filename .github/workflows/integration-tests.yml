@@ -8,6 +8,7 @@ on:
       python-version2:
         description: The Python versions to use for the test, as a JSON array.
         default: "[12]"
+  push: {}
 
 jobs:
   matflow-user-documentation:
