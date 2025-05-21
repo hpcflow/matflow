@@ -7,7 +7,7 @@ on:
     inputs:
       python-version2:
         description: The Python versions to use for the test, as a JSON array.
-        default: "[12]"
+        default: "[3.12]"
   push: {}
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ${{ fromJSON(inputs.python-version || '["12"]') }}
+        python-version: ${{ fromJSON(inputs.python-version || '["3.12"]') }}
         poetry-version: [ "1.4" ]
     steps:
     - name: Checkout matflow
