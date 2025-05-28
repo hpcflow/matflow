@@ -40,9 +40,10 @@ jobs:
         poetry install --without dev,pyinstaller
     - name: Create temp_python_env environment descriptor
       run: |
-        cat > tmp.yml << EOF
+        tee tmp.yml << EOF
+        config:
         - name: temp_python_env
-          setup: source /home/mbexegc2/projects/lightform/matflow-learning/.venv/bin/activate
+          setup: source ${{ github.workspace }}/.venv/bin/activate
           executables:
           - label: python_script
             instances:
