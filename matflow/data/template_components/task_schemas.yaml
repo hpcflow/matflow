@@ -435,15 +435,12 @@
     - parameter: crystal_symmetry
     - parameter: pole_figure_directions
     - parameter: use_contours
-      default_value: true
     - parameter: IPF_reference_direction
       default_value: z
     - parameter: colourbar_limits
       default_value: null
     - parameter: use_one_colourbar
       default_value: False
-    - parameter: plot_IPF_key
-      default_value: true
     - parameter: compile
       default_value: false
   actions:
@@ -500,9 +497,6 @@
     - parameter: IPF_reference_directions
       default_value: ["z"]
     - parameter: use_contours
-      default_value: true
-    - parameter: plot_IPF_key
-      default_value: true
     - parameter: compile
       default_value: false
   actions:
@@ -562,9 +556,6 @@
     - parameter: IPF_reference_directions
       default_value: ["z"]
     - parameter: use_contours
-      default_value: true
-    - parameter: plot_IPF_key
-      default_value: true
     - parameter: compile
       default_value: false
   actions:

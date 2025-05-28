@@ -51,7 +51,8 @@
 
 - label: mtex_IPF_key
   name:
-    name: IPF_key.png
+    name: IPF_key\.png
+    is_regex: true
   doc: Key image for MTEX inverse pole figures.
 
 - label: dream_3D_pipeline
