@@ -64,6 +64,12 @@ jobs:
       with:
         repository: LightForm-group/matflow-user-documentation
         path: userdocs
+    - name: Hack the path in the file
+      run: |
+        perl -pi -e 's/$ENV{REPLACE}/$ENV{PWD}/!g' *.yaml
+      working-directory: userdocs
+      env:
+        REPLACE: /home/mbexegc2/projects/lightform/matflow-user-documentation
     - name: Run example workflows from user documentation
       run: |
         poetry run matflow config import ${{ steps.cfg.outputs.filename }}
