@@ -1,4 +1,4 @@
-function exitcode = plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
+function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
     crystalSym = allOpts.crystal_symmetry;
@@ -56,5 +56,4 @@ function exitcode = plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path
 
     close all;
 
-    exitcode = 1;
 end
