@@ -45,7 +45,7 @@
     - command: singularity run $IMG_PATH
       num_cores: 1
       parallel_mode: null
-    - command: mpirun -n $NSLOTS singularity run $IMG_PATH
+    - command: mpirun singularity run $IMG_PATH
       num_cores:
         start: 2
         stop: 32
