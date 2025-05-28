@@ -75,5 +75,6 @@ jobs:
         poetry run matflow config import ${{ steps.cfg.outputs.filename }}
         poetry run matflow go hello.yaml
         poetry run matflow go groups.yaml
+        poetry run matflow show
       working-directory: userdocs
       timeout-minutes: 30
