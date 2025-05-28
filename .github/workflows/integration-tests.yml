@@ -39,19 +39,26 @@ jobs:
       run: |
         poetry install --without dev,pyinstaller
     - name: Create temp_python_env environment descriptor
-      run: |
-        tee tmp.yml << EOF
-        config:
-        - name: temp_python_env
-          setup: source ${{ github.workspace }}/.venv/bin/activate
-          executables:
-          - label: python_script
-            instances:
-            - command: python <<script_name>> <<args>>
-              num_cores: 1
-              parallel_mode: null
-        EOF
-        poetry run matflow config import tmp.yml
+      uses: uomresearchit/actions/instantiate-file@v1
+      with:
+        filename: temp_python_env.yaml
+        value: |
+          - name: temp_python_env
+            setup: source ${{ github.workspace }}/.venv/bin/activate
+            executables:
+              - label: python_script
+                instances:
+                  - command: python <<script_name>> <<args>>
+                    num_cores: 1
+                    parallel_mode: null
+    - name: Create config file
+      uses: uomresearchit/actions/instantiate-file@v1
+      with:
+        filename: cfg.yml
+        value: |
+          config:
+            environment_sources:
+              - ${{ github.workspace }}/temp_python_env.yaml
     - name: Checkout user documentation
       uses: actions/checkout@v4
       with:
@@ -59,6 +66,7 @@ jobs:
         path: userdocs
     - name: Run example workflows from user documentation
       run: |
+        poetry run matflow config import cfg.yaml
         poetry run matflow go hello.yaml
         poetry run matflow go groups.yaml
       working-directory: userdocs
