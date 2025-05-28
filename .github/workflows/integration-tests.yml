@@ -42,7 +42,6 @@ jobs:
       id: env
       uses: uomresearchit/actions/instantiate-file@v1
       with:
-        filename: temp_python_env.yaml
         value: |
           - name: temp_python_env
             setup: source ${{ github.workspace }}/.venv/bin/activate
@@ -56,7 +55,6 @@ jobs:
       id: cfg
       uses: uomresearchit/actions/instantiate-file@v1
       with:
-        filename: cfg.yml
         value: |
           config:
             environment_sources:
