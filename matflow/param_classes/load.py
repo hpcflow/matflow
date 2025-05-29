@@ -884,9 +884,27 @@ class LoadStep(ParameterValue):
 
         Parameters
         ----------
-        npz_file_path
-            A string of the filepath to the loadcase.npz file.
-        idx
+        npz_file_path: str
+            Filepath to the loadcase.npz file.
+            File contains dict of the following keys:
+            num_incs: 1D numpy array 
+                Array of the total increments of each loadcase.
+                (total number of increments the damask simulation should undergo)
+            inc_size: 2D numpy array
+                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation
+            inc_size_final: 2D numpy array
+                Array of amount of strain of final loadsteps
+            u_sampled_split: 4D numpy array
+                Array of strain matricies (3x3) for each loadstep (1st,2nd D) should undergo for each loadcase (3nd D),
+                for each simulation (4th D). Sampled from the elements of an FE model.
+            LE_eval_sampled_split: 3D numpy array
+                Array of principle component vectors of strain matricies (3x1), for each loadstep (1st D),
+                should undergo for each loadcase (2nd D), for each simulation (3rd D).
+            strain_rate: 1D numpy array of one float
+                Array of strain rate to be used for every simulation
+            random_sample_LE: 1D numpy array
+                Array of principle component of strain in one direction.
+        idx: int
             int index of desired loadcase to use.
         """
 
