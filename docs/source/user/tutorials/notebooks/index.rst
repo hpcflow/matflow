@@ -7,3 +7,5 @@ Jupyter notebooks
    simulate_yield_surface_2D.ipynb
 
    fit_single_crystal_parameters.ipynb
+
+   tension_DAMASK_Al.ipynb
