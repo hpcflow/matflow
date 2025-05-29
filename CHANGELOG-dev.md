@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a171"></a>
+## [v0.3.0a171](https://github.com/hpcflow/matflow-new/compare/v0.3.0a170...v0.3.0a171) - 2025.05.29
+
+### 🐛 Bug Fixes
+
+* perturbations is a list in `SingleCrystalParameters`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a170"></a>
 ## [v0.3.0a170](https://github.com/hpcflow/matflow-new/compare/v0.3.0a169...v0.3.0a170) - 2025.05.28
 
