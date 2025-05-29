@@ -887,7 +887,7 @@ class LoadStep(ParameterValue):
         npz_file_path: str
             Filepath to the loadcase.npz file.
             File contains dict of the following keys:
-            num_incs: 1D numpy array 
+            num_incs: 1D numpy array
                 Array of the total increments of each loadcase.
                 (total number of increments the damask simulation should undergo)
             inc_size: 2D numpy array
