@@ -27,7 +27,8 @@ def fit_single_crystal_parameters(
     params: SingleCrystalParameters
     for idx, params in enumerate(single_crystal_parameters["iteration_0"]["value"]):
         if params.perturbations:
-            path = params.perturbations["path"]
+            perturb = params.perturbations[0]
+            path = perturb["path"]
             name = "__".join([str(i) for i in path])
             value = _get_by_path(params.base, path)
 
@@ -35,7 +36,7 @@ def fit_single_crystal_parameters(
                 name=name,
                 values=[value],
                 address=path,
-                perturbation=params.perturbations["multiplicative"],
+                perturbation=perturb["multiplicative"],
             )
             fitting_params.append(fitting_param_i)
         else:
