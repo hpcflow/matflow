@@ -1,4 +1,87 @@
 
+<a name="v0.3.0a172"></a>
+## [v0.3.0a172](https://github.com/hpcflow/matflow-new/compare/v0.3.0a171...v0.3.0a172) - 2025.05.29
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a171"></a>
+## [v0.3.0a171](https://github.com/hpcflow/matflow-new/compare/v0.3.0a170...v0.3.0a171) - 2025.05.29
+
+### 🐛 Bug Fixes
+
+* perturbations is a list in `SingleCrystalParameters`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a170"></a>
+## [v0.3.0a170](https://github.com/hpcflow/matflow-new/compare/v0.3.0a169...v0.3.0a170) - 2025.05.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a169"></a>
+## [v0.3.0a169](https://github.com/hpcflow/matflow-new/compare/v0.3.0a168...v0.3.0a169) - 2025.05.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a168"></a>
+## [v0.3.0a168](https://github.com/hpcflow/matflow-new/compare/v0.3.0a167...v0.3.0a168) - 2025.05.27
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a167"></a>
+## [v0.3.0a167](https://github.com/hpcflow/matflow-new/compare/v0.3.0a166...v0.3.0a167) - 2025.05.21
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a166"></a>
+## [v0.3.0a166](https://github.com/hpcflow/matflow-new/compare/v0.3.0a165...v0.3.0a166) - 2025.05.20
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a165"></a>
+## [v0.3.0a165](https://github.com/hpcflow/matflow-new/compare/v0.3.0a164...v0.3.0a165) - 2025.05.20
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a164"></a>
 ## [v0.3.0a164](https://github.com/hpcflow/matflow-new/compare/v0.3.0a163...v0.3.0a164) - 2025.05.16
 

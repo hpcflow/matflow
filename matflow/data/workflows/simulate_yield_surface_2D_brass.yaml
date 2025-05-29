@@ -22,6 +22,7 @@ tasks:
       crystal_symmetry: cubic # so we only see one orientaion on the pole figure
       pole_figure_directions:
         - [1, 1, 1]
+      use_contours: true
       compile: false
 
   - schema: generate_microstructure_seeds_from_random

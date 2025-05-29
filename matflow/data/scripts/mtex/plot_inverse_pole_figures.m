@@ -1,10 +1,9 @@
-function exitcode = plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
+function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
     crystalSym = allOpts.crystal_symmetry;
     
     useContours = allOpts.use_contours;
-    plotIPFKey = allOpts.plot_IPF_key;
     IPFRefDirs = allOpts.IPF_reference_directions;
     
     % as defined in MatFlow
@@ -42,23 +41,19 @@ function exitcode = plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path
         quat_data = circshift(quat_data, 1, 2);
     end
     
-    if plotIPFKey
-        ipfKey = ipfColorKey(crystalSym);
-        plot(ipfKey);
-        saveFigure('IPF_key.png');
-    end
-    
     orientations = orientation(quat_data, crystalSym);
     
     if useContours
         plotIPDF(orientations,refDirs,'contourf');
     else
         plotIPDF(orientations,refDirs);
+        ipfKey = ipfColorKey(crystalSym);
+        plot(ipfKey);
+        saveFigure('IPF_key.png');
     end
     
     saveFigure('inverse_pole_figure.png');
 
     close all;
 
-    exitcode = 1;
 end
