@@ -892,8 +892,7 @@ class LoadStep(ParameterValue):
             inc_size_final: 2D numpy array
                 Array of amount of strain of final loadsteps
             u_sampled_split: 4D numpy array
-                Array of strain matricies (3x3) for each loadstep (1st,2nd D) should undergo for each loadcase (3nd D),
-                for each simulation (4th D). Sampled from the elements of an FE model.
+                Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
             strain_rate: 1D numpy array of one float
                 Scalar strain rate to be used for every simulation
             random_sample_LE: 1D numpy array
