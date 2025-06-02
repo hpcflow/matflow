@@ -894,9 +894,6 @@ class LoadStep(ParameterValue):
             u_sampled_split: 4D numpy array
                 Array of strain matricies (3x3) for each loadstep (1st,2nd D) should undergo for each loadcase (3nd D),
                 for each simulation (4th D). Sampled from the elements of an FE model.
-            LE_eval_sampled_split: 3D numpy array
-                Array of principle component vectors of strain matricies (3x1), for each loadstep (1st D),
-                should undergo for each loadcase (2nd D), for each simulation (3rd D).
             strain_rate: 1D numpy array of one float
                 Scalar strain rate to be used for every simulation
             random_sample_LE: 1D numpy array
