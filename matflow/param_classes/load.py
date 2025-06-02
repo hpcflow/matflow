@@ -874,21 +874,18 @@ class LoadStep(ParameterValue):
     @classmethod
     def from_npz_file(
         cls,
-        npz_file_path,
-        idx,
+        npz_file_path: str,
+        idx: int,
     ) -> list[Self]:
         """
-        Read loading data from a numpy .npz file and format it appropriately.
-        Designed for running large arrays of simulations which each use loadcase of the
-        corresponding index.
+        Construct a list of load steps using data from a Numpy .npz file. This is designed for running large arrays of simulations from the data in this file, where each uses a loadcase specified by a given index (`idx`).
 
         Parameters
         ----------
         npz_file_path: str
-            Filepath to the loadcase.npz file.
-            File contains dict of the following keys:
+            Filepath to the npz file, which must be dict-like with at least the following keys:
             num_incs: 1D numpy array
-                Array of the total increments of each loadcase.
+                Array of the total number of increments to use for each loadcase.
                 (total number of increments the damask simulation should undergo)
             inc_size: 2D numpy array
                 Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation
@@ -901,7 +898,7 @@ class LoadStep(ParameterValue):
                 Array of principle component vectors of strain matricies (3x1), for each loadstep (1st D),
                 should undergo for each loadcase (2nd D), for each simulation (3rd D).
             strain_rate: 1D numpy array of one float
-                Array of strain rate to be used for every simulation
+                Scalar strain rate to be used for every simulation
             random_sample_LE: 1D numpy array
                 Array of principle component of strain in one direction.
         idx: int
