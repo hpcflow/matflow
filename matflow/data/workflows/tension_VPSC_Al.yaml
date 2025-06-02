@@ -49,42 +49,42 @@ tasks:
               output: [xi_sl]
               xi_0_sl: [31.0e+6]
               xi_inf_sl: [63.0e+6]
-      vpsc_post_processing:
-        - name: add_stress_Cauchy
-          args: { P: P, F: F }
-          opts: { add_Mises: true }
-        - name: add_strain
-          args: { F: F, t: V, m: 0 }
-          opts: { add_Mises: true }
-        - name: add_strain
-          args: { F: F_p, t: V, m: 0 }
-          opts: { add_Mises: true }
-        - name: add_IPF_color
-          args: { l: [0, 0, 1] }
-      VE_response_data:
-        phase_data:
-          - field_name: sigma_vM
-            phase_name: Al
-            out_name: vol_avg_equivalent_stress
-            transforms: [{ mean_along_axes: 1 }]
-          - field_name: epsilon_V^0(F)_vM
-            phase_name: Al
-            out_name: vol_avg_equivalent_strain
-            transforms: [{ mean_along_axes: 1 }]
-          - field_name: epsilon_V^0(F_p)_vM
-            phase_name: Al
-            out_name: vol_avg_equivalent_plastic_strain
-            transforms: [{ mean_along_axes: 1 }]
-        field_data:
-          - field_name: phase
-          - field_name: O
-        grain_data:
-          - field_name: O
-            increments: [{ values: [0, -1] }]
-      vpsc_viz:
-        fields:
-          [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
-        increments:
-          - step: 20
-      calculate_yield_stress:
-        yield_point: 0.002
+#      vpsc_post_processing:
+#        - name: add_stress_Cauchy
+#          args: { P: P, F: F }
+#          opts: { add_Mises: true }
+#        - name: add_strain
+#          args: { F: F, t: V, m: 0 }
+#          opts: { add_Mises: true }
+#        - name: add_strain
+#          args: { F: F_p, t: V, m: 0 }
+#          opts: { add_Mises: true }
+#        - name: add_IPF_color
+#          args: { l: [0, 0, 1] }
+#      VE_response_data:
+#        phase_data:
+#          - field_name: sigma_vM
+#            phase_name: Al
+#            out_name: vol_avg_equivalent_stress
+#            transforms: [{ mean_along_axes: 1 }]
+#          - field_name: epsilon_V^0(F)_vM
+#            phase_name: Al
+#            out_name: vol_avg_equivalent_strain
+#            transforms: [{ mean_along_axes: 1 }]
+#          - field_name: epsilon_V^0(F_p)_vM
+#            phase_name: Al
+#            out_name: vol_avg_equivalent_plastic_strain
+#            transforms: [{ mean_along_axes: 1 }]
+#        field_data:
+#          - field_name: phase
+#          - field_name: O
+#        grain_data:
+#          - field_name: O
+#            increments: [{ values: [0, -1] }]
+#      vpsc_viz:
+#        fields:
+#          [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
+#        increments:
+#          - step: 20
+#      calculate_yield_stress:
+#        yield_point: 0.002
