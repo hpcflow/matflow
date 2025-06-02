@@ -888,9 +888,11 @@ class LoadStep(ParameterValue):
                 Array of the total number of increments to use for each loadcase.
                 (total number of increments the damask simulation should undergo)
             inc_size: 2D numpy array
-                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation
+                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation.
+                (1st D is loadstep, 2nd is principle components of strain.)
             inc_size_final: 2D numpy array
-                Array of amount of strain of final loadsteps
+                Array of amount of strain of final loadsteps.
+                (1st D is loadstep, 2nd is principle components of strain.)
             u_sampled_split: 4D numpy array
                 Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
             strain_rate: 1D numpy array of one float
