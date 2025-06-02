@@ -895,8 +895,6 @@ class LoadStep(ParameterValue):
                 Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
             strain_rate: 1D numpy array of one float
                 Scalar strain rate to be used for every simulation
-            random_sample_LE: 1D numpy array
-                Array of principle component of strain in one direction.
         idx: int
             int index of desired loadcase to use.
         """
