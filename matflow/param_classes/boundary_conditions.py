@@ -7,6 +7,7 @@ helper class.
 
 from collections.abc import Mapping, Sequence
 from typing import Literal
+from textwrap import dedent
 
 from typing_extensions import Final, Self
 
@@ -55,7 +56,9 @@ class BoundaryCondition:
         "+z": "face_pos_z",
         "-z": "face_neg_z",
     }
-    _LOCATION_FUNC_CORNER_BODY_TEMPLATE = "return np.allclose(point, {corner}, atol=1e-5)"
+    _LOCATION_FUNC_CORNER_BODY_TEMPLATE = (
+        "return np.allclose(point, np.asarray({corner}), atol=1e-5)"
+    )
     _LOCATION_FUNC_FACE_BODY_TEMPLATE = (
         "return np.isclose(point[{comp_idx}], {value}, atol=1e-5)"
     )
