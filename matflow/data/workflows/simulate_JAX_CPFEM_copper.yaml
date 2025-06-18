@@ -8,78 +8,6 @@ template_components:
               parallel_mode: null
               num_cores: 1
 
-  command_files:
-    - label: jax_cpfem_mesh_data
-      name:
-        name: mesh.npz
-      doc: >
-        Information that we can use to generate a JAX-FEM hexahedral ("box") `Mesh` 
-        object, and associate each grain with quaternion orientations.
-    - label: jax_cpfem_model_script
-      name:
-        name: model.py
-    - label: jax_cpfem_problem_script
-      name:
-        name: problem.py
-    - label: jax_cpfem_slip_systems
-      name:
-        name: input_slip_sys.txt
-      doc: Slip systems to model.
-    - label: jax_cpfem_stdout
-      name:
-        name: stdout.log
-      doc: Standard output stream from a JAX-CPFEM simulation.
-    - label: jax_cpfem_stderr
-      name:
-        name: stderr.log
-      doc: Standard error stream from a JAX-CPFEM simulation.
-
-  task_schemas:
-    - objective: simulate_VE_loading
-      implementation: JAX_CPFEM
-      inputs:
-        - parameter: volume_element
-        - parameter: material_parameters
-        - parameter: slip_systems
-        - parameter: loading
-        - parameter: solver_options
-        - parameter: numerics
-      outputs:
-        - parameter: CP_outputs # temp naming
-      actions:
-        - requires_dir: true
-          environments:
-            - scope:
-                type: main
-              environment: jax_cpfem
-            - scope:
-                type: processing
-              environment: python_env
-          input_file_generators:
-            - input_file: jax_cpfem_mesh_data
-              from_inputs: [volume_element]
-              script: <<script:jax_cpfem/write_mesh.py>>
-            - input_file: jax_cpfem_model_script
-              from_inputs: [material_parameters, numerics]
-              script: <<script:jax_cpfem/write_model_py_script.py>>
-            - input_file: jax_cpfem_problem_script
-              from_inputs: [loading, solver_options]
-              script: <<script:jax_cpfem/write_problem_py_script.py>>
-            - input_file: jax_cpfem_slip_systems
-              from_inputs: [slip_systems]
-              script: <<script:jax_cpfem/write_slip_systems.py>>
-          commands:
-            - command: <<executable:run_jax_cpfem>> problem
-              stdout: stdout.log
-              stderr: stderr.log
-          output_file_parsers:
-            CP_outputs:
-              from_files: [jax_cpfem_stdout]
-              script: <<script:jax_cpfem/parse_stdout.py>>
-
-# TODO:
-# - CP sim comparison DAMASK?
-
 tasks:
   - schema: generate_volume_element_from_voronoi
     inputs:
@@ -98,6 +26,14 @@ tasks:
         phase_label: copper
 
   - schema: visualise_VE_VTK
+
+  - schema: define_load_case
+    inputs:
+      load_case::one_dimensional:
+        num_increments: 10
+        total_time: 0.1
+        target_strain: 0.01
+        direction: x
 
   - schema: simulate_VE_loading_JAX_CPFEM
     inputs:
@@ -130,21 +66,5 @@ tasks:
         - [[1, 1, 1], [0, 1, -1]]
         - [[1, 1, 1], [1, 0, -1]]
         - [[1, 1, 1], [1, -1, 0]]
-      loading:
-        strain: 0.01
-        direction: x # reproduces example, but should be z?
-        total_time: 0.1
-        num_increments: 10
-        dirichlet_BCs:
-          - points: bottom
-            values:
-              u_x: 0
-              u_y: 0
-              u_z: 0
-          - points: top
-            values:
-              u_x: 0
-              u_y: 0
-              u_z: u(t)
       numerics:
         newton_max_sub_step: 5

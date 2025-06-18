@@ -89,7 +89,7 @@ class BoundaryCondition:
         )
 
     @classmethod
-    def uniaxial_tension(cls, direction: Literal["x", "y", "z"]) -> list[Self]:
+    def uniaxial(cls, direction: Literal["x", "y", "z"]) -> list[Self]:
         """Generate a list of boundary conditions that correspond to uniaxial loading
         along the specified direction."""
         non_axial_dirs = sorted(list(set(cls._DIRS).difference(direction)))
@@ -97,6 +97,19 @@ class BoundaryCondition:
             cls(corners=([0, 0, 0],), value={non_axial_dirs[0]: 0, non_axial_dirs[1]: 0}),
             cls(faces=(f"-{direction}",), value={direction: 0}),
             cls(faces=(f"+{direction}",), value={direction: "u(t)"}),
+        ]
+
+    @classmethod
+    def one_dimensional(cls, direction: Literal["x", "y", "z"]) -> list[Self]:
+        """Generate a list of boundary conditions that correspond to one-dimensional
+        loading along the specified direction (no deformation in non-axial directions)."""
+        non_axial_dirs = sorted(list(set(cls._DIRS).difference(direction)))
+        return [
+            cls(faces=(f"-{direction}",), value={"x": 0, "y": 0, "z": 0}),
+            cls(
+                faces=(f"+{direction}",),
+                value={non_axial_dirs[0]: 0, non_axial_dirs[1]: 0, direction: "u(t)"},
+            ),
         ]
 
     @staticmethod

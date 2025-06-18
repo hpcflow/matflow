@@ -8,68 +8,6 @@ template_components:
               parallel_mode: null
               num_cores: 1
 
-  command_files:
-    - label: jax_cpfem_mesh_data
-      name:
-        name: mesh.npz
-      doc: >
-        Information that we can use to generate a JAX-FEM hexahedral ("box") `Mesh` 
-        object, and associate each grain with quaternion orientations.
-    - label: jax_cpfem_model_script
-      name:
-        name: model.py
-    - label: jax_cpfem_problem_script
-      name:
-        name: problem.py
-    - label: jax_cpfem_slip_systems
-      name:
-        name: input_slip_sys.txt
-      doc: Slip systems to model.
-    - label: jax_cpfem_stdout
-      name:
-        name: stdout.log
-      doc: Standard output stream from a JAX-CPFEM simulation.
-    - label: jax_cpfem_stderr
-      name:
-        name: stderr.log
-      doc: Standard error stream from a JAX-CPFEM simulation.
-
-  task_schemas:
-    - objective: simulate_VE_loading
-      implementation: JAX_CPFEM
-      inputs:
-        - parameter: volume_element
-        - parameter: material_parameters
-        - parameter: loading
-        - parameter: solver_options
-        - parameter: numerics
-      actions:
-        - requires_dir: true
-          environments:
-            - scope:
-                type: main
-              environment: jax_cpfem
-            - scope:
-                type: processing
-              environment: python_env
-          input_file_generators:
-            - input_file: jax_cpfem_mesh_data
-              from_inputs: [volume_element]
-              script: <<script:jax_cpfem/write_mesh.py>>
-            - input_file: jax_cpfem_model_script
-              from_inputs: [material_parameters, numerics]
-              script: <<script:jax_cpfem/write_model_py_script.py>>
-            - input_file: jax_cpfem_problem_script
-              from_inputs: [loading, solver_options]
-              script: <<script:jax_cpfem/write_problem_py_script.py>>
-            - input_file: jax_cpfem_slip_systems
-              from_inputs: []
-              script: <<script:jax_cpfem/write_slip_systems.py>>
-          commands:
-            - command: <<executable:run_jax_cpfem>> problem
-              stdout: stdout.log
-              stderr: stderr.log
-
 # TODO:
 # - test mesh equivalence in polycrystal example, from provided gmsh .msh file
 #     - (can just look at first sim output VTU file (contains cell oris map)
@@ -140,6 +78,14 @@ tasks:
 
   - schema: visualise_VE_VTK
 
+  - schema: define_load_case
+    inputs:
+      load_case::uniaxial:
+        num_increments: 10
+        total_time: 0.1
+        target_strain: 0.01
+        direction: x
+
   - schema: simulate_VE_loading_JAX_CPFEM
     inputs:
       material_parameters:
@@ -157,19 +103,3 @@ tasks:
         name: jax_solver
       numerics:
         newton_max_sub_step: 8
-      loading:
-        strain: 0.01
-        direction: x # reproduces example, but should be z?
-        total_time: 0.1
-        num_increments: 50
-        dirichlet_BCs:
-          - points: corner
-            values:
-              u_x: 0
-              u_y: 0
-          - points: bottom
-            values:
-              u_z: 0
-          - points: top
-            values:
-              u_z: u(t)

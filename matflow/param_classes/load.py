@@ -85,6 +85,7 @@ class LoadStep(ParameterValue):
     """
 
     _DIR_IDX: Final[tuple[str, ...]] = ("x", "y", "z")
+    _SUPPORTS_SCALAR_STRAIN: Final[tuple[str]] = ("uniaxial", "one_dimensional")
 
     def __init__(
         self,
@@ -221,7 +222,7 @@ class LoadStep(ParameterValue):
         For a limited subset of load step types (e.g. uniaxial), return the scalar target
         strain.
         """
-        if self.type in ("uniaxial",):
+        if self.type in self._SUPPORTS_SCALAR_STRAIN:
             return self.method_args["target_strain"]
 
     @property
@@ -230,7 +231,7 @@ class LoadStep(ParameterValue):
         For a limited subset of load step types (e.g. uniaxial), return the scalar target
         strain rate.
         """
-        if self.type in ("uniaxial",):
+        if self.type in self._SUPPORTS_SCALAR_STRAIN:
             return self.method_args["target_strain_rate"]
 
     def __repr__(self) -> str:
@@ -253,7 +254,9 @@ class LoadStep(ParameterValue):
         into Dirichlet boundary conditions."""
 
         if self.type == "uniaxial":
-            return BoundaryCondition.uniaxial_tension(self.direction)
+            return BoundaryCondition.uniaxial(self.direction)
+        elif self.type == "one_dimensional":
+            return BoundaryCondition.one_dimensional(self.direction)
         raise NotImplementedError(
             "Cannot express this load step in terms of boundary conditions."
         )
