@@ -792,6 +792,49 @@
           script: <<script:damask/high_concurrency/process_HDF5.py>>
           inputs: [damask_post_processing, VE_response_data, damask_viz]
 
+- objective: simulate_VE_loading
+  doc: Simulate applying a load case to a volume element using JAX-CPFEM.
+  implementation: JAX_CPFEM
+  inputs:
+    - parameter: volume_element
+    - parameter: material_parameters
+    - parameter: slip_systems
+    - parameter: load_case
+    - parameter: solver_options
+    - parameter: numerics
+  outputs:
+    - parameter: CP_outputs # temp naming
+  actions:
+    - requires_dir: true
+      environments:
+        - scope:
+            type: main
+          environment: jax_cpfem
+        - scope:
+            type: processing
+          environment: python_env
+      input_file_generators:
+        - input_file: jax_cpfem_mesh_data
+          from_inputs: [volume_element]
+          script: <<script:jax_cpfem/write_mesh.py>>
+        - input_file: jax_cpfem_model_script
+          from_inputs: [material_parameters, numerics]
+          script: <<script:jax_cpfem/write_model_py_script.py>>
+        - input_file: jax_cpfem_problem_script
+          from_inputs: [load_case, solver_options]
+          script: <<script:jax_cpfem/write_problem_py_script.py>>
+        - input_file: jax_cpfem_slip_systems
+          from_inputs: [slip_systems]
+          script: <<script:jax_cpfem/write_slip_systems.py>>
+      commands:
+        - command: <<executable:run_jax_cpfem>> problem
+          stdout: stdout.log
+          stderr: stderr.log
+      output_file_parsers:
+        CP_outputs:
+          from_files: [jax_cpfem_stdout]
+          script: <<script:jax_cpfem/parse_stdout.py>>
+
 - objective: read_tensile_test
   doc: Read tensile test data from CSV.
   method: from_CSV

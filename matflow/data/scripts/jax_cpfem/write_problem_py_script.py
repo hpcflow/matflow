@@ -1,6 +1,10 @@
 from textwrap import dedent, indent
 from collections.abc import Sequence
 
+import numpy as np
+
+from matflow.param_classes.boundary_conditions import BoundaryCondition
+
 _DIR_LOOKUP = {
     "x": "Lx",
     "y": "Ly",
@@ -8,7 +12,7 @@ _DIR_LOOKUP = {
 }
 
 
-def write_problem_py_script(path, loading, solver_options):
+def write_problem_py_script(path, load_case, solver_options):
 
     TEMPLATE = dedent(
         """\
@@ -68,62 +72,6 @@ def write_problem_py_script(path, loading, solver_options):
             Lz = np.max(mesh.points[:, 2])
             print(f"Domain size: {{Lx}}, {{Ly}}, {{Lz}}")
 
-            displacements = np.linspace(0, {strain}*{direction}, {num_increments} + 1)
-            ts = np.linspace(0, {total_time}, {num_increments} + 1)
-
-            ## Hu: Define index of points and faces
-            def corner(point):
-                flag_x = np.isclose(point[0], 0.0, atol=1e-5)
-                flag_y = np.isclose(point[1], 0.0, atol=1e-5)
-                flag_z = np.isclose(point[2], Lz, atol=1e-5)
-                return np.logical_and(np.logical_and(flag_x, flag_y), flag_z)
-
-            def corner2(point):
-                flag_x = np.isclose(point[0], 0.0, atol=1e-5)
-                flag_y = np.isclose(point[1], 0.0, atol=1e-5)
-                flag_z = np.isclose(point[2], 0.0, atol=1e-5)
-                return np.logical_and(np.logical_and(flag_x, flag_y), flag_z)
-
-            def corner3(point):
-                flag_x = np.isclose(point[0], Lx, atol=1e-5)
-                flag_y = np.isclose(point[1], 0.0, atol=1e-5)
-                flag_z = np.isclose(point[2], 0.0, atol=1e-5)
-                return np.logical_and(np.logical_and(flag_x, flag_y), flag_z)
-
-            def corner4(point):
-                flag_x = np.isclose(point[0], Lx, atol=1e-5)
-                flag_y = np.isclose(point[1], 0.0, atol=1e-5)
-                flag_z = np.isclose(point[2], Lz, atol=1e-5)
-                return np.logical_and(np.logical_and(flag_x, flag_y), flag_z)
-
-            def left(point):
-                return np.isclose(point[0], 0.0, atol=1e-5)
-
-            def right(point):
-                return np.isclose(point[0], Lx, atol=1e-5)
-
-            def front(point):
-                return np.isclose(point[1], 0.0, atol=1e-5)
-
-            def back(point):
-                return np.isclose(point[1], Ly, atol=1e-5)
-
-            def bottom(point):
-                return np.isclose(point[2], 0.0, atol=1e-5)
-
-            def top(point):
-                return np.isclose(point[2], Lz, atol=1e-5)
-
-            ## Hu: Define dirichlet B.C.
-            def zero_dirichlet_val(point):
-                return 0.0
-
-            def get_dirichlet_top(disp):
-                def val_fn(point):
-                    return disp
-
-                return val_fn
-
         {dirichlet_BCs}
 
             ## Hu: Define CPFEM problem on top of JAX-FEM
@@ -156,7 +104,7 @@ def write_problem_py_script(path, loading, solver_options):
 
                 ## Hu: Reset Dirichlet boundary conditions.
                 ## Hu: Useful when a time-dependent problem is solved, and at each iteration the boundary condition needs to be updated.
-                dirichlet_bc_info[-1][{dirichlet_ut_idx}] = get_dirichlet_top(displacements[i + 1])
+                dirichlet_bc_info[-1][{dirichlet_ut_idx}] = constant_value(displacements[i + 1])
                 problem.fes[0].update_Dirichlet_boundary_conditions(dirichlet_bc_info)
 
                 ## Hu: Set up internal variables of previous step for inner Newton's method
@@ -245,57 +193,18 @@ def write_problem_py_script(path, loading, solver_options):
         """
     )
 
-    DISP_COMP_LOOKUP = {"u_x": 0, "u_y": 1, "u_z": 2}
-
-    u_t_idx = None  # the of the BC where we specify the required displacement at time t
-    location_funcs = []
-    vector_comps = []
-    value_funcs = []
-    for dbc in loading["dirichlet_BCs"]:
-        for disp_comp, value in dbc["values"].items():
-
-            if value == 0:
-                # a function that takes a point and returns zero:
-                value = "zero_dirichlet_val"
-            elif value.lower() == "u(t)":
-                # a function that takes a point and returns the required displacement at
-                # time t:
-                value = "get_dirichlet_top(displacements[0])"
-                u_t_idx = len(location_funcs)
-
-            location_funcs.append(dbc["points"])
-            vector_comps.append(DISP_COMP_LOOKUP[disp_comp])
-            value_funcs.append(value)
-
-    DBCs_TEMPLATE = dedent(
-        """\
-        dirichlet_bc_info = [
-        {location_functions_str},
-        {vector_components_str},
-        {value_functions_str},
-        ]
-        """
+    dirichlet_BCs, dirichlet_ut_idx = create_JAX_CPFEM_boundary_conditions_code(
+        load_case=load_case, domain_size=["Lx", "Ly", "Lz"]
     )
+
     INDENT = "    "
-    DBCs = DBCs_TEMPLATE.format(
-        location_functions_str=indent("[" + ", ".join(location_funcs) + "]", INDENT),
-        vector_components_str=indent(
-            "[" + ", ".join(str(i) for i in vector_comps) + "]", INDENT
-        ),
-        value_functions_str=indent("[" + ", ".join(value_funcs) + "]", INDENT),
-    )
-
     solver_name = solver_options.pop("name")
     with path.open("wt") as fh:
         fh.write(
             TEMPLATE.format(
                 case_name="polycrystal",
-                strain=loading["strain"],
-                num_increments=loading["num_increments"],
-                direction=_DIR_LOOKUP[loading["direction"].lower()],
-                total_time=loading["total_time"],
-                dirichlet_BCs=indent(DBCs, INDENT),
-                dirichlet_ut_idx=u_t_idx,
+                dirichlet_BCs=indent(dirichlet_BCs, INDENT),
+                dirichlet_ut_idx=dirichlet_ut_idx,
                 solver_name=solver_name,
                 solver_options=solver_options,
             )
@@ -343,7 +252,7 @@ def __apply_for_values(
 
 def create_JAX_CPFEM_boundary_conditions_code(
     load_case, domain_size: Sequence[float | str]
-) -> str:
+) -> tuple[str, int]:
     """
     Create a string containing Python code that can be used to define this
     load case (represented with Dirichlet boundary conditions) when using JAX-CPFEM.
