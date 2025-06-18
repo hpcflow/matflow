@@ -19,6 +19,7 @@ from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 
 import matflow as mf
 from matflow.param_classes.utils import masked_array_from_list
+from matflow.param_classes.boundary_conditions import BoundaryCondition
 
 logger = logging.getLogger(__name__)
 
@@ -245,6 +246,16 @@ class LoadStep(ParameterValue):
             f"num_increments={self.num_increments}, "
             f"total_time={self.total_time}{dir_str}"
             f")"
+        )
+
+    def to_dirichlet_BCs(self) -> list[BoundaryCondition]:
+        """For some particular types of load steps (e.g. uniaxial), we can transform them
+        into Dirichlet boundary conditions."""
+
+        if self.type == "uniaxial":
+            return BoundaryCondition.uniaxial_tension(self.direction)
+        raise NotImplementedError(
+            "Cannot express this load step in terms of boundary conditions."
         )
 
     @classmethod
@@ -987,6 +998,18 @@ class LoadCase(ParameterValue):
             dct["def_grad_rate"] = dct.pop("target_def_grad_rate", None)
             load_steps.append(dct)
         return load_steps
+
+    def to_dirichlet_BCs(self) -> list[BoundaryCondition]:
+        """For some particular types of load cases (e.g. uniaxial), we can transform them
+        into Dirichlet boundary conditions."""
+
+        if self.num_steps == 1:
+            return self.steps[0].to_dirichlet_BCs()
+        else:
+            raise NotImplementedError(
+                "It is not currently possible to express multi-step load cases in terms "
+                "of boundary conditions."
+            )
 
     @classmethod
     def uniaxial(cls, **kwargs) -> Self:
