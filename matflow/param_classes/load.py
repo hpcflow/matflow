@@ -214,6 +214,24 @@ class LoadStep(ParameterValue):
         """More user-friendly access to method name."""
         return self._method_name or self.__class__.__name__
 
+    @property
+    def strain(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain"]
+
+    @property
+    def strain_rate(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain rate.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain_rate"]
+
     def __repr__(self) -> str:
         type_str = f"type={self.type!r}, " if self.type else ""
         if self.direction:
@@ -314,16 +332,22 @@ class LoadStep(ParameterValue):
         if sum(s is not None for s in strain_arg) != 1:
             raise ValueError(msg)
 
-        # convert strain (rate) to deformation gradient (rate) components:
-        t_dg = 1 + target_strain if target_strain is not None else target_def_grad
-        t_dg_rate = (
-            target_strain_rate if target_strain_rate is not None else target_def_grad_rate
-        )
+        # convert strain (rate) to deformation gradient (rate) components, and ensure both
+        # strain(_rate) and def_grad(_rate) are populated:
+        if target_strain is not None:
+            target_def_grad = 1 + target_strain
+        elif target_def_grad is not None:
+            target_strain = target_def_grad - 1
 
-        if t_dg_rate is not None:
-            def_grad_val = t_dg_rate
+        if target_strain_rate is not None:
+            target_def_grad_rate = target_strain_rate
+        elif target_def_grad_rate is not None:
+            target_strain_rate = target_def_grad_rate
+
+        if target_def_grad_rate is not None:
+            def_grad_val = target_def_grad_rate
         else:
-            def_grad_val = t_dg
+            def_grad_val = target_def_grad
 
         try:
             loading_dir_idx = cls._DIR_IDX.index(direction)
@@ -341,8 +365,8 @@ class LoadStep(ParameterValue):
         dg_arr.mask[loading_dir_idx, loading_dir_idx] = False
         stress_arr.mask[loading_dir_idx, loading_dir_idx] = True
 
-        def_grad_aim = dg_arr if t_dg is not None else None
-        def_grad_rate = dg_arr if t_dg_rate is not None else None
+        def_grad_aim = dg_arr if target_def_grad is not None else None
+        def_grad_rate = dg_arr if target_def_grad_rate is not None else None
 
         obj = cls(
             direction=direction,
