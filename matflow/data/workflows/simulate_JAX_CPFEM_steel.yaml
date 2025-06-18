@@ -1,13 +1,3 @@
-template_components:
-  environments:
-    - name: jax_cpfem
-      executables:
-        - label: run_jax_cpfem
-          instances:
-            - command: docker run --rm -it -v "${PWD}:/app" jax-cpfem
-              parallel_mode: null
-              num_cores: 1
-
 # TODO:
 # - test mesh equivalence in polycrystal example, from provided gmsh .msh file
 #     - (can just look at first sim output VTU file (contains cell oris map)
