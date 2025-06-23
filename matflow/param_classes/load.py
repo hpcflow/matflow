@@ -871,6 +871,63 @@ class LoadStep(ParameterValue):
             out.extend(cycle_i)
         return [cls(**i)._remember_name_args(None, i) for i in out]
 
+    @classmethod
+    def from_npz_file(
+        cls,
+        npz_file_path: str,
+        idx: int,
+    ) -> list[Self]:
+        """
+        Construct a list of load steps using data from a Numpy .npz file. This is designed for running large arrays of simulations from the data in this file, where each uses a loadcase specified by a given index (`idx`).
+
+        Parameters
+        ----------
+        npz_file_path: str
+            Filepath to the npz file, which must be dict-like with at least the following keys:
+            num_incs: 1D numpy array
+                Array of the total number of increments to use for each loadcase.
+                (total number of increments the damask simulation should undergo)
+            inc_size: 2D numpy array
+                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation.
+                (1st D is loadstep, 2nd is principle components of strain.)
+            inc_size_final: 2D numpy array
+                Array of amount of strain of final loadsteps.
+                (1st D is loadstep, 2nd is principle components of strain.)
+            u_sampled_split: 4D numpy array
+                Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
+            strain_rate: 1D numpy array of one float
+                Scalar strain rate to be used for every simulation
+        idx: int
+            int index of desired loadcase to use.
+        """
+
+        data = np.load(npz_file_path)
+        num_incs = data["num_incs"]
+        inc_size = data["inc_size"]
+        inc_size_final = data["inc_size_final"]
+        u_sampled_split = data["u_sampled_split"]
+        strain_rate = data["strain_rate"]
+
+        load_steps = []
+        for j in range(num_incs[idx]):
+            inc_size_idx = (idx,) + (2,) * (len(inc_size.shape) - 1)
+            if j == num_incs[idx] - 1:
+                # final inc
+                dt = inc_size_final[inc_size_idx]
+            else:
+                dt = inc_size[inc_size_idx]
+            dt = abs(dt) / strain_rate
+
+            load_steps.append(
+                {
+                    "target_def_grad": u_sampled_split[idx, j],
+                    "total_time": dt.item(),
+                    "num_increments": 1,
+                }
+            )
+
+        return [cls(**i)._remember_name_args(None, i) for i in load_steps]
+
 
 @dataclass
 class LoadCase(ParameterValue):
@@ -1047,3 +1104,11 @@ class LoadCase(ParameterValue):
                     step_objs.append(LoadStep(**step_dict))
 
         return cls(steps=step_objs)
+
+    @classmethod
+    def from_npz_file(cls, **kwargs) -> Self:
+        """Importing loadcase from npz file
+
+        See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
+        """
+        return cls(steps=LoadStep.from_npz_file(**kwargs))
