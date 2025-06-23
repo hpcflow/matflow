@@ -1,4 +1,33 @@
 
+<a name="v0.3.0a176"></a>
+## [v0.3.0a176](https://github.com/hpcflow/matflow-new/compare/v0.3.0a175...v0.3.0a176) - 2025.06.23
+
+### 🐛 Bug Fixes
+
+* missing import!
+* allow failure on macos for a test that gets rate-limited by github
+
+
+<a name="v0.3.0a175"></a>
+## [v0.3.0a175](https://github.com/hpcflow/matflow-new/compare/v0.3.0a174...v0.3.0a175) - 2025.06.23
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a174"></a>
+## [v0.3.0a174](https://github.com/hpcflow/matflow-new/compare/v0.3.0a173...v0.3.0a174) - 2025.06.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a173"></a>
 ## [v0.3.0a173](https://github.com/hpcflow/matflow-new/compare/v0.3.0a172...v0.3.0a173) - 2025.06.02
 
