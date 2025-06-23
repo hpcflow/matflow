@@ -1,0 +1,60 @@
+tasks:
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      periodic: false
+      VE_grid_size: [10, 10, 10]
+      orientations:
+        data:
+          - [1, 0, 0, 0]
+        unit_cell_alignment: { x: a, y: b, z: c }
+        representation:
+          type: quaternion
+          quat_order: scalar_vector
+      microstructure_seeds::from_random:
+        num_seeds: 1
+        box_size: [0.1, 0.1, 0.1]
+        phase_label: copper
+
+  - schema: visualise_VE_VTK
+
+  - schema: define_load_case
+    inputs:
+      load_case::one_dimensional:
+        num_increments: 10
+        total_time: 0.1
+        target_strain: 0.01
+        direction: x
+
+  - schema: simulate_VE_loading_JAX_CPFEM
+    inputs:
+      material_parameters:
+        C11: 1.684e5 # MPa
+        C12: 1.214e5 # MPa
+        C44: 0.754e5 # MPa
+        r: 1 # latent hardening
+        gss_initial: 60.8 # initial flow stress, in MPa
+        h: 541.5 # initial hardening, in MPa
+        t_sat: 109.8 # saturation strength, in MPa
+        gss_a: 2.5 # 'a' in Kalidini model
+        ao: 0.001 # reference strain rate
+        xm_d: 10 # rate sensitivity exponent (denominator)
+      solver_options:
+        name: jax_solver
+        # name: petsc_solver
+        # ksp_type: bcgsl
+        # pc_type: jacobi
+      slip_systems: # plane and direction
+        - [[1, 1, -1], [0, 1, 1]]
+        - [[1, 1, -1], [1, 0, 1]]
+        - [[1, 1, -1], [1, -1, 0]]
+        - [[1, -1, -1], [0, 1, -1]]
+        - [[1, -1, -1], [1, 0, 1]]
+        - [[1, -1, -1], [1, 1, 0]]
+        - [[1, -1, 1], [0, 1, 1]]
+        - [[1, -1, 1], [1, 0, -1]]
+        - [[1, -1, 1], [1, 1, 0]]
+        - [[1, 1, 1], [0, 1, -1]]
+        - [[1, 1, 1], [1, 0, -1]]
+        - [[1, 1, 1], [1, -1, 0]]
+      numerics:
+        newton_max_sub_step: 5

@@ -69,3 +69,31 @@
   name:
     name: pipeline.xdmf
   doc: DREAM.3D model data and metadata.
+
+- label: jax_cpfem_mesh_data
+  name:
+    name: mesh.npz
+  doc: >
+    Information that we can use to generate a JAX-FEM hexahedral ("box") `Mesh` 
+    object, and associate each grain with quaternion orientations.
+- label: jax_cpfem_model_script
+  name:
+    name: model.py
+  doc: >
+    JAX-CPFEM model definition script, including material parameter definitions.
+- label: jax_cpfem_problem_script
+  name:
+    name: problem.py
+  doc: JAX-CPFEM problem definition script, including boundary condition definitions.
+- label: jax_cpfem_slip_systems
+  name:
+    name: input_slip_sys.txt
+  doc: Slip systems to model.
+- label: jax_cpfem_stdout
+  name:
+    name: stdout.log
+  doc: Standard output stream from a JAX-CPFEM simulation.
+- label: jax_cpfem_stderr
+  name:
+    name: stderr.log
+  doc: Standard error stream from a JAX-CPFEM simulation.

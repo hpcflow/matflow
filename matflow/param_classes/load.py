@@ -1,6 +1,7 @@
 """
 Loadings to apply to a simulated sample.
 """
+
 from __future__ import annotations
 from collections.abc import Callable, Iterator
 import copy
@@ -18,6 +19,7 @@ from hpcflow.sdk.core.utils import get_enum_by_name_or_val
 
 import matflow as mf
 from matflow.param_classes.utils import masked_array_from_list
+from matflow.param_classes.boundary_conditions import BoundaryCondition
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +85,7 @@ class LoadStep(ParameterValue):
     """
 
     _DIR_IDX: Final[tuple[str, ...]] = ("x", "y", "z")
+    _SUPPORTS_SCALAR_STRAIN: Final[tuple[str]] = ("uniaxial", "one_dimensional")
 
     def __init__(
         self,
@@ -213,6 +216,24 @@ class LoadStep(ParameterValue):
         """More user-friendly access to method name."""
         return self._method_name or self.__class__.__name__
 
+    @property
+    def strain(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain.
+        """
+        if self.type in self._SUPPORTS_SCALAR_STRAIN:
+            return self.method_args["target_strain"]
+
+    @property
+    def strain_rate(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain rate.
+        """
+        if self.type in self._SUPPORTS_SCALAR_STRAIN:
+            return self.method_args["target_strain_rate"]
+
     def __repr__(self) -> str:
         type_str = f"type={self.type!r}, " if self.type else ""
         if self.direction:
@@ -226,6 +247,18 @@ class LoadStep(ParameterValue):
             f"num_increments={self.num_increments}, "
             f"total_time={self.total_time}{dir_str}"
             f")"
+        )
+
+    def to_dirichlet_BCs(self) -> list[BoundaryCondition]:
+        """For some particular types of load steps (e.g. uniaxial), we can transform them
+        into Dirichlet boundary conditions."""
+
+        if self.type == "uniaxial":
+            return BoundaryCondition.uniaxial(self.direction)
+        elif self.type == "one_dimensional":
+            return BoundaryCondition.one_dimensional(self.direction)
+        raise NotImplementedError(
+            "Cannot express this load step in terms of boundary conditions."
         )
 
     @classmethod
@@ -250,11 +283,68 @@ class LoadStep(ParameterValue):
         )
 
     @classmethod
+    def __pre_process_uniaxial_like_method_args(
+        cls,
+        direction: str,
+        target_strain: float | None = None,
+        target_strain_rate: float | None = None,
+        target_def_grad: float | None = None,
+        target_def_grad_rate: float | None = None,
+    ) -> tuple[int, float | None, float | None, float | None, float | None]:
+        """Perform common processing on a subset of arguments for `uniaxial` and
+        `one_dimensional` load case methods."""
+
+        # Validation:
+        msg = (
+            "Specify either `target_strain`, `target_strain_rate`, "
+            "``target_def_grad` or target_def_grad_rate`."
+        )
+        strain_arg = (
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
+        if sum(s is not None for s in strain_arg) != 1:
+            raise ValueError(msg)
+
+        # convert strain (rate) to deformation gradient (rate) components, and ensure both
+        # strain(_rate) and def_grad(_rate) are populated:
+        if target_strain is not None:
+            target_def_grad = 1 + target_strain
+        elif target_def_grad is not None:
+            target_strain = target_def_grad - 1
+
+        if target_strain_rate is not None:
+            target_def_grad_rate = target_strain_rate
+        elif target_def_grad_rate is not None:
+            target_strain_rate = target_def_grad_rate
+
+        try:
+            loading_dir_idx = cls._DIR_IDX.index(direction)
+        except ValueError:
+            msg = (
+                f'Loading direction "{direction}" not allowed. It should be one of "x", '
+                f'"y" or "z".'
+            )
+            raise ValueError(msg)
+
+        return (
+            loading_dir_idx,
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
+
+    @classmethod
     def uniaxial(
         cls,
         total_time: float | int,
         num_increments: int,
         direction: str,
+        target_strain: float | None = None,
+        target_strain_rate: float | None = None,
         target_def_grad_rate: float | None = None,
         target_def_grad: float | None = None,
         dump_frequency: int = 1,
@@ -272,43 +362,48 @@ class LoadStep(ParameterValue):
             A single character, "x", "y" or "z", representing the loading direction.
         target_def_grad : float
             Target deformation gradient to achieve along the loading direction component.
+        target_strain: float
+            Target engineering strain to achieve along the loading direction. Specify at
+            most one of `target_strain` and `target_def_grad`.
         target_def_grad_rate : float
             Target deformation gradient rate to achieve along the loading direction
             component.
+        target_strain_rate: float
+            Target engineering strain rate to achieve along the loading direction. Specify
+            at most one of `target_strain_rate` and `target_def_grad_rate`.
         dump_frequency : int, optional
             By default, 1, meaning results are written out every increment.
         """
 
         _method_name = "uniaxial"
+        (
+            loading_dir_idx,
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        ) = cls.__pre_process_uniaxial_like_method_args(
+            direction,
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
         _method_args = {
             "total_time": total_time,
             "num_increments": num_increments,
             "direction": direction,
-            "target_def_grad_rate": target_def_grad_rate,
+            "target_strain": target_strain,
+            "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
+            "target_def_grad_rate": target_def_grad_rate,
             "dump_frequency": dump_frequency,
         }
-
-        # Validation:
-        msg = "Specify either `target_def_grad_rate` or `target_def_grad`."
-        if all([t is None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
-        if all([t is not None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
 
         if target_def_grad_rate is not None:
             def_grad_val = target_def_grad_rate
         else:
             def_grad_val = target_def_grad
-
-        try:
-            loading_dir_idx = cls._DIR_IDX.index(direction)
-        except ValueError:
-            msg = (
-                f'Loading direction "{direction}" not allowed. It should be one of "x", '
-                f'"y" or "z".'
-            )
-            raise ValueError(msg)
 
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
         stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
@@ -316,6 +411,94 @@ class LoadStep(ParameterValue):
         dg_arr[loading_dir_idx, loading_dir_idx] = def_grad_val
         dg_arr.mask[loading_dir_idx, loading_dir_idx] = False
         stress_arr.mask[loading_dir_idx, loading_dir_idx] = True
+
+        def_grad_aim = dg_arr if target_def_grad is not None else None
+        def_grad_rate = dg_arr if target_def_grad_rate is not None else None
+
+        obj = cls(
+            direction=direction,
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=def_grad_aim,
+            target_def_grad_rate=def_grad_rate,
+            stress=stress_arr,
+            dump_frequency=dump_frequency,
+        )
+        return obj._remember_name_args(_method_name, _method_args)
+
+    @classmethod
+    def one_dimensional(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+        direction: str,
+        target_strain: float | None = None,
+        target_strain_rate: float | None = None,
+        target_def_grad_rate: float | None = None,
+        target_def_grad: float | None = None,
+        dump_frequency: int = 1,
+    ) -> Self:
+        """
+        Generate a load step that deforms in only one dimension, such that the geometrical
+        result is like that for a material with a Poisson's ratio (nu) of zero.
+
+        Parameters
+        ----------
+        total_time
+            Total simulation time.
+        num_increments
+            Number of simulation increments.
+        direction : str
+            A single character, "x", "y" or "z", representing the loading direction.
+        target_def_grad : float
+            Target deformation gradient to achieve along the loading direction component.
+        target_strain: float
+            Target engineering strain to achieve along the loading direction. Specify at
+            most one of `target_strain` and `target_def_grad`.
+        target_def_grad_rate : float
+            Target deformation gradient rate to achieve along the loading direction
+            component.
+        target_strain_rate: float
+            Target engineering strain rate to achieve along the loading direction. Specify
+            at most one of `target_strain_rate` and `target_def_grad_rate`.
+        dump_frequency : int, optional
+            By default, 1, meaning results are written out every increment.
+        """
+
+        _method_name = "one_dimensional"
+        (
+            loading_dir_idx,
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        ) = cls.__pre_process_uniaxial_like_method_args(
+            direction,
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+            "direction": direction,
+            "target_strain": target_strain,
+            "target_strain_rate": target_strain_rate,
+            "target_def_grad": target_def_grad,
+            "target_def_grad_rate": target_def_grad_rate,
+            "dump_frequency": dump_frequency,
+        }
+
+        if target_def_grad_rate is not None:
+            def_grad_val = target_def_grad_rate
+        else:
+            def_grad_val = target_def_grad
+
+        dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.zeros((3, 3)))
+        dg_arr[loading_dir_idx, loading_dir_idx] = def_grad_val
+
+        stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.ones((3, 3)))
 
         def_grad_aim = dg_arr if target_def_grad is not None else None
         def_grad_rate = dg_arr if target_def_grad_rate is not None else None
@@ -997,6 +1180,18 @@ class LoadCase(ParameterValue):
             load_steps.append(dct)
         return load_steps
 
+    def to_dirichlet_BCs(self) -> list[BoundaryCondition]:
+        """For some particular types of load cases (e.g. uniaxial), we can transform them
+        into Dirichlet boundary conditions."""
+
+        if self.num_steps == 1:
+            return self.steps[0].to_dirichlet_BCs()
+        else:
+            raise NotImplementedError(
+                "It is not currently possible to express multi-step load cases in terms "
+                "of boundary conditions."
+            )
+
     @classmethod
     def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
@@ -1005,6 +1200,15 @@ class LoadCase(ParameterValue):
 
         """
         return cls(steps=[LoadStep.uniaxial(**kwargs)])
+
+    @classmethod
+    def one_dimensional(cls, **kwargs) -> Self:
+        """A single-step one-dimensional load case.
+
+        See :py:meth:`~LoadStep.one_dimensional` for argument documentation.
+
+        """
+        return cls(steps=[LoadStep.one_dimensional(**kwargs)])
 
     @classmethod
     def biaxial(cls, **kwargs) -> Self:
