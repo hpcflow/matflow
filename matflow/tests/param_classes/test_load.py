@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+import pytest
 import requests
 import numpy as np
 
