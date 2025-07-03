@@ -1,0 +1,60 @@
+doc:
+  - |
+    WIP: Initial workflow development for a specific MOOSE workflow: mesh-refinement of a
+    plate with a hole.
+  - |
+    TODO: support in hpcflow `InputFileGenerator.from_input_files` so we can pass the .geo
+    script to the second IFG that generates the .msh file from that geo file. This will
+    then enable passing a pre-written .geo file, and skipping the first IFG.
+  - |
+    TODO: support in hpcflow a `templates` data directory, and then ability to generate
+    an input file from a specified template, using possibly jinja. Support the ability to 
+    substitute input parameters within the template path (e.g. 
+    `<<template:gmsh/<<parameter:geometry_name>>>>`), like we currently support with
+    environment specifiers (`<<script:path/to/<<env:version>>/script.py>>`).
+  - |
+    Note: the `gmsh_env` environment should be a Python environment (with a `python_script`
+    executable) that has `gmsh` installed (from PyPI or Conda).
+
+template_components:
+  environments:
+
+  command_files:
+    - label: gmsh_geo_file
+      name:
+        name: script.geo
+      doc: Gmsh geometry script file.
+    - label: gmsh_mesh_file
+      name:
+        name: (.*\.msh)
+        is_regex: true
+      doc: Gmsh mesh file, typically generated from a Gmsh .geo script.
+  task_schemas:
+    - objective: moose_simulation
+      inputs:
+        - parameter: geometry_name
+      actions:
+        - environments:
+            - scope:
+                type: input_file_generator
+              environment: gmsh_env
+            - scope:
+                type: any
+              environment: null_env
+          input_file_generators:
+            - input_file: gmsh_geo_file
+              from_inputs: [geometry_name]
+              script: <<script:gmsh/generate_geo.py>>
+              # template: <<template:gmsh/<<parameter:geometry_name>>>> # TODO: instead of script!
+            - input_file: gmsh_mesh_file
+              from_inputs: [] # TODO: add `from_input_files` here to be dependent on previous input-file-generators?
+              script: <<script:gmsh/run_geo.py>>
+          commands:
+            - command: echo "should run sim here!"
+
+tasks:
+  - schema: moose_simulation
+    inputs:
+      geometry_name: plate_with_hole
+    # input_files: # won't work yet
+    #   gmsh_geo_file: "/path/to/script.geo"
