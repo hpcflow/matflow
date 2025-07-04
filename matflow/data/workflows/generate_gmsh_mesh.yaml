@@ -33,6 +33,22 @@ template_components:
     - objective: moose_simulation
       inputs:
         - parameter: geometry_name
+        - parameter: plate_width
+          default_value: 100e-3
+        - parameter: plate_thickness
+          default_value: 2e-3
+        - parameter: hole_diameter
+          default_value: 25e-3
+        - parameter: plate_thick_layers
+          default_value: 2
+        - parameter: hole_sect_nodes
+          default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole     
+        - parameter: plate_radial_nodes
+          default_value: 9 # number of nodes from the hole to the edges of the central section
+        - parameter: plate_diff
+          default_value: 50e-3 # length of rectangular extension
+        - parameter: plate_diff_nodes
+          default_value: 5 # number of nodes along the rectangular extension
       actions:
         - environments:
             - scope:
@@ -56,5 +72,13 @@ tasks:
   - schema: moose_simulation
     inputs:
       geometry_name: plate_with_hole
+      plate_width: 100e-3
+      plate_thickness: 2e-3
+      hole_diameter: 25e-3
+      plate_thick_layers: 2
+      hole_sect_nodes: 9
+      plate_radial_nodes: 9
+      plate_diff_nodes: 5
+      plate_diff: 50e-3
     # input_files: # won't work yet
     #   gmsh_geo_file: "/path/to/script.geo"

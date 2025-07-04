@@ -20,15 +20,15 @@ Geometry.VolumeLabels = 0;
 
 //------------------------------------------------------------------------------
 // Variables
-file_name = "case23.msh";
+file_name = "plate_with_hole.msh";
 
 // Geometric variables
-plate_width = 100e-3;
-plate_height = plate_width+50e-3; // Must be greater than plate width
-plate_diff = plate_height-plate_width;
-plate_thick = 2e-3;
+plate_width = {plate_width};
+plate_diff = {plate_diff}; // Must be positive
+plate_height = plate_width+plate_diff;
+plate_thick = {plate_thickness};
 
-hole_rad = 25e-3/2;
+hole_rad = {hole_diameter}/2;
 hole_loc_x = plate_width/2;
 hole_loc_y = plate_height/2;
 hole_circ = 2*Pi*hole_rad;
@@ -36,10 +36,10 @@ hole_circ = 2*Pi*hole_rad;
 // Mesh variables
 elem_order = 1;
 
-plate_thick_layers = 2;
-hole_sect_nodes = 9; // Must be odd
-plate_rad_nodes = 9;
-plate_diff_nodes = 5; // numbers of nodes along the rectangular extension
+plate_thick_layers = {plate_thick_layers};
+hole_sect_nodes = {hole_sect_nodes}; // Must be odd
+plate_rad_nodes = {plate_radial_nodes};
+plate_diff_nodes = {plate_diff_nodes}; // numbers of nodes along the rectangular extension
 plate_edge_nodes = Floor((hole_sect_nodes-1)/2)+1;
 elem_size = hole_circ/(4*(hole_sect_nodes-1));
 tol = elem_size; // Used for bounding box selection tolerance
@@ -173,7 +173,7 @@ _LOOKUP = {
 }
 
 
-def generate_geo(path, geometry_name):
+def generate_geo(path, geometry_name, **kwargs):
     """Generate a Gmsh .geo file for generating a mesh of a plate with a hole."""
     with Path(path).open("wt") as fh:
-        fh.write(_LOOKUP[geometry_name.lower()])
+        fh.write(_LOOKUP[geometry_name.lower()].format(**kwargs))
