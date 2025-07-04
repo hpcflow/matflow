@@ -42,7 +42,7 @@ template_components:
         - parameter: plate_thick_layers
           default_value: 2
         - parameter: hole_sect_nodes
-          default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole     
+          default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
         - parameter: plate_radial_nodes
           default_value: 9 # number of nodes from the hole to the edges of the central section
         - parameter: plate_diff
@@ -59,7 +59,16 @@ template_components:
               environment: null_env
           input_file_generators:
             - input_file: gmsh_geo_file
-              from_inputs: [geometry_name]
+              from_inputs:
+                - geometry_name
+                - plate_width
+                - plate_thickness
+                - hole_diameter
+                - plate_thick_layers
+                - hole_sect_nodes
+                - plate_radial_nodes
+                - plate_diff_nodes
+                - plate_diff
               script: <<script:gmsh/generate_geo.py>>
               # template: <<template:gmsh/<<parameter:geometry_name>>>> # TODO: instead of script!
             - input_file: gmsh_mesh_file
