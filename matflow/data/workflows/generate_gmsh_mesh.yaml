@@ -85,9 +85,17 @@ tasks:
       plate_thickness: 2e-3
       hole_diameter: 25e-3
       plate_thick_layers: 2
-      hole_sect_nodes: 9
-      plate_radial_nodes: 9
-      plate_diff_nodes: 5
+      # hole_sect_nodes: 9
+      # plate_radial_nodes: 9
+      # plate_diff_nodes: 5
       plate_diff: 50e-3
+    sequences:
+      - path: inputs.hole_sect_nodes # must be odd!
+        values: [5, 9, 13]
+      - path: inputs.plate_radial_nodes
+        values: [5, 9, 13]
+      - path: inputs.plate_diff_nodes
+        values: [5, 9, 13]
+
     # input_files: # won't work yet
     #   gmsh_geo_file: "/path/to/script.geo"
