@@ -203,9 +203,6 @@ The ``input_file`` must point to the label of a file in ``command_files``.
         - my_input_2
         script: <<script:/full/path/to/generate_input_file.py>>
 
-An example is given in [advanced_workflow.yaml](advanced_workflow.yaml), along with the alternative code which would be needed
-
-to achieve the same result without an input file generator.
 
 Output file parsers
 ~~~~~~~~~~~~~~~~~~~
@@ -245,63 +242,15 @@ This is because an output file parser only has one named output parameter,
 so a dictionary isn't needed to distinguish different output parameters.
 
 The :ref:`previous example <command_files_example_workflow>` has been reworked and
-expanded below to demonstrate ``input_file_generators`` and ``output_file_parsers``.
+expanded below to demonstrate ``input_file_generators`` and ``output_file_parsers``,
+along with the alternative code which would be needed to achieve the same result
+as the input file generator:
 
-.. code-block:: yaml
+.. literalinclude:: advanced_workflow.yaml
+      :language: yaml
 
-    # workflow.yaml
 
-    template_components:
-      task_schemas:
-      - objective: process_some_data
-        inputs:
-        - parameter: input_data
-        outputs:
-        - parameter: parsed_output
-        actions:
-        - input_file_generators:
-          - input_file: my_input_file
-            from_inputs:
-            - input_data
-            script: <<script:/full/path/to/generate_input_file.py>>
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-          script_exe: python_script
-          script: <<script:/full/path/to/process_input_file.py>>
-          save_files:
-          - processed_file
-          output_file_parsers:
-            parsed_output:
-              from_files:
-              - my_input_file
-              - processed_file
-              script: <<script:/full/path/to/parse_output.py>>
-              save_files:
-                - parsed_output
+This workflow uses the same python scripts as before, with the addition of ``parse_output.py``:
 
-This workflow uses the same python scripts as before, with the addition of
-
-.. code-block:: python
-
-    # parse_output.py
-
-    import json
-    def parse_output(my_input_file: str, processed_file: str):
-        """Do some post-processing of data files.
-
-        In this instance, we're just making a dictionary containing both the input
-        and output data.
-        """
-        with open(my_input_file, "r") as f:
-            input_data = json.load(f)
-        with open(processed_file, "r") as f:
-            processed_data = json.load(f)
-
-        combined_data = {"input_data": input_data, "output_data": processed_data}
-        # Save file so we can look at the data
-        with open("parsed_output.json", "w") as f:
-            json.dump(combined_data, f, indent=2)
-
-        return {"parsed_output": combined_data}
+.. literalinclude:: parse_output.py
+      :language: python

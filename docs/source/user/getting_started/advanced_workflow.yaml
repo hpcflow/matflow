@@ -1,0 +1,73 @@
+template_components:
+  task_schemas:
+  - objective: process_data
+    inputs:
+    - parameter: input_data
+    outputs:
+    - parameter: parsed_output
+    actions:
+    - input_file_generators:
+      - input_file: my_input_file
+        from_inputs:
+        - input_data
+        script: <<script:/full/path/to/generate_input_file.py>>
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+      script_exe: python_script
+      script: <<script:/full/path/to/process_input_file.py>>
+      save_files:
+      - processed_file
+      output_file_parsers:
+        parsed_output:
+          from_files:
+          - my_input_file
+          - processed_file
+          script: <<script:/full/path/to/parse_output.py>>
+          save_files:
+            - parsed_output
+
+  - objective: process_data_without_input_file_generator
+    inputs:
+    - parameter: input_data
+    - parameter: path
+    actions:
+    - script: <<script:/full/path/to/generate_input_file.py>>
+      script_data_in: direct
+      script_exe: python_script
+      save_files:
+      - my_input_file
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+    - script: <<script:/full/path/to/process_input_file.py>>
+      script_exe: python_script
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+      save_files:
+      - processed_file
+
+  command_files:
+  - label: my_input_file
+    name:
+      name: input_file.json
+  - label: processed_file
+    name:
+      name: processed_file.json
+  - label: parsed_output
+    name:
+      name: parsed_output.json
+
+
+tasks:
+- schema: process_data
+  inputs:
+    input_data: [1, 2, 3, 4]
+- schema: process_data_without_input_file_generator
+  inputs:
+    input_data: [1, 2, 3, 4]
+    path: input_file.json
