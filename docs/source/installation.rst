@@ -92,6 +92,13 @@
     but `not the latest versions <https://github.com/hpcflow/matflow-new/pull/284>`_.
     As such the MatFlow ``damask_parse`` environment should use ``pip install damask==3.0.0a7.post0``.
 
+    Note also that any Matflow environment which activates a python virtual environment
+    as part of the `setup`,
+    must also have the Matflow python package installed,
+    and it must be the same version as is used to submit the workflow.
+    In practice, this is most easily achieved by creating one python virtual environment
+    and using it in each of these Matflow environments and to submit workflows.
+
     Linux/macOS
     ============
 
