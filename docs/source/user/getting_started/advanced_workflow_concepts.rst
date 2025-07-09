@@ -138,41 +138,9 @@ Then whichever parameters are linked with the group in the task schema will be r
 
 Here is an example workflow using sequences and groups that you might wish to run to solidify your understanding
 
-.. code-block:: yaml
 
-    # groups_workflow.yaml
-
-    template_components:
-      task_schemas:
-        - objective: s1
-          inputs:
-            - parameter: p1
-          outputs:
-            - parameter: p2
-          actions:
-            - commands:
-                - command: echo $(( <<parameter:p1>> + 1 )) # This is printed to stdout
-                - command: echo $(( <<parameter:p1>> + 1 )) # This is captured as p2
-                  stdout: <<int(parameter:p2)>>
-        - objective: s2
-          inputs:
-            - parameter: p2
-              group: my_group
-          outputs:
-            - parameter: p3
-          actions:
-            - commands:
-                - command: echo <<parameter:p2>> # This one is printed to stdout
-                - command: echo $(( <<sum(parameter:p2)>> )) # This is captured as p3
-                  stdout: <<int(parameter:p3)>>
-    tasks:
-      - schema: s1
-        sequences:
-          - path: inputs.p1
-            values: [1, 2]
-        groups:
-          - name: my_group
-      - schema: s2
+.. literalinclude:: groups_workflow.yaml
+      :language: YAML
 
 
 Task schema shortcuts

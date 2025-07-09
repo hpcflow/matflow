@@ -106,120 +106,23 @@ So if any parameters saved in json files (or passed directly) are needed as inpu
 MatFlow can pass them directly or via json as specified in the task schema.
 An example is given of both combinations.
 
-To run this example, create a ``workflow.yaml`` file with the contents below,
+To run this example, create a ``read_save_workflow.yaml`` file with the contents below,
 along with the ``json_in_json_out.py``, ``json_in_direct_out.py``, and ``mixed_in_direct_out.py`` files.
 
-
-.. code-block:: yaml
-
-    # workflow.yaml
-    template_components:
-      task_schemas:
-      - objective: read_and_save_using_json
-        inputs:
-        - parameter: p1
-        - parameter: p2
-        actions:
-        - script: <<script:/full/path/to/json_in_json_out.py>>
-          script_data_in: json
-          script_data_out: json
-          script_exe: python_script
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-        outputs:
-        - parameter: p3
-      - objective: read_json_from_another_task
-        inputs:
-        - parameter: p3
-        actions:
-        - script: <<script:/full/path/to/json_in_direct_out.py>>
-          script_data_in: json
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-        outputs:
-        - parameter: p4
-      - objective: pass_mixed_from_another_task
-        inputs:
-        - parameter: p3
-        - parameter: p4
-        actions:
-        - script: <<script:/full/path/to/mixed_in_direct_out.py>>
-          script_data_in:
-            p3: direct # previously saved as json in task read_and_save_using_json
-            p4: json # previously saved directly in task read_json_from_another_task
-          script_data_out: direct
-          script_exe: python_script
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-        outputs:
-        - parameter: p5
-
-    tasks:
-    - schema: read_and_save_using_json
-      inputs:
-        p1: 1
-        p2: 2
-    - schema: read_json_from_another_task
-    - schema: pass_mixed_from_another_task
+.. literalinclude:: read_save_workflow.yaml
+      :language: yaml
 
 
-.. code-block:: python
-
-    # json_in_json_out.py
-    import json
-
-    def json_in_json_out(_input_files, _output_files):
-        with open(_input_files["json"]) as json_data:
-            inputs = json.load(json_data)
-        p1 = inputs["p1"]
-        p2 = inputs["p2"]
-
-        p3 = p1 + p2
-        with open(_output_files["json"], 'w') as f:
-            json.dump({"p3": p3}, f)
+.. literalinclude:: json_in_json_out.py
+      :language: python
 
 
-.. code-block:: python
-
-    # json_in_direct_out.py
-    import json
-
-    def json_in_direct_out(_input_files):
-        with open(_input_files["json"]) as json_data:
-            inputs = json.load(json_data)
-        p3 = inputs["p3"]
-        p4 = p3 + 1
-
-        print(f"{p3=}")
-        print(f"{p4=}")
-
-        return {"p4": p4}
+.. literalinclude:: json_in_direct_out.py
+      :language: python
 
 
-.. code-block:: python
-
-  # mixed_in_json_out.py
-  import json
-
-  def mixed_in_direct_out(p3, _input_files):
-      with open(_input_files["json"]) as json_data:
-          inputs = json.load(json_data)
-      p4 = inputs["p4"]
-      p5 = p3 + p4
-
-      print(f"{p3=}")
-      print(f"{p4=}")
-      print(f"{p5=}")
-
-      return {"p5": p5}
+.. literalinclude:: mixed_in_json_out.py
+      :language: python
 
 The particular variables names used to pass parameters using json/HDF5 depend on
 which language is being used.
@@ -280,78 +183,21 @@ Example workflow
 .. _command_files_example_workflow:
 
 Here we have an example workflow which illustrates use of command files.
-To run this example, create a ``workflow.yaml`` file with the contents below,
+To run this example, create a ``command_files_example.yaml`` file with the contents below,
 along with the ``generate_input_file.py`` and ``process_input_file.py`` files.
 
 Modify the paths to the python scripts under the ``action`` keys to give the full path
 to your files.
 
-You can then run the workflow using ``matflow go workflow.yaml``.
+You can then run the workflow using ``matflow go command_files_example.yaml``.
 
-.. code-block:: yaml
-
-    # workflow.yaml
-    template_components:
-      task_schemas:
-      - objective: process_data
-        inputs:
-        - parameter: input_data
-        - parameter: path
-          default_value: input_file.json
-        actions:
-        - script: <<script:/path/to/generate_input_file.py>>
-          script_data_in: direct
-          script_exe: python_script
-          save_files: # A copy of any command files listed here will be saved in the the artifacts directory
-          - my_input_file
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-        - script: <<script:/path/to/process_input_file.py>>
-          script_exe: python_script
-          environments:
-          - scope:
-              type: any
-            environment: python_env
-          save_files:
-          - processed_file
-
-      command_files:
-      - label: my_input_file
-        name:
-          name: input_file.json
-      - label: processed_file
-        name:
-          name: processed_file.json
+.. literalinclude:: command_files_example.yaml
+      :language: yaml
 
 
-    tasks:
-    - schema: process_data
-      inputs:
-        input_data: [1, 2, 3, 4]
-        path: input_file.json
+.. literalinclude:: generate_input_file.py
+      :language: python
 
-.. code-block:: python
 
-    # generate_input_file.py
-    import json
-    def generate_input_file(path: str, input_data: list):
-        """Generate an input file"""
-        with open(path, "w") as f:
-            json.dump(input_data, f, indent=2)
-
-.. code-block:: python
-
-    # process_input_file.py
-    import json
-    def process_input_file():
-        """Process an input file.
-
-        This could be a materials science simulation for example.
-        """
-        with open("input_file.json", "r") as f:
-            data = json.load(f)
-        data = [item * 2 for item in data]
-        with open("processed_file.json", "w") as f:
-            json.dump(data, f, indent=2)
+.. literalinclude:: process_input_file.py
+      :language: python
