@@ -10,12 +10,10 @@ Requesting resources can be done using a ``resources`` block, either for the who
 
     resources:
     any:
-      scheduler: sge # Setting the scheduler is not normally needed because a
-                     # `default_scheduler` will be set in the config file.
       scheduler_args:
-        shebang_args: --login
-        options:
-          -l: short
+        directives:
+          --time: 1:00:00
+          --partition: multicore
 
 
 or at the task level
@@ -71,13 +69,13 @@ Scheduler arguments can be passed like this e.g. to target high memory nodes:
 
     resources:
     any:
-      num_cores: 10
-      SGE_parallel_env: smp.pe
       scheduler_args:
-        options:
-          -l: mem512
+        directives:
+          --time: 1:00:00
+      num_cores: 10
 
-Anything specified under `options` is passed directly to the scheduler as a jobscript command (i.e. isn't processed by MatFlow at all).
+
+Anything specified under `directives` is passed directly to the scheduler as a jobscript command (i.e. isn't processed by MatFlow at all).
 
 If you have set resource options at the top level (for the whole workflow), but would like to "unset" them for a particular task,
 
@@ -90,7 +88,7 @@ you can pass an empty dictionary:
       main:
       num_cores: 16
       scheduler_args:
-          options: {} # "Clear" any previous options which have been set.
+          directives: {} # "Clear" any previous options which have been set.
     inputs:
 
 
