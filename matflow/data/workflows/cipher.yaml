@@ -1,0 +1,143 @@
+template_components:
+  command_files:
+    - label: cipher_input_file
+      name:
+        name: cipher_input.yaml
+      doc: Main input file for CIPHER.
+    - label: cipher_VTU_files
+      name:
+        is_regex: true
+        name: out_\d+\.vtu
+
+  task_schemas:
+    - objective: generate_phase_field_input
+      method: from_random_voronoi
+      inputs:
+        - parameter: num_phases
+        - parameter: grid_size
+        - parameter: size
+        - parameter: materials
+        - parameter: interfaces
+        - parameter: components
+        - parameter: outputs
+        - parameter: solution_parameters
+        - parameter: random_seed
+          default_value: null
+        - parameter: is_periodic
+          default_value: false
+      outputs:
+        - parameter: phase_field_input
+      actions:
+        - script: <<script:cipher/generate_phase_field_input_from_random_voronoi.py>>
+          script_exe: python_script
+          script_data_in: direct
+          script_data_out: direct
+          environments:
+            - scope: { type: any }
+              environment: cipher_processing_env
+
+    - objective: simulate_grain_growth
+      inputs:
+        - parameter: phase_field_input
+        - parameter: num_VTU_files # how many VTU files to archive; mutually exclusive with `VTU_files_time_interval`
+          default_value: 2 # i.e. initial and final
+        - parameter: VTU_files_time_interval # time interval of VTU files to keep; mutually exclusive with `num_VTU_files`
+          default_value: null
+        - parameter: derive_outputs # list of derived outputs to generate; available: ["num_voxels_per_phase"]
+          default_value: null
+        - parameter: save_outputs # list of outputs to save to MatFlow
+          default_value: null
+        - parameter: delete_VTIs # delete intermediate VTI files used to save data?
+          default_value: true
+        - parameter: delete_VTUs # delete original VTU outputs from CIPHER?
+          default_value: false
+        - parameter: separate_mapping_files
+          default_value: false
+      outputs:
+        - parameter: phase_field_output
+      actions:
+        - environments:
+            - scope:
+                type: main
+              environment: cipher_env
+            - scope:
+                type: processing
+              environment: cipher_processing_env
+          input_file_generators:
+            - input_file: cipher_input_file
+              from_inputs: [phase_field_input, separate_mapping_files]
+              script: <<script:cipher/write_cipher_input.py>>
+          commands:
+            - command: <<executable:cipher>>
+              stdout: stdout.log
+              stderr: stderr.log
+          output_file_parsers:
+            phase_field_output:
+              from_files: [cipher_VTU_files]
+              inputs:
+                - num_VTU_files
+                - VTU_files_time_interval
+                - derive_outputs
+                - save_outputs
+                - delete_VTIs
+                - delete_VTUs
+              script: <<script:cipher/parse_cipher_outputs.py>>
+
+resources:
+  any:
+    shell_args:
+      executable: pwsh.exe # required to get stdout/stderr redirects from docker command in a sensible encoding
+
+tasks:
+  - schema: generate_phase_field_input_from_random_voronoi
+    inputs:
+      num_phases: 2
+      grid_size: [128, 128]
+      size: [128, 128]
+      materials:
+        - name: Al
+          properties:
+            chemicalenergy: none
+            molarvolume: 1e-5
+            temperature0: 500.0
+      interfaces:
+        - materials: [Al, Al]
+          properties:
+            width: 4
+            energy:
+              e0: 5e+8
+            mobility:
+              m0: 1e-11
+      components: [al]
+      outputs: [phaseid, matid, interfaceid]
+      solution_parameters:
+        abstol: 0.0001
+        amrinterval: 25
+        initblocksize: [1, 1]
+        initcoarsen: 6
+        initrefine: 7
+        interpolation: cubic
+        maxnrefine: 7
+        minnrefine: 0
+        outfile: out
+        outputfreq: 10
+        petscoptions: -ts_adapt_monitor -ts_rk_type 2a
+        random_seed: 1579993586
+        reltol: 0.0001
+        time: 1000
+
+  - schema: simulate_grain_growth
+    inputs:
+      derive_outputs:
+        - name: num_voxels_per_phase
+      save_outputs:
+        - name: phaseid
+          time_interval: 500
+        - name: matid
+          number: 4
+        - name: interfaceid
+          number: 4
+        - name: 0_phi
+          number: 4
+        - name: num_voxels_per_phase
+          time_interval: 500
