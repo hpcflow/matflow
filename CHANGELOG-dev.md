@@ -1,4 +1,20 @@
 
+<a name="v0.3.0a178"></a>
+## [v0.3.0a178](https://github.com/hpcflow/matflow-new/compare/v0.3.0a177...v0.3.0a178) - 2025.07.14
+
+### ♻ Code Refactoring
+
+* ensure both `target_def_grad_(rate)` and `strain_(rate)` are populated in `LoadStep.uniaxial`
+
+### ✨ Features
+
+* add `target_strain` and `target_strain_rate` args to `LoadStep.unaxial` for convenience
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a177"></a>
 ## [v0.3.0a177](https://github.com/hpcflow/matflow-new/compare/v0.3.0a176...v0.3.0a177) - 2025.07.14
 
