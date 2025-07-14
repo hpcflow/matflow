@@ -1,6 +1,7 @@
 """
 Loadings to apply to a simulated sample.
 """
+
 from __future__ import annotations
 from collections.abc import Callable, Iterator
 import copy
@@ -213,6 +214,24 @@ class LoadStep(ParameterValue):
         """More user-friendly access to method name."""
         return self._method_name or self.__class__.__name__
 
+    @property
+    def strain(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain"]
+
+    @property
+    def strain_rate(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain rate.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain_rate"]
+
     def __repr__(self) -> str:
         type_str = f"type={self.type!r}, " if self.type else ""
         if self.direction:
@@ -255,6 +274,8 @@ class LoadStep(ParameterValue):
         total_time: float | int,
         num_increments: int,
         direction: str,
+        target_strain: float | None = None,
+        target_strain_rate: float | None = None,
         target_def_grad_rate: float | None = None,
         target_def_grad: float | None = None,
         dump_frequency: int = 1,
@@ -272,9 +293,15 @@ class LoadStep(ParameterValue):
             A single character, "x", "y" or "z", representing the loading direction.
         target_def_grad : float
             Target deformation gradient to achieve along the loading direction component.
+        target_strain: float
+            Target engineering strain to achieve along the loading direction. Specify at
+            most one of `target_strain` and `target_def_grad`.
         target_def_grad_rate : float
             Target deformation gradient rate to achieve along the loading direction
             component.
+        target_strain_rate: float
+            Target engineering strain rate to achieve along the loading direction. Specify
+            at most one of `target_strain_rate` and `target_def_grad_rate`.
         dump_frequency : int, optional
             By default, 1, meaning results are written out every increment.
         """
@@ -284,17 +311,38 @@ class LoadStep(ParameterValue):
             "total_time": total_time,
             "num_increments": num_increments,
             "direction": direction,
-            "target_def_grad_rate": target_def_grad_rate,
+            "target_strain": target_strain,
+            "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
+            "target_def_grad_rate": target_def_grad_rate,
             "dump_frequency": dump_frequency,
         }
 
         # Validation:
-        msg = "Specify either `target_def_grad_rate` or `target_def_grad`."
-        if all([t is None for t in [target_def_grad_rate, target_def_grad]]):
+        msg = (
+            "Specify either `target_strain`, `target_strain_rate`, "
+            "``target_def_grad` or target_def_grad_rate`."
+        )
+        strain_arg = (
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
+        if sum(s is not None for s in strain_arg) != 1:
             raise ValueError(msg)
-        if all([t is not None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
+
+        # convert strain (rate) to deformation gradient (rate) components, and ensure both
+        # strain(_rate) and def_grad(_rate) are populated:
+        if target_strain is not None:
+            target_def_grad = 1 + target_strain
+        elif target_def_grad is not None:
+            target_strain = target_def_grad - 1
+
+        if target_strain_rate is not None:
+            target_def_grad_rate = target_strain_rate
+        elif target_def_grad_rate is not None:
+            target_strain_rate = target_def_grad_rate
 
         if target_def_grad_rate is not None:
             def_grad_val = target_def_grad_rate
