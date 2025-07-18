@@ -205,8 +205,8 @@
   method: from_CTF_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: script # compile | precompiled
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -227,9 +227,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_CTF
@@ -241,9 +241,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_CTF.m>>
@@ -255,9 +255,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_CTF/<<resource:platform>>/sample_texture_CTF.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from a channel reconstruction file.
