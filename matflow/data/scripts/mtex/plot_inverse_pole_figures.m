@@ -45,15 +45,15 @@ function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     
     if useContours
         plotIPDF(orientations,refDirs,'contourf');
+        saveFigure('inverse_pole_figure.png');
     else
         plotIPDF(orientations,refDirs);
+        saveFigure('inverse_pole_figure.png');
+
         ipfKey = ipfColorKey(crystalSym);
         plot(ipfKey);
         saveFigure('IPF_key.png');
     end
-    
-    saveFigure('inverse_pole_figure.png');
 
     close all;
-
 end

@@ -60,9 +60,6 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             millerDirs, ...
             'property', oriColors ...
         );
-        newMtexFigure('layout', [1, 1], 'visible', 'off');
-        plot(ipfKey);
-        saveFigure('IPF_key.png');
     end
 
     if ~isempty(allOpts.colourbar_limits)
@@ -123,6 +120,12 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
     
     saveFigure('pole_figure.png');
+
+    if ~useContours
+        newMtexFigure('layout', [1, 1], 'visible', 'off');
+        plot(ipfKey);
+        saveFigure('IPF_key.png');
+    end
 
     close all;
 
