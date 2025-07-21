@@ -8,11 +8,9 @@ function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
-    reprTypes = {'quaternion', 'euler'};
     reprQuatOrders = {'scalar-vector', 'vector-scalar'};
     
     align = h5readatt(inputs_HDF5_path, '/orientations', 'unit_cell_alignment');
-    reprTypeInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_type');
     reprQuatOrderInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_quat_order');
     
     alignment = { ...
@@ -21,7 +19,6 @@ function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
                      sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
                  };
     crystalSym = crystalSymmetry(crystalSym, alignment{:});
-    oriType = reprTypes{reprTypeInt + 1};
     oriQuatOrder = reprQuatOrders{reprQuatOrderInt + 1};
     
     refDirs = vector3d.(upper(IPFRefDirs{1}));
