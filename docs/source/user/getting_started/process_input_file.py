@@ -1,6 +1,7 @@
 # process_input_file.py
 import json
 
+
 def process_input_file():
     """Process an input file.
 

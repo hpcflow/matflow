@@ -6,4 +6,3 @@ Tutorials
 
    Beginner: Install MatFlow on your local machine <install-locally>
    Jupyter notebooks <notebooks/index>   
-

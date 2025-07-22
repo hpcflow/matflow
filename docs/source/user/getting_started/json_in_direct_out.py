@@ -1,6 +1,7 @@
 # json_in_direct_out.py
 import json
 
+
 def json_in_direct_out(_input_files):
     with open(_input_files["json"]) as json_data:
         inputs = json.load(json_data)
