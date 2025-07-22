@@ -1,0 +1,20 @@
+configs:
+  default:
+    invocation:
+      environment_setup:
+      match: {}
+    config:
+      machine: YOUR-MACHINE-NAME
+      log_file_path: logs/<<app_name>>_v<<app_version>>.log
+      environment_sources: [~/.matflow-new/envs_local.yaml]
+      task_schema_sources: []
+      command_file_sources: []
+      parameter_sources: []
+      default_scheduler: direct
+      default_shell: bash
+      schedulers:
+        direct:
+          defaults: {}
+      shells:
+        bash:
+          defaults: {}

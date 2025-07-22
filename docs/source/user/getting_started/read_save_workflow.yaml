@@ -1,0 +1,57 @@
+# read_save_workflow.yaml
+template_components:
+  task_schemas:
+  - objective: read_and_save_using_json
+    inputs:
+    - parameter: p1
+    - parameter: p2
+    actions:
+    - script: <<script:/full/path/to/json_in_json_out.py>>
+      script_data_in: json
+      script_data_out: json
+      script_exe: python_script
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+    outputs:
+    - parameter: p3
+  - objective: read_json_from_another_task
+    inputs:
+    - parameter: p3
+    actions:
+    - script: <<script:/full/path/to/json_in_direct_out.py>>
+      script_data_in: json
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+    outputs:
+    - parameter: p4
+  - objective: pass_mixed_from_another_task
+    inputs:
+    - parameter: p3
+    - parameter: p4
+    actions:
+    - script: <<script:/full/path/to/mixed_in_direct_out.py>>
+      script_data_in:
+        p3: direct # previously saved as json in task read_and_save_using_json
+        p4: json # previously saved directly in task read_json_from_another_task
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+    outputs:
+    - parameter: p5
+
+tasks:
+- schema: read_and_save_using_json
+  inputs:
+    p1: 1
+    p2: 2
+- schema: read_json_from_another_task
+- schema: pass_mixed_from_another_task
