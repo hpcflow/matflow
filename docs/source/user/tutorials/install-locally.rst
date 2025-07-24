@@ -58,7 +58,7 @@
   {{ app_name }} uses a configuration file to store information about the machine you are running on, such as the number of cores available and the locations of important folders.
   This will be stored in your user home directory so that it can be read by {{ app_name }} no matter what project you are working on, or what folder you are working in.
 
-  The configuration file is called ``config.yaml`` and is stored in the ``~/.{{ app_module }}-new``` directory (``~`` is a shortcut for your user home directory, and the `.` at the start of the filename indicates that this is a hidden folder).
+  The configuration file is called ``config.yaml`` and is stored in the ``~/.{{ app_module }}-new`` directory (``~`` is a shortcut for your user home directory, and the ``.`` at the start of the filename indicates that this is a hidden folder).
   When you first install {{ app_name }}, the directory and file will not exist.
   You can either make it yourself or run ``{{ app_module }} init`` to create the ``~/.{{ app_module }}-new`` directory and a ``config.yaml`` file inside it with the minimum default settings.
 

@@ -55,8 +55,9 @@
   Environment/virtual environment
   -------------------------------
 
-  An environment is an isolated set of installed software. 
-  Using environments allows you to have multiple copies of the same software installed in different environments so you can run different versions, or to run two pieces of software with competing dependencies on the same machine. 
+  An environment is an isolated set of installed software.
+  Using environments allows you to have multiple copies of the same software installed in different environments so you can run different versions,
+  or to run two pieces of software with competing dependencies on the same machine.
   Using and sharing environments helps make your work reproducible because someone can use the same environment on a different machine and be sure they have the same versions of everything.
 
 

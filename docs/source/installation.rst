@@ -72,8 +72,8 @@
 
     .. _matflow-environments:
 
-    The path to your config file can be found using ``{{ app_module }} manage get-config-path``,
-    or to open the config file directly, use ``{{ app_module }} open config``.
+    The path to your config file can be found using ``{{ app_package_name }} manage get-config-path``,
+    or to open the config file directly, use ``{{ app_package_name }} open config``.
 
     #############
     Environments
@@ -84,7 +84,7 @@
     Your {{ app_name }} environments must be defined in your environments (YAML) file before {{ app_name }}
     can run workflows, and this environment file must be pointed to in the config file
     via the ``environment_sources`` key.
-    Once this has been done, your environment file can be be opened using ``{{ app_module }} open env-source``.
+    Once this has been done, your environment file can be be opened using ``{{ app_package_name }} open env-source``.
 
     A template environments file is given below.
     It is recommended to use this as a starting point, making modifications for your own computer/HPC system,
