@@ -63,8 +63,9 @@
       TypeError: ConfigOptions.__init__() got an unexpected keyword argument 'sentry_DSN'
 
 
-  The problem is the version of hpcflow-new2 is not constrained to be whatever it was at the time of a given MatFlow release.
+  The problem is the version of hpcflow-new2 has historically not been constrained to be whatever it was at the time of a given MatFlow release.
   The example above was using matflow-new version  0.3.0a110 and hpcflow-new2 version 0.2.0a178 ,
   but if we look at the `dependencies of that version of MatFlow <https://github.com/hpcflow/matflow-new/blob/v0.3.0a110/pyproject.toml>`_,
-  we can see it requires hpcflow version 0.2.0a147. The way the dependency is specified should probably be updated.
+  we can see it requires hpcflow version 0.2.0a147. The specification of this dependency has since been updated
+  such that current releases of MatFlow specify a particular version of hpcFlow.
   So, to get the correct version of hpcflow (for the case above), you can do: ``pip install hpcflow-new2==0.2.0a147``.
