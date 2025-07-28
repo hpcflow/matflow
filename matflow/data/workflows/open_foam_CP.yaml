@@ -50,6 +50,8 @@ template_components:
         - parameter: orientations
         - parameter: VE_origin
         - parameter: boundary
+        - parameter: root_path
+        - parameter: app_name
       actions:
         - environments:
             - scope:
@@ -57,7 +59,7 @@ template_components:
               environment: python_env
             - scope:
                 type: main
-              environment: python_env
+              environment: OpenFOAM
           input_file_generators:
             - input_file: open_foam_phase_bool_files
               from_inputs: [volume_element]
@@ -68,8 +70,26 @@ template_components:
             - input_file: open_foam_block_mesh_file
               from_inputs: [volume_element, VE_origin, boundary]
               script: <<script:open_foam/write_block_mesh_file.py>>
+          commands:
+            - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial .
+            - command: cp -r initial 0
+            - command: APP_PATH=blockMesh
+            - command: <<executable:openfoam_app>> &> blockMesh.log
+            # - command: APP_PATH=voronoiFoam
+            # - command: <<executable:openfoam_app>> &> voronoiFoam.log
+            - command: APP_PATH=decomposePar
+            - command: <<executable:openfoam_app>> &> decomposePar.log
+            - command: APP_PATH=<<parameter:app_name>>
+            - command: mpirun -np $SLURM_NTASKS <<executable:openfoam_app>> -parallel &> <<parameter:app_name>>.log              
 
 # TODO: pass boundary info into phase bool files
+
+resources:
+  any:
+    scheduler_args:
+      directives:
+        --time: 00:20:00
+        --partition: serial
 
 tasks:
   - schema: generate_volume_element_from_voronoi
@@ -97,6 +117,13 @@ tasks:
   - schema: visualise_VE_VTK
 
   - schema: simulate_VE_loading_OpenFOAM
+    resources:
+      main:
+        num_cores: 2
+        scheduler_args:
+          directives:
+            --time: 00:10:00
+            --partition: multicore          
     inputs:
       VE_origin: [-0.05, 0.0, 0.0]
       boundary:
@@ -163,4 +190,9 @@ tasks:
             r: 1.1
             k_exponent: 10.0
             gammadot_0: 1e-3
+      app_name: Euler_Solid_MechFoam
+      # block_mesh: true
+      # decompose_par: true
+      # voronoi: false
+      root_path: /mnt/iusers01/mace01/mbgm9my2/scratch/cp-sims/case_2p_6
 
