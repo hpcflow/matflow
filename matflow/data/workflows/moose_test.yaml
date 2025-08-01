@@ -62,5 +62,3 @@ tasks:
           mean: 125.0e3
           std_dev: 5.0e3
           num: 10
-
-
