@@ -1,0 +1,41 @@
+# workflow.yaml
+template_components:
+  task_schemas:
+  - objective: process_data
+    inputs:
+    - parameter: input_data
+    - parameter: path
+      default_value: input_file.json
+    actions:
+    - script: <<script:/path/to/generate_input_file.py>>
+      script_data_in: direct
+      script_exe: python_script
+      save_files: # A copy of any command files listed here will be saved in the the artifacts directory
+      - my_input_file
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+    - script: <<script:/path/to/process_input_file.py>>
+      script_exe: python_script
+      environments:
+      - scope:
+          type: any
+        environment: python_env
+      save_files:
+      - processed_file
+
+  command_files:
+  - label: my_input_file
+    name:
+      name: input_file.json
+  - label: processed_file
+    name:
+      name: processed_file.json
+
+
+tasks:
+- schema: process_data
+  inputs:
+    input_data: [1, 2, 3, 4]
+    path: input_file.json

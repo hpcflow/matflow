@@ -1,7 +1,7 @@
-function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
+function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
-    crystalSym = allOpts.crystal_symmetry;
+    crystalSym = allOpts.crystal_symmetry;    
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
@@ -60,6 +60,9 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             millerDirs, ...
             'property', oriColors ...
         );
+        newMtexFigure('layout', [1, 1], 'visible', 'off');
+        plot(ipfKey);
+        saveFigure('IPF_key.png');
     end
 
     if ~isempty(allOpts.colourbar_limits)
@@ -118,17 +121,9 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     if ~cLabelAdded
         annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
     end
-
-    fileName = 'pole_figure.png';
-    saveFigure(fileName);
-
-    if ~useContours
-        newMtexFigure('layout', [1, 1], 'visible', 'off');
-        plot(ipfKey);
-        saveFigure('IPF_key.png');
-    end
+    
+    saveFigure('pole_figure.png');
 
     close all;
 
-    exitcode = 1;
 end

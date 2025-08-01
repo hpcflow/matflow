@@ -12,66 +12,7 @@ Environments
 * Note: use of the `compile_mtex` executable requires that the Matlab Compiler add-on is installed, which can be performed via the Add-on explorer within the Matlab GUI.
 * TODO: This is currently tested only on Windows
 
-Example environment definition - Windows
-----------------------------------------
 
-.. code-block:: yaml
-
-  - name: matlab_env
-    executables:
-
-      - label: run_mtex
-        instances:
-          - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
-            num_cores: 1
-            parallel_mode: null
-
-      - label: compile_mtex
-        instances:
-          - command: |
-              $mtex_path = 'C:\path\to\mtex\folder'
-              $mtex_include = ((Get-ChildItem -Recurse -Directory -Path $mtex_path | %{ "-I `"$_.FullName`"" }) -join ' ') + " -a `"$mtex_path\data`""
-              $mtex_include | & 'C:\path\to\mcc.bat' -R -singleCompThread -m .\<<script_name>> <<args>>
-            num_cores: 1
-            parallel_mode: null
-
-      - label: run_compiled_mtex
-        instances:
-          - command: .\<<script_name>>.exe <<args>>
-            num_cores: 1
-            parallel_mode: null
-
-Example environment definition - Linux/MacOS
---------------------------------------------
-
-.. code-block:: yaml
-
-  - name: matlab_env
-    setup: |
-      # set up commands (e.g. `module load ...`)
-    executables:
-    
-      - label: run_mtex
-        instances:
-          - command: |
-              & 'C:\path\to\matlab.exe' -batch "<<script_name_no_ext>> <<args>>"
-            num_cores: 1
-            parallel_mode: null
-
-      - label: compile_mtex
-        instances:
-          - command: compile-mtex <<script_name>> <<args>> # TODO - define this 
-            num_cores: 1
-            parallel_mode: null
-
-      - label: run_compiled_mtex
-        instances:
-          - command: |
-              MATLAB_DIR=/path/to/matlab/runtime/directory
-              ./run_<<script_name>>.sh $MATLAB_DIR <<args>>
-            num_cores: 1
-            parallel_mode: null
 
 `dream_3D_env`
 ~~~~~~~~~~~~~~
@@ -81,41 +22,7 @@ Two executables are required:
 * `dream_3D_runner`: this is the pipeline runner which processes a pipeline.json file.
 * `python_script`: this is used to generate the `pipeline.json` file using a Python script.
 
-Example environment definition - Linux/MacOS
---------------------------------------------
 
-.. code-block:: yaml
-
-  - name: dream_3D_env
-    executables:
-      - label: dream_3D_runner
-        instances:
-          - command: /path/to/DREAM3D-directory/bin/PipelineRunner
-            num_cores: 1
-            parallel_mode: null
-      - label: python_script
-        instances:
-          - command: python <<script_name>> <<args>>
-            num_cores: 1
-            parallel_mode: null
-
-Example environment definition - Windows
-----------------------------------------
-
-.. code-block:: yaml
-
-  - name: dream_3D_env
-    executables:
-      - label: dream_3D_runner
-        instances:
-          - command: "& 'C:\\path\\to\\DREAM3D-directory\\PipelineRunner.exe'"
-            num_cores: 1
-            parallel_mode: null
-      - label: python_script
-        instances:
-          - command: python <<script_name>> <<args>>
-            num_cores: 1
-            parallel_mode: null
 
 
 `defdap_env`
@@ -161,35 +68,3 @@ Resources:
 * https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 * https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands
 * https://github.com/conda/conda-pack/issues/160
-
-
-Example environment definition
-------------------------------
-
-.. code-block:: yaml
-
-    name: damask_parse_env
-    setup: |    
-      conda activate matflow_damask_parse_env
-    executables:
-      - label: python
-        instances:
-          - command: python
-            num_cores: 1
-            parallel_mode: null
-
-`damask`
-~~~~~~~~
-
-Example environment definition
-------------------------------
-
-.. code-block:: yaml
-
-    name: damask_env
-    executables:
-      - label: damask_grid
-        instances:
-          - command: docker run --rm --interactive --volume ${PWD}:/wd --env OMP_NUM_THREADS=1 eisenforschung/damask-grid:3.0.0-alpha7
-            parallel_mode: null
-            num_cores: 1

@@ -1,17 +1,18 @@
+from __future__ import annotations
 from formable.tensile_test import TensileTest
 from formable.utils import read_non_uniform_csv
 
 
 def read_tensile_test_CSV(
-    CSV_file_path,
-    CSV_arguments,
-    eng_stress_col_index,
-    eng_strain_col_index,
-    true_stress_col_index,
-    true_strain_col_index,
-    stress_units,
-    plastic_range,
-):
+    CSV_file_path: str,
+    CSV_arguments: dict,
+    eng_stress_col_index: int,
+    eng_strain_col_index: int,
+    true_stress_col_index: int,
+    true_strain_col_index: int,
+    stress_units: str,
+    plastic_range: list[float],
+) -> dict:
     _, CSV_data = read_non_uniform_csv(
         CSV_file_path,
         delimiter=CSV_arguments.get("delimiter"),

@@ -1,0 +1,67 @@
+template_components:
+  meta_task_schemas:
+    - objective: system_analysis
+      inputs:
+        - parameter: x
+      outputs:
+        - parameter: g
+
+loops:
+  - name: inner_markov_chain # [inner MC state loop]
+    tasks: [4, 5, 6]
+    num_iterations: 4
+
+  - name: outer_markov_chain # [outer MC state loop]
+    tasks: [4, 5, 6, 7, 8]
+    num_iterations: 9 # num_states - 1: (1 / p_0) - 1
+
+  - name: levels # [outer loop]
+    tasks: [2, 3, 4, 5, 6, 7, 8]
+    num_iterations: 2
+    termination_task: 2
+    termination:
+      path: outputs.is_finished
+      condition: { value.equal_to: true }
+
+resources:
+  any:
+    combine_scripts: true
+
+meta_tasks:
+  system_analysis:
+    - schema: dummy_pre_processor # x -> y # python script
+    - schema: model_sum_x # y -> sum_y via shell
+    - schema: evaluate_limit_state_normal_sum # sum_y -> g # python script
+      inputs:
+        dimension: 200
+        target_pf: 1e-4
+      groups:
+        - name: all
+
+tasks:
+  - schema: sample_direct_MC # 0
+    inputs:
+      dimension: 200
+    repeats: 100 # num_samples
+  - schema: system_analysis # 1,2,3
+  - schema: collate_results # [subset loop] # 4
+    inputs:
+      p_0: 0.1
+  - schema: initialise_markov_chains # [subset loop] # 5
+    sequences:
+      - path: inputs.chain_index
+        values::from_range:
+          start: 0
+          stop: 10 # num_chains: num_samples * p_0
+          step: 1
+
+  - schema: generate_next_state # [inner MC loop; outer MC loop] # 6
+    inputs:
+      prop_std: 1.0
+  - schema: system_analysis # [inner MC loop; outer MC loop] # 7,8,9
+  - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does # 10
+
+  - schema: system_analysis # [outer MC loop] # 11,12,13
+  - schema: increment_chain # [outer MC loop] # 14
+    groups:
+      - name: all

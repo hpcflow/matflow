@@ -1,180 +1,192 @@
+from __future__ import annotations
 import json
 import warnings
 import copy
-
+from typing import TYPE_CHECKING
 import numpy as np
+from numpy.typing import NDArray
 
 from pathlib import Path
 from damask_parse.utils import validate_orientations
 from damask_parse.quats import axang2quat, multiply_quaternions
 
+if TYPE_CHECKING:
+    from matflow.param_classes.orientations import Orientations
+
+
+REQUIRED_PHASE_BASE_KEYS = {
+    "type",
+    "name",
+    "crystal_structure",
+    "volume_fraction",
+}
+REQUIRED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_BASE_KEYS | {
+    "size_distribution",
+}
+REQUIRED_PHASE_KEYS = {
+    "matrix": REQUIRED_PHASE_BASE_KEYS,
+    "primary": REQUIRED_PHASE_NON_MATRIX_KEYS,
+    "precipitate": REQUIRED_PHASE_NON_MATRIX_KEYS
+    | {
+        "radial_distribution_function",
+        "number_fraction_on_boundary",
+    },
+}
+ALLOWED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_NON_MATRIX_KEYS | {
+    "preset_statistics_model",
+    "ODF",
+    "axis_ODF",
+}
+ALLOWED_PHASE_KEYS = {
+    "matrix": REQUIRED_PHASE_KEYS["matrix"],
+    "primary": REQUIRED_PHASE_KEYS["primary"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
+    "precipitate": REQUIRED_PHASE_KEYS["precipitate"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
+}
+ALLOWED_PHASE_TYPES = set(REQUIRED_PHASE_KEYS.keys())
+REQUIRED_PHASE_SIZE_DIST_KEYS = {
+    "ESD_log_stddev",
+}
+ALLOWED_PHASE_SIZE_DIST_KEYS = REQUIRED_PHASE_SIZE_DIST_KEYS | {
+    "ESD_log_mean",
+    "ESD_mean",
+    "ESD_log_stddev_min_cut_off",
+    "ESD_log_stddev_max_cut_off",
+    "bin_step_size",
+    "num_bins",
+    "omega3",
+    "b/a",
+    "c/a",
+    "neighbours",
+}
+ALLOWED_PRECIP_RDF_KEYS = {
+    "min_distance",
+    "max_distance",
+    "num_bins",
+    "box_size",
+}
+ALLOWED_CRYSTAL_STRUCTURES = {  # values are crystal symmetry index:
+    "hexagonal": 0,
+    "cubic": 1,
+}
+SIGMA_MIN_DEFAULT = 5
+SIGMA_MAX_DEFAULT = 5
+# Distributions defined for each size distribution bin:
+DISTRIBUTIONS_MAP = {
+    "omega3": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs Omega3 Distributions",
+    },
+    "b/a": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs B Over A Distributions",
+    },
+    "c/a": {
+        "type": "beta",
+        "default_keys": {
+            "alpha": 10.0,
+            "beta": 1.5,
+        },
+        "label": "FeatureSize Vs C Over A Distributions",
+    },
+    "neighbours": {
+        "type": "lognormal",
+        "default_keys": {
+            "average": 2.0,
+            "stddev": 0.5,
+        },
+        "label": "FeatureSize Vs Neighbors Distributions",
+    },
+}
+DISTRIBUTIONS_TYPE_LABELS = {
+    "lognormal": "Log Normal Distribution",
+    "beta": "Beta Distribution",
+}
+DISTRIBUTIONS_KEY_LABELS = {
+    "alpha": "Alpha",
+    "beta": "Beta",
+    "average": "Average",
+    "stddev": "Standard Deviation",
+}
+PRESETS_TYPE_KEYS = {
+    "primary_equiaxed": {
+        "type",
+    },
+    "primary_rolled": {
+        "type",
+        "A_axis_length",
+        "B_axis_length",
+        "C_axis_length",
+    },
+    "precipitate_equiaxed": {
+        "type",
+    },
+    "precipitate_rolled": {
+        "type",
+        "A_axis_length",
+        "B_axis_length",
+        "C_axis_length",
+    },
+}
+REQUIRED_PHASE_AXIS_ODF_KEYS = {"orientations"}
+ALLOWED_PHASE_AXIS_ODF_KEYS = REQUIRED_PHASE_AXIS_ODF_KEYS | {"weights", "sigmas"}
+REQUIRED_PHASE_ODF_KEYS = set()  # presets can be specified instead of orientations
+ALLOWED_PHASE_ODF_KEYS = ALLOWED_PHASE_AXIS_ODF_KEYS | {"presets"}
+DEFAULT_ODF_WEIGHT = 500_000
+DEFAULT_ODF_SIGMA = 2
+
+DEFAULT_AXIS_ODF_WEIGHT = DEFAULT_ODF_WEIGHT
+DEFAULT_AXIS_ODF_SIGMA = DEFAULT_ODF_SIGMA
+
+ODF_CUBIC_PRESETS = {
+    "cube": (0, 0, 0),
+    "goss": (0, 45, 0),
+    "brass": (35, 45, 0),
+    "copper": (90, 35, 45),
+    "s": (59, 37, 63),
+    "s1": (55, 30, 65),
+    "s2": (45, 35, 65),
+    "rc(rd1)": (0, 20, 0),
+    "rc(rd2)": (0, 35, 0),
+    "rc(nd1)": (20, 0, 0),
+    "rc(nd2)": (35, 0, 0),
+    "p": (70, 45, 0),
+    "q": (55, 20, 0),
+    "r": (55, 75, 25),
+}
+
 
 def generate_volume_element_statistics(
-    path,
-    grid_size,
-    resolution,
-    size,
-    origin,
-    periodic,
-    phase_statistics,
-    precipitates,
-    orientations,
+    path: str | Path,
+    grid_size: list[int],
+    resolution: list[float] | None,
+    size: list[int],
+    origin: list[float] | None,
+    periodic: bool,
+    phase_statistics: list[dict],
+    precipitates: bool,
+    orientations: Orientations | None,
 ):
     """'path' is the file path for 'pipeline.json'"""
+
+    if orientations is not None:
+        # convert to old-matflow format:
+        orientations_ = _convert_orientations_to_old_matflow_format(orientations)
+    else:
+        orientations_ = None
 
     if resolution is None:
         resolution = [i / j for i, j in zip(size, grid_size)]
 
     if origin is None:
         origin = [0, 0, 0]
-
-    REQUIRED_PHASE_BASE_KEYS = {
-        "type",
-        "name",
-        "crystal_structure",
-        "volume_fraction",
-    }
-    REQUIRED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_BASE_KEYS | {
-        "size_distribution",
-    }
-    REQUIRED_PHASE_KEYS = {
-        "matrix": REQUIRED_PHASE_BASE_KEYS,
-        "primary": REQUIRED_PHASE_NON_MATRIX_KEYS,
-        "precipitate": REQUIRED_PHASE_NON_MATRIX_KEYS
-        | {
-            "radial_distribution_function",
-            "number_fraction_on_boundary",
-        },
-    }
-    ALLOWED_PHASE_NON_MATRIX_KEYS = REQUIRED_PHASE_NON_MATRIX_KEYS | {
-        "preset_statistics_model",
-        "ODF",
-        "axis_ODF",
-    }
-    ALLOWED_PHASE_KEYS = {
-        "matrix": REQUIRED_PHASE_KEYS["matrix"],
-        "primary": REQUIRED_PHASE_KEYS["primary"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
-        "precipitate": REQUIRED_PHASE_KEYS["precipitate"] | ALLOWED_PHASE_NON_MATRIX_KEYS,
-    }
-    ALLOWED_PHASE_TYPES = set(REQUIRED_PHASE_KEYS.keys())
-    REQUIRED_PHASE_SIZE_DIST_KEYS = {
-        "ESD_log_stddev",
-    }
-    ALLOWED_PHASE_SIZE_DIST_KEYS = REQUIRED_PHASE_SIZE_DIST_KEYS | {
-        "ESD_log_mean",
-        "ESD_mean",
-        "ESD_log_stddev_min_cut_off",
-        "ESD_log_stddev_max_cut_off",
-        "bin_step_size",
-        "num_bins",
-        "omega3",
-        "b/a",
-        "c/a",
-        "neighbours",
-    }
-    ALLOWED_PRECIP_RDF_KEYS = {
-        "min_distance",
-        "max_distance",
-        "num_bins",
-        "box_size",
-    }
-    ALLOWED_CRYSTAL_STRUCTURES = {  # values are crystal symmetry index:
-        "hexagonal": 0,
-        "cubic": 1,
-    }
-    SIGMA_MIN_DEFAULT = 5
-    SIGMA_MAX_DEFAULT = 5
-    # Distributions defined for each size distribution bin:
-    DISTRIBUTIONS_MAP = {
-        "omega3": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs Omega3 Distributions",
-        },
-        "b/a": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs B Over A Distributions",
-        },
-        "c/a": {
-            "type": "beta",
-            "default_keys": {
-                "alpha": 10.0,
-                "beta": 1.5,
-            },
-            "label": "FeatureSize Vs C Over A Distributions",
-        },
-        "neighbours": {
-            "type": "lognormal",
-            "default_keys": {
-                "average": 2.0,
-                "stddev": 0.5,
-            },
-            "label": "FeatureSize Vs Neighbors Distributions",
-        },
-    }
-    DISTRIBUTIONS_TYPE_LABELS = {
-        "lognormal": "Log Normal Distribution",
-        "beta": "Beta Distribution",
-    }
-    DISTRIBUTIONS_KEY_LABELS = {
-        "alpha": "Alpha",
-        "beta": "Beta",
-        "average": "Average",
-        "stddev": "Standard Deviation",
-    }
-    PRESETS_TYPE_KEYS = {
-        "primary_equiaxed": {
-            "type",
-        },
-        "primary_rolled": {
-            "type",
-            "A_axis_length",
-            "B_axis_length",
-            "C_axis_length",
-        },
-        "precipitate_equiaxed": {
-            "type",
-        },
-        "precipitate_rolled": {
-            "type",
-            "A_axis_length",
-            "B_axis_length",
-            "C_axis_length",
-        },
-    }
-    REQUIRED_PHASE_AXIS_ODF_KEYS = {"orientations"}
-    ALLOWED_PHASE_AXIS_ODF_KEYS = REQUIRED_PHASE_AXIS_ODF_KEYS | {"weights", "sigmas"}
-    REQUIRED_PHASE_ODF_KEYS = set()  # presets can be specified instead of orientations
-    ALLOWED_PHASE_ODF_KEYS = ALLOWED_PHASE_AXIS_ODF_KEYS | {"presets"}
-    DEFAULT_ODF_WEIGHT = 500_000
-    DEFAULT_ODF_SIGMA = 2
-
-    DEFAULT_AXIS_ODF_WEIGHT = DEFAULT_ODF_WEIGHT
-    DEFAULT_AXIS_ODF_SIGMA = DEFAULT_ODF_SIGMA
-
-    ODF_CUBIC_PRESETS = {
-        "cube": (0, 0, 0),
-        "goss": (0, 45, 0),
-        "brass": (35, 45, 0),
-        "copper": (90, 35, 45),
-        "s": (59, 37, 63),
-        "s1": (55, 30, 65),
-        "s2": (45, 35, 65),
-        "rc(rd1)": (0, 20, 0),
-        "rc(rd2)": (0, 35, 0),
-        "rc(nd1)": (20, 0, 0),
-        "rc(nd2)": (35, 0, 0),
-        "p": (70, 45, 0),
-        "q": (55, 20, 0),
-        "r": (55, 75, 25),
-    }
 
     vol_frac_sum = 0.0
     stats_JSON = []
@@ -185,17 +197,19 @@ def generate_volume_element_statistics(
 
         phase_type = phase_stats["type"].lower()
         if phase_type not in ALLOWED_PHASE_TYPES:
-            raise ValueError(err_msg + f'`type` "{phase_stats["type"]}" not allowed.')
+            raise ValueError(f'{err_msg}`type` "{phase_stats["type"]}" not allowed.')
 
         given_keys = set(phase_stats.keys())
         miss_keys = REQUIRED_PHASE_KEYS[phase_type] - given_keys
         bad_keys = given_keys - ALLOWED_PHASE_KEYS[phase_type]
         if miss_keys:
-            msg = err_msg + f'Missing keys: {", ".join([f"{i}" for i in miss_keys])}'
-            raise ValueError(msg)
+            raise ValueError(
+                f'{err_msg}Missing keys: {", ".join([f"{i}" for i in miss_keys])}'
+            )
         if bad_keys:
-            msg = err_msg + f'Unknown keys: {", ".join([f"{i}" for i in bad_keys])}'
-            raise ValueError(msg)
+            raise ValueError(
+                f'{err_msg}Unknown keys: {", ".join([f"{i}" for i in bad_keys])}'
+            )
 
         size_dist = phase_stats["size_distribution"]
         given_size_keys = set(size_dist.keys())
@@ -203,19 +217,19 @@ def generate_volume_element_statistics(
         bad_size_keys = given_size_keys - ALLOWED_PHASE_SIZE_DIST_KEYS
         if miss_size_keys:
             raise ValueError(
-                err_msg + f"Missing `size_distribution` keys: "
+                f"{err_msg}Missing `size_distribution` keys: "
                 f'{", ".join([f"{i}" for i in miss_size_keys])}'
             )
         if bad_size_keys:
             raise ValueError(
-                err_msg + f"Unknown `size_distribution` keys: "
+                f"{err_msg}Unknown `size_distribution` keys: "
                 f'{", ".join([f"{i}" for i in bad_size_keys])}'
             )
         num_bins = size_dist.get("num_bins")
         bin_step_size = size_dist.get("bin_step_size")
         if sum([i is None for i in (num_bins, bin_step_size)]) != 1:
             raise ValueError(
-                err_msg + f'Specify exactly one of `num_bins` (given as "{num_bins}") '
+                f'{err_msg}Specify exactly one of `num_bins` (given as "{num_bins}") '
                 f'and `bin_step_size` (given as "{bin_step_size}").'
             )
 
@@ -227,22 +241,22 @@ def generate_volume_element_statistics(
 
             if miss_RDF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `radial_distribution_function` keys: "
+                    f"{err_msg}Missing `radial_distribution_function` keys: "
                     f'{", ".join([f"{i}" for i in miss_RDF_keys])}'
                 )
             if bad_RDF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `radial_distribution_function` keys: "
+                    f"{err_msg}Unknown `radial_distribution_function` keys: "
                     f'{", ".join([f"{i}" for i in bad_RDF_keys])}'
                 )
 
         phase_i_CS = phase_stats["crystal_structure"]
         if phase_i_CS not in ALLOWED_CRYSTAL_STRUCTURES:
-            msg = err_msg + (
-                f'`crystal_structure` value "{phase_i_CS}" unknown. Must be one of: '
+            raise ValueError(
+                f'{err_msg}`crystal_structure` value "{phase_i_CS}" unknown. '
+                f"Must be one of: "
                 f'{", ".join([f"{i}" for i in ALLOWED_CRYSTAL_STRUCTURES])}'
             )
-            raise ValueError(msg)
 
         preset = phase_stats.get("preset_statistics_model")
         if preset:
@@ -250,19 +264,19 @@ def generate_volume_element_statistics(
             preset_type = preset.get("type")
             if not preset_type:
                 raise ValueError(
-                    err_msg + f"Missing `preset_statistics_model` key: " f'"type".'
+                    f"{err_msg}Missing `preset_statistics_model` key: " f'"type".'
                 )
             miss_preset_keys = PRESETS_TYPE_KEYS[preset_type] - given_preset_keys
             bad_preset_keys = given_preset_keys - PRESETS_TYPE_KEYS[preset_type]
 
             if miss_preset_keys:
                 raise ValueError(
-                    err_msg + f"Missing `preset_statistics_model` keys: "
+                    f"{err_msg}Missing `preset_statistics_model` keys: "
                     f'{", ".join([f"{i}" for i in miss_preset_keys])}'
                 )
             if bad_preset_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `preset_statistics_model` keys: "
+                    f"{err_msg}Unknown `preset_statistics_model` keys: "
                     f'{", ".join([f"{i}" for i in bad_preset_keys])}'
                 )
 
@@ -274,7 +288,7 @@ def generate_volume_element_statistics(
                     >= preset["C_axis_length"]
                 ):
                     raise ValueError(
-                        err_msg + f"The following condition must be true: "
+                        f"{err_msg}The following condition must be true: "
                         f"`A_axis_length >= B_axis_length >= C_axis_length`, but these "
                         f'are, respectively: {preset["A_axis_length"]}, '
                         f'{preset["B_axis_length"]}, {preset["C_axis_length"]}.'
@@ -287,7 +301,7 @@ def generate_volume_element_statistics(
         mean = size_dist.get("ESD_mean")
         if sum([i is None for i in (log_mean, mean)]) != 1:
             raise ValueError(
-                err_msg + f"Specify exactly one of `ESD_log_mean` (given as "
+                f"{err_msg}Specify exactly one of `ESD_log_mean` (given as "
                 f'"{log_mean}") and `ESD_mean` (given as "{mean}").'
             )
 
@@ -322,7 +336,7 @@ def generate_volume_element_statistics(
             else:
                 if dist_key == "neighbours" and phase_type == "precipitate":
                     warnings.warn(
-                        err_msg + f"`neighbours` distribution not allowed with "
+                        f"{err_msg}`neighbours` distribution not allowed with "
                         f'"precipitate" phase type; ignoring.'
                     )
                     continue
@@ -334,12 +348,12 @@ def generate_volume_element_statistics(
             bad_dist_keys = given_dist_keys - required_dist_keys
             if miss_dist_keys:
                 raise ValueError(
-                    err_msg + f"Missing `{dist_key}` keys: "
+                    f"{err_msg}Missing `{dist_key}` keys: "
                     f'{", ".join([f"{i}" for i in miss_dist_keys])}'
                 )
             if bad_dist_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `{dist_key}` keys: "
+                    f"{err_msg}Unknown `{dist_key}` keys: "
                     f'{", ".join([f"{i}" for i in bad_dist_keys])}'
                 )
 
@@ -358,7 +372,7 @@ def generate_volume_element_statistics(
 
                 elif len(dist_param_val) != num_bins:
                     raise ValueError(
-                        err_msg + f'Distribution `{dist_key}` key "{dist_param}" must '
+                        f'{err_msg}Distribution `{dist_key}` key "{dist_param}" must '
                         f"have length one, or length equal to the number of size "
                         f"distribution bins, which is {num_bins}, but in fact has "
                         f"length {len(dist_param_val)}."
@@ -373,7 +387,7 @@ def generate_volume_element_statistics(
         ODF = phase_stats.get("ODF")
         axis_ODF = phase_stats.get("axis_ODF")
 
-        if ODF or (phase_idx == 0 and orientations is not None):
+        if ODF or (phase_idx == 0 and orientations_ is not None):
             if not ODF:
                 ODF = {}
             given_ODF_keys = set(ODF.keys())
@@ -381,39 +395,39 @@ def generate_volume_element_statistics(
             bad_ODF_keys = given_ODF_keys - ALLOWED_PHASE_ODF_KEYS
             if miss_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `ODF` keys: "
+                    f"{err_msg}Missing `ODF` keys: "
                     f'{", ".join([f"{i}" for i in miss_ODF_keys])}'
                 )
             if bad_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `ODF` keys: "
+                    f"{err_msg}Unknown `ODF` keys: "
                     f'{", ".join([f"{i}" for i in bad_ODF_keys])}'
                 )
 
             ODF_presets = ODF.get("presets")
 
-            if phase_idx == 0 and orientations is not None:
+            if phase_idx == 0 and orientations_ is not None:
                 # ALlow importing orientations only for the first phase:
 
                 if ODF_presets:
                     warnings.warn(
-                        err_msg + f"Using locally defined ODF presets; not "
+                        f"{err_msg}Using locally defined ODF presets; not "
                         f"using `orientations` from a previous task."
                     )
 
                 elif "orientations" in ODF:
                     warnings.warn(
-                        err_msg + f"Using locally defined `orientations`, not "
+                        f"{err_msg}Using locally defined `orientations`, not "
                         f"those from a previous task!"
                     )
 
                 else:
-                    ODF["orientations"] = orientations
+                    ODF["orientations"] = orientations_
 
             if ODF_presets:
                 if any([ODF.get(i) is not None for i in ALLOWED_PHASE_AXIS_ODF_KEYS]):
                     raise ValueError(
-                        err_msg + f"Specify either `presets` or `orientations` (and "
+                        f"{err_msg}Specify either `presets` or `orientations` (and "
                         f"`sigmas and `weights)."
                     )
                 preset_eulers = []
@@ -425,7 +439,7 @@ def generate_volume_element_statistics(
                         or ODF_preset["name"].lower() not in ODF_CUBIC_PRESETS
                     ):
                         raise ValueError(
-                            err_msg + f"Specify `name` for ODF preset index "
+                            f"{err_msg}Specify `name` for ODF preset index "
                             f"{ODF_preset_idx}; one of: "
                             f'{", ".join([f"{i}" for i in ODF_CUBIC_PRESETS.keys()])}'
                         )
@@ -435,7 +449,7 @@ def generate_volume_element_statistics(
 
                 ODF["sigmas"] = preset_sigmas
                 ODF["weights"] = preset_weights
-                ODF["orientations"] = process_dream3D_euler_angles(
+                ODF["orientations"] = _process_dream3D_euler_angles(
                     np.array(preset_eulers),
                     degrees=True,
                 )
@@ -455,12 +469,11 @@ def generate_volume_element_statistics(
                             P=oris["P"],
                         )
                 elif oris["unit_cell_alignment"].get("x") != "a":
-                    msg = (
+                    NotImplementedError(
                         f"Cannot convert from the following specified unit cell "
                         f"alignment to Dream3D-compatible unit cell alignment (x//a): "
                         f'{oris["unit_cell_alignment"]}'
                     )
-                    NotImplementedError(msg)
 
             num_oris = oris["quaternions"].shape[0]
 
@@ -484,14 +497,14 @@ def generate_volume_element_statistics(
 
                 elif len(val) != num_oris:
                     raise ValueError(
-                        err_msg + f'ODF key "{i}" must have length one, or length equal '
-                        f"to the number of ODF orientations, which is {num_oris}, but in "
-                        f"fact has length {len(val)}."
+                        f'{err_msg}ODF key "{i}" must have length one, or length equal '
+                        f"to the number of ODF orientations, which is {num_oris}, but "
+                        f"in fact has length {len(val)}."
                     )
                 ODF[i] = val
 
             # Convert to Euler angles for Dream3D:
-            oris_euler = quat2euler(oris["quaternions"], degrees=False, P=oris["P"])
+            oris_euler = _quat2euler(oris["quaternions"], degrees=False, P=oris["P"])
 
             ODF_weights = {
                 "Euler 1": oris_euler[:, 0].tolist(),
@@ -507,12 +520,12 @@ def generate_volume_element_statistics(
             bad_axis_ODF_keys = given_axis_ODF_keys - ALLOWED_PHASE_AXIS_ODF_KEYS
             if miss_axis_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Missing `axis_ODF` keys: "
+                    f"{err_msg}Missing `axis_ODF` keys: "
                     f'{", ".join([f"{i}" for i in miss_axis_ODF_keys])}'
                 )
             if bad_axis_ODF_keys:
                 raise ValueError(
-                    err_msg + f"Unknown `axis_ODF` keys: "
+                    f"{err_msg}Unknown `axis_ODF` keys: "
                     f'{", ".join([f"{i}" for i in bad_axis_ODF_keys])}'
                 )
 
@@ -533,12 +546,12 @@ def generate_volume_element_statistics(
                             P=axis_oris["P"],
                         )
                 elif axis_oris["unit_cell_alignment"].get("x") != "a":
-                    msg = (
+                    # FIXME: missing raise
+                    NotImplementedError(
                         f"Cannot convert from the following specified unit cell "
                         f"alignment to Dream3D-compatible unit cell alignment (x//a): "
                         f'{axis_oris["unit_cell_alignment"]}'
                     )
-                    NotImplementedError(msg)
 
             num_oris = axis_oris["quaternions"].shape[0]
 
@@ -562,15 +575,14 @@ def generate_volume_element_statistics(
 
                 elif len(val) != num_oris:
                     raise ValueError(
-                        err_msg
-                        + f'axis_ODF key "{i}" must have length one, or length equal '
-                        f"to the number of axis_ODF orientations, which is {num_oris}, but in "
-                        f"fact has length {len(val)}."
+                        f'{err_msg}axis_ODF key "{i}" must have length one, or length '
+                        f"equal to the number of axis_ODF orientations, which is "
+                        f"{num_oris}, but in fact has length {len(val)}."
                     )
                 axis_ODF[i] = val
 
             # Convert to Euler angles for Dream3D:
-            axis_oris_euler = quat2euler(
+            axis_oris_euler = _quat2euler(
                 axis_oris["quaternions"], degrees=False, P=axis_oris["P"]
             )
 
@@ -603,12 +615,12 @@ def generate_volume_element_statistics(
         # Generate dists from `preset_statistics_model`:
         if preset:
             if "omega3" not in all_dists:
-                omega3_dist = generate_omega3_dist_from_preset(num_bins)
+                omega3_dist = _generate_omega3_dist_from_preset(num_bins)
                 all_dists.update({"omega3": omega3_dist})
 
             if "c/a" not in all_dists:
                 c_a_aspect_ratio = preset["A_axis_length"] / preset["C_axis_length"]
-                c_a_dist = generate_shape_dist_from_preset(
+                c_a_dist = _generate_shape_dist_from_preset(
                     num_bins,
                     c_a_aspect_ratio,
                     preset_type,
@@ -617,7 +629,7 @@ def generate_volume_element_statistics(
 
             if "b/a" not in all_dists:
                 b_a_aspect_ratio = preset["A_axis_length"] / preset["B_axis_length"]
-                b_a_dist = generate_shape_dist_from_preset(
+                b_a_dist = _generate_shape_dist_from_preset(
                     num_bins,
                     b_a_aspect_ratio,
                     preset_type,
@@ -626,7 +638,7 @@ def generate_volume_element_statistics(
 
             if phase_type == "primary":
                 if "neighbours" not in all_dists:
-                    neigh_dist = generate_neighbour_dist_from_preset(
+                    neigh_dist = _generate_neighbour_dist_from_preset(
                         num_bins,
                         preset_type,
                     )
@@ -700,7 +712,11 @@ def generate_volume_element_statistics(
         },
         "1": {
             # TODO: fix this
-            "BoxDimensions": "X Range: 0 to 2 (Delta: 2)\nY Range: 0 to 256 (Delta: 256)\nZ Range: 0 to 256 (Delta: 256)",
+            "BoxDimensions": (
+                "X Range: 0 to 2 (Delta: 2)\n"
+                "Y Range: 0 to 256 (Delta: 256)\n"
+                "Z Range: 0 to 256 (Delta: 256)"
+            ),
             "CellAttributeMatrixName": "CellData",
             "DataContainerName": "SyntheticVolumeDataContainer",
             "Dimensions": {"x": grid_size[0], "y": grid_size[1], "z": grid_size[2]},
@@ -997,7 +1013,9 @@ def generate_volume_element_statistics(
             "Filter_Human_Label": "Write DREAM.3D Data File",
             "Filter_Name": "DataContainerWriter",
             "Filter_Uuid": "{3fcd4c43-9d75-5b86-aad4-4441bc914f37}",
-            "OutputFile": f"{str(Path(path).absolute().parent.joinpath('pipeline.dream3d'))}",
+            "OutputFile": (
+                f"{str(Path(path).absolute().parent.joinpath('pipeline.dream3d'))}"
+            ),
             "WriteTimeSeries": 0,
             "WriteXdmfFile": 1,
         },
@@ -1012,9 +1030,45 @@ def generate_volume_element_statistics(
         json.dump(pipeline, fh, indent=4)
 
 
+def _convert_orientations_to_old_matflow_format(orientations: Orientations):
+    # see `LatticeDirection` enum:
+    align_lookup = {
+        "A": "a",
+        "B": "b",
+        "C": "c",
+        "A_STAR": "a*",
+        "B_STAR": "b*",
+        "C_STAR": "c*",
+    }
+    unit_cell_alignment = {
+        "x": align_lookup[orientations.unit_cell_alignment.x.name],
+        "y": align_lookup[orientations.unit_cell_alignment.y.name],
+        "z": align_lookup[orientations.unit_cell_alignment.z.name],
+    }
+    type_lookup = {
+        "QUATERNION": "quat",
+        "EULER": "euler",
+    }
+    type_ = type_lookup[orientations.representation.type.name]
+    oris = {
+        "type": type_,
+        "unit_cell_alignment": unit_cell_alignment,
+    }
+
+    if type_ == "quat":
+        quat_order = orientations.representation.quat_order.name.lower().replace("_", "-")
+        oris["quaternions"] = np.array(orientations.data)
+        oris["quat_component_ordering"] = quat_order
+    elif type_ == "euler":
+        oris["euler_angles"] = np.array(orientations.data)
+        oris["euler_degrees"] = orientations.representation.euler_is_degrees
+
+    return oris
+
+
 ## These next two functions are from matflow.matflow_dream3d.utilities
 # https://github.com/LightForm-group/matflow-dream3d/blob/3c73bd043b8e80bdc17af434e9e89a1660cffc2d/matflow_dream3d/utilities.py
-def quat2euler(quats, degrees=False, P=1):
+def _quat2euler(quats: NDArray, degrees: bool = False, P: int = 1) -> NDArray:
     """Convert quaternions to Bunge-convention Euler angles.
 
     Parameters
@@ -1099,7 +1153,7 @@ def quat2euler(quats, degrees=False, P=1):
     return euler_angles
 
 
-def process_dream3D_euler_angles(euler_angles, degrees=False):
+def _process_dream3D_euler_angles(euler_angles: dict, degrees: bool = False) -> dict:
     orientations = {
         "type": "euler",
         "euler_degrees": degrees,
@@ -1114,54 +1168,40 @@ def process_dream3D_euler_angles(euler_angles, degrees=False):
 """Functions for replicating preset statistics models as implemented in Dream.3D"""
 
 
-def generate_omega3_dist_from_preset(num_bins):
+def _generate_omega3_dist_from_preset(num_bins: int) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L62"""
-
-    alphas = []
-    betas = []
-    for _ in range(num_bins):
-        alpha = 10.0 + np.random.random()
-        beta = 1.5 + (0.5 * np.random.random())
-        alphas.append(alpha)
-        betas.append(beta)
-
-    return {"alpha": alphas, "beta": betas}
+    alphas = 10.0 + np.random.rand(num_bins)
+    betas = 1.5 + (0.5 * np.random.rand(num_bins))
+    return {"alpha": alphas.tolist(), "beta": betas.tolist()}
 
 
-def generate_shape_dist_from_preset(num_bins, aspect_ratio, preset_type):
+def _generate_shape_dist_from_preset(
+    num_bins: int, aspect_ratio: float, preset_type: str
+) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L88"""
-    alphas = []
-    betas = []
-    for _ in range(num_bins):
-        if preset_type in ["primary_rolled", "precipitate_rolled"]:
-            alpha = (1.1 + (28.9 * (1.0 / aspect_ratio))) + np.random.random()
-            beta = (30 - (28.9 * (1.0 / aspect_ratio))) + np.random.random()
-
-        elif preset_type in ["primary_equiaxed", "precipitate_equiaxed"]:
-            alpha = 15.0 + np.random.random()
-            beta = 1.25 + (0.5 * np.random.random())
-
-        alphas.append(alpha)
-        betas.append(beta)
-
-    return {"alpha": alphas, "beta": betas}
+    if preset_type in ("primary_rolled", "precipitate_rolled"):
+        alphas = 1.1 + (28.9 / aspect_ratio) + np.random.rand(num_bins)
+        betas = 30 - (28.9 / aspect_ratio) + np.random.rand(num_bins)
+    elif preset_type in ("primary_equiaxed", "precipitate_equiaxed"):
+        alphas = 15.0 + np.random.rand(num_bins)
+        betas = 1.25 + (0.5 * np.random.rand(num_bins))
+    else:
+        raise ValueError(f"unsupported preset_type: {preset_type}")
+    return {"alpha": alphas.tolist(), "beta": betas.tolist()}
 
 
-def generate_neighbour_dist_from_preset(num_bins, preset_type):
+def _generate_neighbour_dist_from_preset(
+    num_bins: int, preset_type: str
+) -> dict[str, list[float]]:
     """Replicating: https://github.com/BlueQuartzSoftware/DREAM3D/blob/331c97215bb358321d9f92105a9c812a81fd1c79/Source/Plugins/SyntheticBuilding/SyntheticBuildingFilters/Presets/PrimaryRolledPreset.cpp#L140"""
-    mus = []
-    sigmas = []
     middlebin = num_bins // 2
-    for i in range(num_bins):
-        if preset_type == "primary_equiaxed":
-            mu = np.log(14.0 + (2.0 * float(i - middlebin)))
-            sigma = 0.3 + (float(middlebin - i) / float(middlebin * 10))
-
-        elif preset_type == "primary_rolled":
-            mu = np.log(8.0 + (1.0 * float(i - middlebin)))
-            sigma = 0.3 + (float(middlebin - i) / float(middlebin * 10))
-
-        mus.append(mu)
-        sigmas.append(sigma)
-
-    return {"average": mus, "stddev": sigmas}
+    relative_bins = np.arange(num_bins) - middlebin
+    if preset_type == "primary_equiaxed":
+        mus = np.log(14.0 + 2.0 * relative_bins)
+        sigmas = 0.3 - relative_bins / (middlebin * 10)
+    elif preset_type == "primary_rolled":
+        mus = np.log(8.0 + relative_bins)
+        sigmas = 0.3 - relative_bins / (middlebin * 10)
+    else:
+        raise ValueError(f"unsupported preset_type: {preset_type}")
+    return {"average": mus.tolist(), "stddev": sigmas.tolist()}
