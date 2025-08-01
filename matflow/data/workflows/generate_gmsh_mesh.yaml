@@ -30,7 +30,8 @@ template_components:
         is_regex: true
       doc: Gmsh mesh file, typically generated from a Gmsh .geo script.
   task_schemas:
-    - objective: moose_simulation
+    - objective: generate_mesh
+      method: gmsh
       inputs:
         - parameter: geometry_name
         - parameter: plate_width
@@ -52,11 +53,8 @@ template_components:
       actions:
         - environments:
             - scope:
-                type: input_file_generator
-              environment: gmsh_env
-            - scope:
                 type: any
-              environment: null_env
+              environment: gmsh_env
           input_file_generators:
             - input_file: gmsh_geo_file
               from_inputs:
@@ -69,16 +67,31 @@ template_components:
                 - plate_radial_nodes
                 - plate_diff_nodes
                 - plate_diff
-              script: <<script:gmsh/generate_geo.py>>
-              # template: <<template:gmsh/<<parameter:geometry_name>>>> # TODO: instead of script!
-            - input_file: gmsh_mesh_file
-              from_inputs: [] # TODO: add `from_input_files` here to be dependent on previous input-file-generators?
-              script: <<script:gmsh/run_geo.py>>
-          commands:
-            - command: echo "should run sim here!"
+              jinja_template: gmsh/<<parameter:geometry_name>>.geo
+          script: <<script:gmsh/run_geo.py>>
+          script_exe: python_script
+          script_data_in:
+            input_files.gmsh_geo_file: direct
+          requires_dir: true
+
+# instead, we need:
+# task: generate_mesh with gmsh (via .geo file)
+#  - render jinja template to .geo file
+#  - execute .geo script with gmsh Python API to generate either a .msh or the mesh data
+#  - if generated a .msh, parse to a parameter
+#  - would also want to be able to pass a complete .geo file as well (as input_files: ...)
+
+config:
+  log_file_level: debug
+
+resources:
+  any:
+    write_app_logs: true
 
 tasks:
-  - schema: moose_simulation
+  - schema: generate_mesh_gmsh
+    # input_files:
+    #   gmsh_geo_file: D:/scratch/script.geo
     inputs:
       geometry_name: plate_with_hole
       plate_width: 100e-3
@@ -89,13 +102,10 @@ tasks:
       # plate_radial_nodes: 9
       # plate_diff_nodes: 5
       plate_diff: 50e-3
-    sequences:
-      - path: inputs.hole_sect_nodes # must be odd!
-        values: [5, 9, 13]
-      - path: inputs.plate_radial_nodes
-        values: [5, 9, 13]
-      - path: inputs.plate_diff_nodes
-        values: [5, 9, 13]
-
-    # input_files: # won't work yet
-    #   gmsh_geo_file: "/path/to/script.geo"
+    # sequences:
+    #   - path: inputs.hole_sect_nodes # must be odd!
+    #     values: [5, 9, 13]
+    #   - path: inputs.plate_radial_nodes
+    #     values: [5, 9, 13]
+    #   - path: inputs.plate_diff_nodes
+    #     values: [5, 9, 13]

@@ -1,19 +1,14 @@
 import gmsh
 
 
-def run_geo(path):
-
-    print(
-        f"{path=!r}"
-    )  # gmsh_mesh_file (i.e. the input file that should be generated here)
-
-    geo_name = "script.geo"
+def run_geo(gmsh_geo_file):
 
     # Initialize Gmsh
     gmsh.initialize()
 
-    # Run the .geo file (this includes a command to save the mesh file)
-    gmsh.open(geo_name)
+    # Run the .geo file
+    gmsh.open(gmsh_geo_file)
+    gmsh.write("mesh.msh")
 
     # Finalize Gmsh
     gmsh.finalize()
