@@ -1,0 +1,14 @@
+name: temp_python_env
+# Any setup steps e.g. loading a module, activating a virtual environment can go here
+setup: source venv/bin/activate
+# There might be multiple executables in your environment
+# e.g. python, abaqus, etc
+executables:
+  # It's probably a good idea to stick with `python_script` for any python
+  # executables for compatiblility with existing tasks which you
+  # might want to call in your workflow which will expect this label
+  - label: python_script
+    instances:
+      - command: python <<script_name>> <<args>>
+        num_cores: 1
+        parallel_mode: null
