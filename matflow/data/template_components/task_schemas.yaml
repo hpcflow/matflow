@@ -741,28 +741,6 @@
             - path: inputs.calculate_yield_stress
               condition: { value.not_equal_to: null }
 
-- objective: simulation
-  implementation: moose
-  inputs:
-    - parameter: input_deck
-  actions:
-    - environments:
-        - scope:
-            type: processing
-          environment: moose_env
-        - scope:
-            type: main
-          environment: moose_env
-      input_file_generators:
-        - input_file: moose_input_deck
-          from_inputs: [input_deck]
-          script: <<script:moose/write_input.py>>
-      abortable: true
-      commands:
-        - command: <<executable:proteus>> -i input.i
-          stdout: stdout.log
-          stderr: stderr.log
-
 - objective: simulate_VE_loading
   doc: Simulate applying a load case to a volume element. High-concurrency mode.
   implementation: damask_HC # high concurrency

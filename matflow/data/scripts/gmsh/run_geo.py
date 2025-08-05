@@ -1,3 +1,4 @@
+from pathlib import Path
 import gmsh
 
 
@@ -12,3 +13,9 @@ def run_geo(gmsh_geo_file):
 
     # Finalize Gmsh
     gmsh.finalize()
+
+    file = Path("mesh.msh")
+    with file.open("rt") as fh:
+        string = fh.read()
+
+    return {"gmsh_mesh_str": string}
