@@ -50,11 +50,11 @@ template_components:
           default_value: 50e-3 # length of rectangular extension
         - parameter: plate_diff_nodes
           default_value: 5 # number of nodes along the rectangular extension
+      outputs:
+        - parameter: gmsh_mesh_str
       actions:
         - environments:
-            - scope:
-                type: any
-              environment: gmsh_env
+            any: gmsh_env
           input_file_generators:
             - input_file: gmsh_geo_file
               from_inputs:
@@ -72,6 +72,8 @@ template_components:
           script_exe: python_script
           script_data_in:
             input_files.gmsh_geo_file: direct
+          script_data_out:
+            outputs.gmsh_mesh_str: direct
           requires_dir: true
 
 # instead, we need:
