@@ -209,6 +209,33 @@
             type: any
           environment: opendis_env
 
+- objective: exadis_strain_hardening_v2
+  doc: Run DDD strain hardening simulation with ExaDiS for copper parameters.
+  method: Cu
+  inputs:
+    - parameter: exadis_path
+    - parameter: Lbox
+    - parameter: n_sources
+    - parameter: n_nodes_per_source
+    - parameter: strain_rate
+    - parameter: strain_tensor  # xx,yy,zz,yz,xz,xy
+    - parameter: max_strain
+    - parameter: max_step
+    - parameter: print_freq
+    - parameter: write_freq
+    - parameter: seed
+      default_value: null
+  actions:
+    - script: <<script:opendis/full_strain_tensor_loading_v2.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      requires_dir: true
+      environments:
+        - scope:
+            type: any
+          environment: opendis_env
+
 - objective: generate_microstructure_seeds
   doc: Generate seeds for the crystalline microstructure.
   method: from_random
