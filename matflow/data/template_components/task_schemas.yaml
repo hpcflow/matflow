@@ -203,6 +203,7 @@
       script_data_in: direct
       script_data_out: direct
       script_exe: python_script
+      requires_dir: true
       environments:
         - scope:
             type: any
