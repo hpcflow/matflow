@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 import numpy as np
 from pathlib import Path
 
@@ -24,7 +24,13 @@ def full_strain_tensor_loading(
     import pyexadis
     from pyexadis_base import ExaDisNet, DisNetManager, SimulateNetwork
     from pyexadis_base import CalForce, MobilityLaw, TimeIntegration, Collision, Remesh, Topology
-    from pyexadis_utils import insert_frank_read_src, von_mises
+    from pyexadis_utils import von_mises
+
+
+    def von_mises(T):
+        S = np.array(T[[0,5,4,5,1,3,4,3,2]]).reshape(3,3)
+        Sdev = S - np.trace(S)/3.0*np.eye(3)
+        return np.sqrt(3.0/2.0*np.dot(Sdev.ravel(), Sdev.ravel()))
 
 
     class SimulationDriver(SimulateNetwork):
@@ -45,14 +51,14 @@ def full_strain_tensor_loading(
 
                 # get values of plastic strain, plastic spin, and density computed internally in exadis
                 dEp, dWp, state["density"] = N.get_disnet(ExaDisNet).net.get_plastic_strain()
-                dEp = np.array(dEp).ravel()[[0,4,8,5,2,1]] # xx,yy,zz,yz,xz,xy
-                dWp = np.array(dWp).ravel()[[5,2,1]] # yz,xz,xy
+                dEp = np.array(dEp).ravel()[[0,4,8,5,2,1]] # xx,yy,zz,yz,xz,xy - plastic strain tensor (should divide by timestep size to normalise)
+                dWp = np.array(dWp).ravel()[[5,2,1]] # yz,xz,xy - plastic rotation/spin
                 state["dEp"] = dEp
                 state["dWp"] = dWp
 
                 # update strain and stress states based on strain rate tensor
                 dE = self.strain_rate_tensor * state["dt"]  # modify here to allow full load path control
-                dEe = dE - dEp # elastic strain
+                dEe = dE - dEp  # elastic strain
                 dstress = self.LA*np.sum(dEe[0:3])*np.array([1,1,1,0,0,0]) + 2*self.MU*dEe
 
                 # increment stress and strain tensors
@@ -68,6 +74,29 @@ def full_strain_tensor_loading(
                 super().step_update_response(N, state)
 
             return state
+
+        def step_print_info(self, N: DisNetManager, state: dict):
+            """step_print_info: invoked to print info at the end of each step
+            """
+            if self.print_freq != None:
+                if state["istep"] % self.print_freq == 0:
+                    dt = self.timeint.dt if self.timeint else 0.0
+                    Nnodes = N.num_nodes()
+                    elapsed = time.perf_counter()-self.t0
+                    if self.loading_mode == 'strain_rate':
+                        print("step = %d, nodes = %d, dt = %e, strain = %e, elapsed = %.1f sec"%(state["istep"], Nnodes, dt, state["strain"], elapsed))
+                    else:
+                        print("step = %d, nodes = %d, dt = %e, time = %e, elapsed = %.1f sec"%(state["istep"], Nnodes, dt, state["time"], elapsed))
+                    self.results.append([state["istep"], state["strain"], state["stress"], state["density"], self.timeint.dt, elapsed, state["dEp"][0], state["dEp"][1], state["dEp"][2], state["dEp"][3], state["dEp"][4], state["dEp"][5]])
+                    # self.results.append([state["istep"], state["strain"], state["stress"], state["density"], state["dEp"], elapsed])
+
+        def write_results(self):
+            """write_results: write simulation results into a file
+            """
+            if len(self.results) > 0:
+                with open('%s/stress_strain_dens.dat'%self.write_dir, 'w') as f:
+                    f.write('# Step \t Strain \t Stress \t Density \t dt \t Walltime \t plastic_strain_tensor (6-dim)\n')
+                    np.savetxt(f, np.array(self.results), fmt='%d %e %e %e %e %e %e %e %e %e %e %e')
 
 
     pyexadis.initialize()
