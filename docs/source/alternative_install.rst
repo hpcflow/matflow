@@ -69,3 +69,7 @@
     .. raw:: html
 
         {{ download_links_table_html }}
+
+    .. note::
+      
+      These two installation methods (via the shell command above or via manually downloading a binary executable) do not require any system dependencies like Python. However, the Linux versions do require a minimum version of the GNU C library (GLIBC). Currently, this minimum version is 2.28 (dated 2018). To find out which version of GLIBC you have, run ``ldd --version`` on your Linux machine.
