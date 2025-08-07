@@ -1313,14 +1313,14 @@ numpy = ">=1.19.3"
 
 [[package]]
 name = "hpcflow-new2"
-version = "0.2.0a236"
+version = "0.2.0a238"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
 files = [
-    {file = "hpcflow_new2-0.2.0a236-py3-none-any.whl", hash = "sha256:d9d68d2b17332c1af754f59b46288e9fea0e0ca690398a184cc5a7b3aede27ac"},
-    {file = "hpcflow_new2-0.2.0a236.tar.gz", hash = "sha256:51892530830cb558b54e51e458db020b50f5a71716d35d983e5028bf67d1f747"},
+    {file = "hpcflow_new2-0.2.0a238-py3-none-any.whl", hash = "sha256:b03c2aeb611a209773a53b76f4935b9215d8dd35d997c3396df4e6da8071355d"},
+    {file = "hpcflow_new2-0.2.0a238.tar.gz", hash = "sha256:4157794b398079cca914250650f99556f8ca159cb4abb0bac6f6377124212c7f"},
 ]
 
 [package.dependencies]
@@ -1338,7 +1338,7 @@ numpy = [
     {version = ">=1.26.4,<2.0.0", markers = "python_version < \"3.13\""},
     {version = ">=2.2.4,<3.0.0", markers = "python_version >= \"3.13\""},
 ]
-paramiko = ">=3.2.0,<4.0.0"
+paramiko = ">=3.2,<5.0"
 platformdirs = ">=4.2.1,<5.0.0"
 psutil = ">=5.9.4,<8.0.0"
 pyzmq = ">=26.0.3,<28.0.0"
@@ -4895,4 +4895,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "3c6095c8add9bb0265278cd2fe478d1063ef3f8926fb971fbd95f38e3d0160c3"
+content-hash = "3ea5a3c16989776330d3a246c03deac024378cbcd7cab3e96aa85410cf8d6053"
