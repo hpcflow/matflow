@@ -8,11 +8,9 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
-    reprTypes = {'quaternion', 'euler'};
     reprQuatOrders = {'scalar-vector', 'vector-scalar'};
 
     align = h5readatt(inputs_HDF5_path, '/orientations', 'unit_cell_alignment');
-    reprTypeInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_type');
     reprQuatOrderInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_quat_order');
 
     alignment = { ...
@@ -21,14 +19,11 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
                      sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
                  };
     crystalSym = crystalSymmetry(crystalSym, alignment{:});
-    oriType = reprTypes{reprTypeInt + 1};
     oriQuatOrder = reprQuatOrders{reprQuatOrderInt + 1};
 
-    millerDirs = Miller(num2cell(poleFigureDirections(1, :)), crystalSym);
-
-    for i = 2:size(poleFigureDirections, 1)
-        newMillerDir = Miller(num2cell(poleFigureDirections(i, :)), crystalSym);
-        millerDirs = [millerDirs, newMillerDir];
+    millerDirs = cell(size(poleFigureDirections, 1));
+    for i = 1:size(poleFigureDirections, 1)
+        millerDirs{i} = Miller(num2cell(poleFigureDirections(i, :)), crystalSym);
     end
 
     data = h5read(inputs_HDF5_path, '/orientations/data');
@@ -60,9 +55,6 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             millerDirs, ...
             'property', oriColors ...
         );
-        newMtexFigure('layout', [1, 1], 'visible', 'off');
-        plot(ipfKey);
-        saveFigure('IPF_key.png');
     end
 
     if ~isempty(allOpts.colourbar_limits)
@@ -123,6 +115,12 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
     
     saveFigure('pole_figure.png');
+
+    if ~useContours
+        newMtexFigure('layout', [1, 1], 'visible', 'off');
+        plot(ipfKey);
+        saveFigure('IPF_key.png');
+    end
 
     close all;
 
