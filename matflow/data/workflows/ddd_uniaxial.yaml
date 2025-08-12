@@ -1,0 +1,14 @@
+tasks:
+  - schema: exadis_uniaxial_Cu
+    repeats: 2
+    inputs:
+      exadis_path: "/Users/michaelwhite/Documents/software/OpenDiS/core/exadis/python"
+      Lbox: 1000.0
+      n_sources: 200
+      n_nodes_per_source: 10
+      strain_rate: 1e3
+      strain_dir: [0., 0., 1.]
+      max_strain: 2e-5
+      max_step: 100_000
+      print_freq: 1
+      write_freq: 1
