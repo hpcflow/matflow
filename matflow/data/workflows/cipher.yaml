@@ -83,11 +83,6 @@ template_components:
                 - delete_VTUs
               script: <<script:cipher/parse_cipher_outputs.py>>
 
-resources:
-  any:
-    shell_args:
-      executable: pwsh.exe # required to get stdout/stderr redirects from docker command in a sensible encoding
-
 tasks:
   - schema: generate_phase_field_input_from_random_voronoi
     inputs:
