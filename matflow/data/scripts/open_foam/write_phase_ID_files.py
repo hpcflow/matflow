@@ -62,8 +62,10 @@ def write_phase_ID_files(path, volume_element):
     root_dir = path.parent
     print(f"{root_dir=!r}")
 
-    # TODO: check flatten order (row-major, col-major)!
-    micro_flat = volume_element["element_material_idx"][:].flatten()
+    # TODO: double check this: 	Ordering is determined by mesh indexing. For a 
+	# a single-hexa block with (nx, ny, nz) cells, the default enumeration is x->y->z
+    # corresponding to column-major.
+    micro_flat = volume_element["element_material_idx"][:].flatten(order='F')
 
     uniq_IDs = np.unique(micro_flat)
     print(uniq_IDs)
