@@ -115,7 +115,7 @@ def write_block_mesh_file(path, volume_element, VE_origin, boundary):
             )
         )
 
-    with Path("blockMeshDict.c").open("wt") as fp:
+    with path.open("wt") as fp:
         fp.write(
             TEMPLATE.format(
                 box_vertices=indent("\n".join(box_verts), INDENT),
