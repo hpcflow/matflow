@@ -17,7 +17,7 @@ def generate_phase_field_input_from_random_voronoi(
     solution_parameters,
     random_seed,
     is_periodic,
-    combine_phases=None,
+    combine_phases,
 ):
     # initialise `MaterialDefinition`, `InterfaceDefinition` and
     # `PhaseTypeDefinition` objects:

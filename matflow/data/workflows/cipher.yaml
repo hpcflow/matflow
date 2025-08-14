@@ -25,6 +25,8 @@ template_components:
           default_value: null
         - parameter: is_periodic
           default_value: false
+        - parameter: combine_phases
+          default_value: null  
       outputs:
         - parameter: phase_field_input
       actions:
