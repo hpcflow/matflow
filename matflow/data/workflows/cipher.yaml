@@ -38,6 +38,38 @@ template_components:
             - scope: { type: any }
               environment: cipher_processing_env
 
+    - objective: generate_phase_field_input
+      method: from_random_voronoi_with_orientations
+      inputs:
+        - parameter: materials
+        - parameter: interfaces
+        - parameter: num_phases
+        - parameter: grid_size
+        - parameter: size
+        - parameter: components
+        - parameter: outputs
+        - parameter: solution_parameters
+        - parameter: random_seed
+          default_value: null
+        - parameter: is_periodic
+          default_value: false
+        - parameter: orientations
+        - parameter: interface_binning
+          default_value: null
+          # A dict that, if not None, is passed as keyword arguments to 
+          # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+        - parameter: combine_phases
+          default_value: null
+      outputs:
+        - parameter: phase_field_input
+      actions:
+        - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations.py>>
+          script_exe: python_script
+          script_data_in: direct
+          script_data_out: direct
+          environments:
+            - scope: { type: any }
+              environment: cipher_processing_env
     - objective: simulate_grain_growth
       inputs:
         - parameter: phase_field_input
