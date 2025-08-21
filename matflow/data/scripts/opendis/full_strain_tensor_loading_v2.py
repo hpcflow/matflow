@@ -99,10 +99,10 @@ def full_strain_tensor_loading_v2(
                     np.savetxt(f, np.array(self.results), fmt='%d %e %e %e %e %e %e %e %e %e %e %e')
 
 
-    pyexadis.initialize()
-
     if seed:
         np.random.default_rng(seed)
+
+    pyexadis.initialize()
 
     state = {
         "crystal": 'fcc',

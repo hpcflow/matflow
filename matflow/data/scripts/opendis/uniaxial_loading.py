@@ -5,6 +5,8 @@ import numpy as np
 def uniaxial_loading(
         exadis_path: str,
         Lbox: float,
+        maxseg: float,
+        minseg: float,
         n_sources: int,
         n_nodes_per_source: int,
         strain_rate: float,
