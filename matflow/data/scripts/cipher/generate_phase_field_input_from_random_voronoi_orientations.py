@@ -6,7 +6,7 @@ from cipher_parse import (
 )
 
 
-def generate_phase_field_input_from_random_voronoi(
+def generate_phase_field_input_from_random_voronoi_orientations(
     materials,
     interfaces,
     num_phases,
