@@ -26,7 +26,7 @@ template_components:
         - parameter: is_periodic
           default_value: false
         - parameter: combine_phases
-          default_value: null  
+          default_value: null
       outputs:
         - parameter: phase_field_input
       actions:
@@ -96,6 +96,37 @@ template_components:
         - parameter: phase_field_input
       actions:
         - script: <<script:cipher/generate_phase_field_input_from_volume_element.py>>
+          script_exe: python_script
+          script_data_in: direct
+          script_data_out: direct
+          environments:
+            - scope: { type: any }
+              environment: cipher_processing_env
+
+    - objective: generate_phase_field_input
+      method: from_random_voronoi_with_orientations_gradient
+      inputs:
+      - parameter: materials
+      - parameter: interfaces
+      - parameter: num_phases
+      - parameter: grid_size
+      - parameter: size
+      - parameter: components
+      - parameter: outputs
+      - parameter: solution_parameters
+      - parameter: orientation_gradient
+      - parameter: random_seed
+      - parameter: is_periodic
+      - parameter: interface_binning
+        default_value: null
+        # A dict that, if not None, is passed as keyword arguments to
+          # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+      - parameter: combine_phases
+        default_value: null
+      outputs:
+        - parameter: phase_field_input
+      actions:
+        - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations_gradient.py>>
           script_exe: python_script
           script_data_in: direct
           script_data_out: direct
