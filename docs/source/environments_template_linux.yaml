@@ -105,3 +105,21 @@
     - command: python "<<script_path>>" <<args>>
       num_cores: 1
       parallel_mode: null
+
+- name: cipher_env
+  executables:
+    - label: cipher
+      instances:
+        - command: /full/path/to/cipher/bin/cipher.exe --config cipher_input.yaml
+          num_cores: 1
+          parallel_mode: null
+
+- name: cipher_processing_env
+  setup: |
+    source /full/path/to/.venv/bin/activate
+  executables:
+    - label: python_script
+      instances:
+        - command: python "<<script_path>>" <<args>>
+          num_cores: 1
+          parallel_mode: null
