@@ -83,47 +83,41 @@ tasks:
 
   - schema: visualise_VE_VTK
 
-# TODO
-  - name: generate_phase_field_input
-    method: from_volume_element
-    software: cipher
-    run_options:
-      l: short
-      num_cores: 2
-    base:
+  - schema: generate_phase_field_input_from_volume_element
+    inputs:
       materials:
-        - name: sub-grain-matrix
-          properties:
-            chemicalenergy: none
-            molarvolume: 1e-5
-            temperature0: 500.0
-        - name: nuclei
-          properties:
-            chemicalenergy: none
-            molarvolume: 1e-5
-            temperature0: 500.0
+      - name: sub-grain-matrix
+        properties:
+          chemicalenergy: none
+          molarvolume: 1e-5
+          temperature0: 500.0
+      - name: nuclei
+        properties:
+          chemicalenergy: none
+          molarvolume: 1e-5
+          temperature0: 500.0
       interfaces:
-        - materials: [sub-grain-matrix, sub-grain-matrix]
-          properties:
-            width: 4.0
-            energy:
-              e0: 1.0e+8
-            mobility:
-              m0: 3.333e-11
-        - materials: [nuclei, nuclei]
-          properties:
-            width: 4.0
-            energy:
-              e0: 1.0e+8
-            mobility:
-              m0: 10.0e-11
-        - materials: [sub-grain-matrix, nuclei]
-          properties:
-            width: 4.0
-            energy:
-              e0: 2.0e+8
-            mobility:
-              m0: 10.0e-11
+      - materials: [sub-grain-matrix, sub-grain-matrix]
+        properties:
+          width: 4.0
+          energy:
+            e0: 1.0e+8
+          mobility:
+            m0: 3.333e-11
+      - materials: [nuclei, nuclei]
+        properties:
+          width: 4.0
+          energy:
+            e0: 1.0e+8
+          mobility:
+            m0: 10.0e-11
+      - materials: [sub-grain-matrix, nuclei]
+        properties:
+          width: 4.0
+          energy:
+            e0: 2.0e+8
+          mobility:
+            m0: 10.0e-11
       components: [ti]
       outputs: [phaseid, matid, interfaceid, 0_phi]
       solution_parameters:
@@ -150,25 +144,22 @@ tasks:
         # n: 1 # mobility parameter
         # B: 5 # mobility parameter
 
-# TODO
   - name: simulate_grain_growth
-    method: phase_field
-    software: cipher
-    base:
+    inputs:
       num_VTU_files: 4
       derive_outputs:
-        - name: num_voxels_per_phase
+      - name: num_voxels_per_phase
       save_outputs:
-        - name: phaseid
-          time_interval: 5_000
-        - name: matid
-          number: 4
-        - name: interfaceid
-          number: 4
-        - name: 0_phi
-          number: 4
-        - name: num_voxels_per_phase
-          time_interval: 5_000
+      - name: phaseid
+        time_interval: 5_000
+      - name: matid
+        number: 4
+      - name: interfaceid
+        number: 4
+      - name: 0_phi
+        number: 4
+      - name: num_voxels_per_phase
+        time_interval: 5_000
       delete_VTUs: true
     run_options:
       num_cores: 8
