@@ -1,17 +1,8 @@
-name: grain_growth_from_VE_dream3D_nucleus_with_MTEX_texture_binned
-run_options:
-  l: short
-
-archive: dropbox
-
 tasks:
 
     # rotated cube texture for the sub-grain matrix:
-  - name: sample_texture
-    method: from_model_ODF
-    software: mtex
-    context: phase_1
-    base:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
       num_orientations: 1000
       crystal_symmetry: cubic
       specimen_symmetry: orthorhombic
@@ -21,13 +12,18 @@ tasks:
           modal_orientation_HKL: [0, 0, 1]
           modal_orientation_UVW: [1, 1, 0]
           halfwidth: 3
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false
 
   # within gamma-fibre for the nucleus:
-  - name: sample_texture
-    method: from_model_ODF
-    software: mtex
-    context: phase_2
-    base:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
       num_orientations: 100
       crystal_symmetry: cubic
       specimen_symmetry: orthorhombic
@@ -37,12 +33,8 @@ tasks:
           modal_orientation_HKL: [1, 1, 1]
           modal_orientation_UVW: [1, 1, 2]
           halfwidth: 3
-
-  - name: visualise_orientations
-    method: pole_figure
-    software: mtex
-    context: phase_1
-    base:
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
       crystal_symmetry: cubic
       pole_figure_directions:
         - [0, 0, 1]
@@ -50,18 +42,7 @@ tasks:
         - [1, 1, 1]
       use_contours: false
 
-  - name: visualise_orientations
-    method: pole_figure
-    software: mtex
-    context: phase_2
-    base:
-      crystal_symmetry: cubic
-      pole_figure_directions:
-        - [0, 0, 1]
-        - [1, 0, 1]
-        - [1, 1, 1]
-      use_contours: false
-
+# Not yet implemented in matflow-new!
   - name: generate_volume_element
     method: from_statistics_dual_phase_orientations
     software: Dream3D
@@ -100,10 +81,9 @@ tasks:
           minor_semi_axis_length: 45
           euler_angle: [0, 0, 0]
 
-  - name: visualise_volume_element
-    method: VTK
-    software: damask
+  - schema: visualise_VE_VTK
 
+# TODO
   - name: generate_phase_field_input
     method: from_volume_element
     software: cipher
@@ -170,6 +150,7 @@ tasks:
         # n: 1 # mobility parameter
         # B: 5 # mobility parameter
 
+# TODO
   - name: simulate_grain_growth
     method: phase_field
     software: cipher
