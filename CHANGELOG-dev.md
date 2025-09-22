@@ -1,4 +1,58 @@
 
+<a name="v0.3.0a183"></a>
+## [v0.3.0a183](https://github.com/hpcflow/matflow-new/compare/v0.3.0a182...v0.3.0a183) - 2025.09.22
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* add builtin jinja templates to pyinstaller hook
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a182"></a>
+## [v0.3.0a182](https://github.com/hpcflow/matflow-new/compare/v0.3.0a181...v0.3.0a182) - 2025.08.12
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a181"></a>
+## [v0.3.0a181](https://github.com/hpcflow/matflow-new/compare/v0.3.0a180...v0.3.0a181) - 2025.08.07
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a180"></a>
+## [v0.3.0a180](https://github.com/hpcflow/matflow-new/compare/v0.3.0a179...v0.3.0a180) - 2025.08.07
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a179"></a>
 ## [v0.3.0a179](https://github.com/hpcflow/matflow-new/compare/v0.3.0a178...v0.3.0a179) - 2025.08.01
 

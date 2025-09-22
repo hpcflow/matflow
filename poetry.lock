@@ -1313,14 +1313,14 @@ numpy = ">=1.19.3"
 
 [[package]]
 name = "hpcflow-new2"
-version = "0.2.0a236"
+version = "0.2.0a246"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
 files = [
-    {file = "hpcflow_new2-0.2.0a236-py3-none-any.whl", hash = "sha256:d9d68d2b17332c1af754f59b46288e9fea0e0ca690398a184cc5a7b3aede27ac"},
-    {file = "hpcflow_new2-0.2.0a236.tar.gz", hash = "sha256:51892530830cb558b54e51e458db020b50f5a71716d35d983e5028bf67d1f747"},
+    {file = "hpcflow_new2-0.2.0a246-py3-none-any.whl", hash = "sha256:8a1ed96371ec713a90653ac750285f9062ae410c8888d024b2461c9d3667449b"},
+    {file = "hpcflow_new2-0.2.0a246.tar.gz", hash = "sha256:55a2f6a1b8de1857f10d5b0e6e2ef6d15465e17cea52ae2af21c9a94a09921a7"},
 ]
 
 [package.dependencies]
@@ -1329,6 +1329,7 @@ click = ">=8.1.3,<9.0.0"
 colorama = ">=0.4.6,<0.5.0"
 fsspec = ">=2025.3.2,<2026.0.0"
 h5py = ">=3.9.0,<4.0.0"
+jinja2 = ">=3.1.6,<4.0.0"
 msgpack = ">=1.0.4,<2.0.0"
 numcodecs = [
     {version = "0.12.1", markers = "python_version < \"3.13\""},
@@ -1338,7 +1339,7 @@ numpy = [
     {version = ">=1.26.4,<2.0.0", markers = "python_version < \"3.13\""},
     {version = ">=2.2.4,<3.0.0", markers = "python_version >= \"3.13\""},
 ]
-paramiko = ">=3.2.0,<4.0.0"
+paramiko = ">=3.2,<5.0"
 platformdirs = ">=4.2.1,<5.0.0"
 psutil = ">=5.9.4,<8.0.0"
 pyzmq = ">=26.0.3,<28.0.0"
@@ -1575,7 +1576,7 @@ version = "3.1.6"
 description = "A very fast and expressive template engine."
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"},
     {file = "jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"},
@@ -1915,7 +1916,7 @@ version = "3.0.2"
 description = "Safely add untrusted strings to HTML/XML markup."
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "MarkupSafe-3.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7e94c425039cde14257288fd61dcfb01963e658efbc0ff54f5306b06054700f8"},
     {file = "MarkupSafe-3.0.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:9e2d922824181480953426608b81967de705c3cef4d1af983af849d7bd619158"},
@@ -4895,4 +4896,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "3c6095c8add9bb0265278cd2fe478d1063ef3f8926fb971fbd95f38e3d0160c3"
+content-hash = "0c74c430f2c18f7cd822f01a33d5167628a80123a50f6cac968b405ee317c939"
