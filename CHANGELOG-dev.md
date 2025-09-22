@@ -1,4 +1,24 @@
 
+<a name="v0.3.0a183"></a>
+## [v0.3.0a183](https://github.com/hpcflow/matflow-new/compare/v0.3.0a182...v0.3.0a183) - 2025.09.22
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* add builtin jinja templates to pyinstaller hook
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a182"></a>
 ## [v0.3.0a182](https://github.com/hpcflow/matflow-new/compare/v0.3.0a181...v0.3.0a182) - 2025.08.12
 
