@@ -43,43 +43,43 @@ tasks:
       use_contours: false
 
 # Not yet implemented in matflow-new!
-  - name: generate_volume_element
-    method: from_statistics_dual_phase_orientations
-    software: Dream3D
-    base:
-      grid_size: [512, 512, 1]
-      resolution: [1, 1, 1] # side length is 512
-      periodic: false
-      phase_statistics:
-        - type: primary
-          name: sub-grain-matrix
-          crystal_structure: cubic
-          volume_fraction: 1.0
-          size_distribution:
-            ESD_mean: 10
-            ESD_log_stddev: 0.03
-            num_bins: 15
-        - type: precipitate
-          name: nuclei
-          crystal_structure: cubic
-          volume_fraction: 0.0
-          size_distribution:
-            ESD_mean: 2
-            ESD_log_stddev: 0.1
-            num_bins: 15
-          number_fraction_on_boundary: 1
-          radial_distribution_function:
-            min_distance: 10
-            max_distance: 80
-            num_bins: 50
-            box_size: [100, 100, 100]
-      precipitates:
-        - phase_number: 2
-          position: [256, 256, 0.5]
-          major_semi_axis_length: 45
-          mid_semi_axis_length: 45
-          minor_semi_axis_length: 45
-          euler_angle: [0, 0, 0]
+  # - name: generate_volume_element
+  #   method: from_statistics_dual_phase_orientations
+  #   software: Dream3D
+  #   base:
+  #     grid_size: [512, 512, 1]
+  #     resolution: [1, 1, 1] # side length is 512
+  #     periodic: false
+  #     phase_statistics:
+  #       - type: primary
+  #         name: sub-grain-matrix
+  #         crystal_structure: cubic
+  #         volume_fraction: 1.0
+  #         size_distribution:
+  #           ESD_mean: 10
+  #           ESD_log_stddev: 0.03
+  #           num_bins: 15
+  #       - type: precipitate
+  #         name: nuclei
+  #         crystal_structure: cubic
+  #         volume_fraction: 0.0
+  #         size_distribution:
+  #           ESD_mean: 2
+  #           ESD_log_stddev: 0.1
+  #           num_bins: 15
+  #         number_fraction_on_boundary: 1
+  #         radial_distribution_function:
+  #           min_distance: 10
+  #           max_distance: 80
+  #           num_bins: 50
+  #           box_size: [100, 100, 100]
+  #     precipitates:
+  #       - phase_number: 2
+  #         position: [256, 256, 0.5]
+  #         major_semi_axis_length: 45
+  #         mid_semi_axis_length: 45
+  #         minor_semi_axis_length: 45
+  #         euler_angle: [0, 0, 0]
 
   - schema: visualise_VE_VTK
 
@@ -144,7 +144,7 @@ tasks:
         # n: 1 # mobility parameter
         # B: 5 # mobility parameter
 
-  - name: simulate_grain_growth
+  - schema: simulate_grain_growth
     inputs:
       num_VTU_files: 4
       derive_outputs:
@@ -161,5 +161,3 @@ tasks:
       - name: num_voxels_per_phase
         time_interval: 5_000
       delete_VTUs: true
-    run_options:
-      num_cores: 8
