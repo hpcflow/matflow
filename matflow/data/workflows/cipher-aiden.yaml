@@ -1,5 +1,18 @@
-tasks:
+template_components:
+  task_schemas:
+    - objective: test_dual_oris
+      inputs:
+        - parameter: orientations
+          multiple: true
+          labels:
+            phase_1: {}
+            phase_2: {}
 
+      # when running a script, the `orientations` input parameter will be a dict with two
+      # keys: `phase_1` and `phase_2`;the two orientations can be accessed
+      # see the scripts/formable/fit_yield_function.py for an example!
+
+tasks:
     # rotated cube texture for the sub-grain matrix:
   - schema: sample_texture_from_model_ODF_mtex
     inputs:
@@ -41,6 +54,11 @@ tasks:
         - [1, 0, 1]
         - [1, 1, 1]
       use_contours: false
+
+  - schema: test_dual_oris
+    input_sources:
+      orientations[phase_1]: task.sample_texture_from_model_ODF_mtex_1
+      orientations[phase_2]: task.sample_texture_from_model_ODF_mtex_2
 
 # Not yet implemented in matflow-new!
   # - name: generate_volume_element
