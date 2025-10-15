@@ -69,3 +69,13 @@
   name:
     name: pipeline.xdmf
   doc: DREAM.3D model data and metadata.
+
+- label: cipher_input_file
+  name:
+    name: cipher_input.yaml
+  doc: Main input file for CIPHER.
+
+- label: cipher_VTU_files
+  name:
+    is_regex: true
+    name: out_\d+\.vtu

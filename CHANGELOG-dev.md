@@ -1,4 +1,73 @@
 
+<a name="v0.3.0a181"></a>
+## [v0.3.0a181](https://github.com/hpcflow/matflow-new/compare/v0.3.0a180...v0.3.0a181) - 2025.08.07
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a180"></a>
+## [v0.3.0a180](https://github.com/hpcflow/matflow-new/compare/v0.3.0a179...v0.3.0a180) - 2025.08.07
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a179"></a>
+## [v0.3.0a179](https://github.com/hpcflow/matflow-new/compare/v0.3.0a178...v0.3.0a179) - 2025.08.01
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a178"></a>
+## [v0.3.0a178](https://github.com/hpcflow/matflow-new/compare/v0.3.0a177...v0.3.0a178) - 2025.07.14
+
+### ♻ Code Refactoring
+
+* ensure both `target_def_grad_(rate)` and `strain_(rate)` are populated in `LoadStep.uniaxial`
+
+### ✨ Features
+
+* add `target_strain` and `target_strain_rate` args to `LoadStep.unaxial` for convenience
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a177"></a>
+## [v0.3.0a177](https://github.com/hpcflow/matflow-new/compare/v0.3.0a176...v0.3.0a177) - 2025.07.14
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a176"></a>
 ## [v0.3.0a176](https://github.com/hpcflow/matflow-new/compare/v0.3.0a175...v0.3.0a176) - 2025.06.23
 

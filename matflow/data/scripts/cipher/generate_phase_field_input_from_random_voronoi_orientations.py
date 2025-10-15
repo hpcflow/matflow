@@ -6,7 +6,7 @@ from cipher_parse import (
 )
 
 
-def generate_phase_field_input_from_random_voronoi(
+def generate_phase_field_input_from_random_voronoi_orientations(
     materials,
     interfaces,
     num_phases,
@@ -17,16 +17,27 @@ def generate_phase_field_input_from_random_voronoi(
     solution_parameters,
     random_seed,
     is_periodic,
+    orientations,
+    interface_binning,
     combine_phases,
 ):
+    quats = orientations["quaternions"]
+
     # initialise `MaterialDefinition`, `InterfaceDefinition` and
     # `PhaseTypeDefinition` objects:
     mats = []
-    for mat_i in materials:
+    for mat_idx, mat_i in enumerate(materials):
         if "phase_types" in mat_i:
             mat_i["phase_types"] = [
                 PhaseTypeDefinition(**j) for j in mat_i["phase_types"]
             ]
+        else:
+            mat_i["phase_types"] = [PhaseTypeDefinition()]
+
+        if mat_idx == 0:
+            # add oris to the first defined phase type of the first material:
+            mat_i["phase_types"][0].orientations = quats
+
         mat_i = MaterialDefinition(**mat_i)
         mats.append(mat_i)
 
@@ -45,6 +56,10 @@ def generate_phase_field_input_from_random_voronoi(
         is_periodic=is_periodic,
         combine_phases=combine_phases,
     )
+
+    if interface_binning:
+        inp.bin_interfaces_by_misorientation_angle(**interface_binning)
+
     phase_field_input = inp.to_JSON(keep_arrays=True)
 
     return {"phase_field_input": phase_field_input}
