@@ -1209,6 +1209,62 @@
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
 
 - objective: generate_volume_element
+  method: from_statistics_dual_phase_orientations
+  implementation: Dream3D
+  inputs:
+  - parameter: grid_size
+  - parameter: resolution # Define either resolution or size as task input
+    default_value: null
+  - parameter: size # Define either resolution or size as task input
+    default_value: null
+  - parameter: origin
+    default_value: null
+  - parameter: periodic
+    default_value: true
+  - parameter: orientations
+    multiple: true
+    labels:
+      phase_1: {}
+      phase_2: {}
+  - parameter: phase_statistics
+  - parameter: precipitates
+    default_value: null
+  - parameter: RNG_seed
+  outputs:
+  - parameter: volume_element
+  actions:
+  - environments:
+    - scope: any
+      environment: dream_3D_env
+    input_file_generators:
+    - input_file: precipitates_file
+      from_inputs: [precipitates]
+      script: <<script:cipher/write_precipitates_file.py>>
+    - input_file: dream_3D_pipeline
+      from_inputs:
+      - grid_size
+      - resolution
+      - size
+      - origin
+      - periodic
+      - phase_statistics
+      - precipitates
+      script: <<script:cipher/write_dream_3D_pipeline.py>>
+    commands:
+    - command: dream_3D_runner --pipeline ${PWD}/pipeline.json
+    output_file_parsers:
+      volume_element:
+        from_files:
+        - dream_3D_hdf5_file
+        script: <<script:cipher/parse_dream_3D_volume_element_from_stats.py>>
+        inputs:
+        - phase_statistics
+        - orientations
+        - RNG_seed
+
+
+
+- objective: generate_volume_element
   doc: Generate a volume element by extrusion of a 2D model.
   method: extrusion
   inputs:

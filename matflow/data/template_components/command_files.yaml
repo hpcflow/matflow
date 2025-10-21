@@ -79,3 +79,7 @@
   name:
     is_regex: true
     name: out_\d+\.vtu
+
+- label: precipitates_file
+  name:
+    name: precipitates.txt
