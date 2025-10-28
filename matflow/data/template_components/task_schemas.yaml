@@ -668,6 +668,8 @@
       default_value: null
     - parameter: remove_damask_hdf5
       default_value: false
+    - parameter: initial_conditions
+      default_value: null
   outputs:
     - parameter: damask_log
     - parameter: damask_post_processing_result
@@ -684,7 +686,7 @@
           environment: damask_env
       input_file_generators:
         - input_file: damask_geom_file
-          from_inputs: [volume_element]
+          from_inputs: [volume_element, initial_conditions]
           script: <<script:damask/write_geom.py>>
         - input_file: damask_load_file
           from_inputs: [load_case, damask_solver]
