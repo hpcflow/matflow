@@ -1249,9 +1249,9 @@
       - periodic
       - phase_statistics
       - precipitates
-      script: <<script:cipher/write_dream_3D_pipeline.py>>
+      script: <<script:cipher/generate_RVE_from_statistics_dual_phase_pipeline_writer.py>>
     commands:
-    - command: dream_3D_runner --pipeline ${PWD}/pipeline.json
+    - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
     output_file_parsers:
       volume_element:
         from_files:
@@ -2016,7 +2016,9 @@
   - parameter: materials
   - parameter: interfaces
   - parameter: phase_type_map
+    default_value: null
   - parameter: size
+    default_value: null
   - parameter: components
   - parameter: outputs
   - parameter: solution_parameters

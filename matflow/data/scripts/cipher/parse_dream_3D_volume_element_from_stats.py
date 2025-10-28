@@ -6,7 +6,7 @@ from damask_parse.utils import validate_orientations, validate_volume_element
 
 
 def parse_dream_3D_volume_element_from_stats(
-    path,
+    dream_3D_hdf5_file,
     phase_statistics,
     orientations,
     RNG_seed,
@@ -19,7 +19,7 @@ def parse_dream_3D_volume_element_from_stats(
     print(f"ori phase 1: {orientations_phase_1}")
     print(f"ori phase 2: {orientations_phase_2}")
 
-    with h5py.File(path, mode="r") as fh:
+    with h5py.File(dream_3D_hdf5_file, mode="r") as fh:
         synth_vol = fh["DataContainers"]["SyntheticVolumeDataContainer"]
         grid_size = synth_vol["_SIMPL_GEOMETRY"]["DIMENSIONS"][()]
         resolution = synth_vol["_SIMPL_GEOMETRY"]["SPACING"][()]

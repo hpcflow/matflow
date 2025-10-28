@@ -711,7 +711,7 @@ def generate_RVE_from_statistics_pipeline_writer(
         stats_data_array.update({str(idx): i})
 
     if precipitates:
-        precip_inp_file = str(Path(path).parent.joinpath("precipitates.txt"))
+        precip_inp_file = str(Path.cwd().joinpath("precipitates.txt"))
     else:
         precip_inp_file = ""
 

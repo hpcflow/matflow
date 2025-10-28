@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def write_precipitate_file(path, precipitates):
+def write_precipitates_file(path, precipitates):
     if precipitates:
         with Path(path).open("wt") as fp:
             fp.write(str(len(precipitates)) + "\n")
