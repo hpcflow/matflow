@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a185"></a>
+## [v0.3.0a185](https://github.com/hpcflow/matflow-new/compare/v0.3.0a184...v0.3.0a185) - 2025.10.28
+
+### ✨ Features
+
+* add support for specifying DAMASK `initial_conditions`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a184"></a>
 ## [v0.3.0a184](https://github.com/hpcflow/matflow-new/compare/v0.3.0a183...v0.3.0a184) - 2025.10.28
 
