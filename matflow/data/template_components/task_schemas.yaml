@@ -1254,8 +1254,7 @@
     - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
     output_file_parsers:
       volume_element:
-        from_files:
-        - dream_3D_hdf5_file
+        from_files: [dream_3D_hdf5_file]
         script: <<script:cipher/parse_dream_3D_volume_element_from_stats.py>>
         inputs:
         - phase_statistics
