@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from damask_parse.utils import validate_orientations
 from damask_parse.quats import axang2quat, multiply_quaternions
+from matflow.param_classes.orientations import Orientations
 
 
 def generate_RVE_from_statistics_dual_phase_pipeline_writer(
@@ -467,8 +468,10 @@ def generate_RVE_from_statistics_pipeline_writer(
                     np.array(preset_eulers),
                     degrees=True,
                 )
-
-            oris = validate_orientations(ODF["orientations"])  # now as quaternions
+            old_format_orientations = _convert_orientations_to_old_matflow_format(
+                ODF["orientations"]
+            )
+            oris = validate_orientations(old_format_orientations)  # now as quaternions
 
             # Convert unit-cell alignment to x//a, as used by Dream.3D:
             if phase_i_CS == "hexagonal":
@@ -1200,3 +1203,40 @@ def generate_neighbour_dist_from_preset(num_bins, preset_type):
         sigmas.append(sigma)
 
     return {"average": mus, "stddev": sigmas}
+
+
+# This code is copied from dream3D/generate_volume_element_statistics.py
+def _convert_orientations_to_old_matflow_format(orientations: Orientations):
+    # see `LatticeDirection` enum:
+    align_lookup = {
+        "A": "a",
+        "B": "b",
+        "C": "c",
+        "A_STAR": "a*",
+        "B_STAR": "b*",
+        "C_STAR": "c*",
+    }
+    unit_cell_alignment = {
+        "x": align_lookup[orientations.unit_cell_alignment.x.name],
+        "y": align_lookup[orientations.unit_cell_alignment.y.name],
+        "z": align_lookup[orientations.unit_cell_alignment.z.name],
+    }
+    type_lookup = {
+        "QUATERNION": "quat",
+        "EULER": "euler",
+    }
+    type_ = type_lookup[orientations.representation.type.name]
+    oris = {
+        "type": type_,
+        "unit_cell_alignment": unit_cell_alignment,
+    }
+
+    if type_ == "quat":
+        quat_order = orientations.representation.quat_order.name.lower().replace("_", "-")
+        oris["quaternions"] = np.array(orientations.data)
+        oris["quat_component_ordering"] = quat_order
+    elif type_ == "euler":
+        oris["euler_angles"] = np.array(orientations.data)
+        oris["euler_degrees"] = orientations.representation.euler_is_degrees
+
+    return oris
