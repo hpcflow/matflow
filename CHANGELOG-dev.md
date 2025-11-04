@@ -1,4 +1,21 @@
 
+<a name="v0.3.0a187"></a>
+## [v0.3.0a187](https://github.com/hpcflow/matflow-new/compare/v0.3.0a186...v0.3.0a187) - 2025.11.04
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* to reflect changes in default input sources behaviour in hpcflow
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into fix/default-inp-sources
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a186"></a>
 ## [v0.3.0a186](https://github.com/hpcflow/matflow-new/compare/v0.3.0a185...v0.3.0a186) - 2025.10.29
 
