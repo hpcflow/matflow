@@ -1528,7 +1528,6 @@
 
 - objective: evaluate_yield_stress_limit_state
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: threshold_yield_stress
     - parameter: yield_stress
   outputs:
@@ -1825,7 +1824,6 @@
 
 - objective: evaluate_limit_state_normal_sum
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: sum_y
     - parameter: target_pf
     - parameter: dimension
