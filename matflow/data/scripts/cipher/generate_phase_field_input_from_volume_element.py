@@ -74,6 +74,7 @@ def _volume_element_to_cipher_geometry(
     uq, inv = np.unique(volume_element["constituent_phase_label"], return_inverse=True)
     cipher_phases = {i: np.where(inv == idx)[0] for idx, i in enumerate(uq)}
     orientations = volume_element["orientations"]["quaternions"]
+    orientations = np.array(orientations)
 
     # we need P=-1, because that's what DAMASK Rotation object assumes, which
     # we use when/if finding the disorientations for the
