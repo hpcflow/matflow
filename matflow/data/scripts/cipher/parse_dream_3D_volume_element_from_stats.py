@@ -3,6 +3,7 @@ import copy
 import numpy as np
 
 from damask_parse.utils import validate_orientations, validate_volume_element
+from matflow.param_classes.orientations import Orientations
 
 
 def parse_dream_3D_volume_element_from_stats(
@@ -36,9 +37,15 @@ def parse_dream_3D_volume_element_from_stats(
         constituent_phase_label = np.array(
             [phase_names[i][0].decode() for i in constituent_phase_idx]
         )
+    old_format_orientations_phase_1 = _convert_orientations_to_old_matflow_format(
+        orientations_phase_1
+    )
+    old_format_orientations_phase_2 = _convert_orientations_to_old_matflow_format(
+        orientations_phase_2
+    )
 
-    ori_1 = validate_orientations(orientations_phase_1)
-    ori_2 = validate_orientations(orientations_phase_2)
+    ori_1 = validate_orientations(old_format_orientations_phase_1)
+    ori_2 = validate_orientations(old_format_orientations_phase_2)
     oris = copy.deepcopy(ori_1)  # combined orientations
 
     phase_labels = [i["name"] for i in phase_statistics]
@@ -102,3 +109,40 @@ def parse_dream_3D_volume_element_from_stats(
     }
     volume_element = validate_volume_element(volume_element)
     return volume_element
+
+
+# This code is copied from dream3D/generate_volume_element_statistics.py
+def _convert_orientations_to_old_matflow_format(orientations: Orientations):
+    # see `LatticeDirection` enum:
+    align_lookup = {
+        "A": "a",
+        "B": "b",
+        "C": "c",
+        "A_STAR": "a*",
+        "B_STAR": "b*",
+        "C_STAR": "c*",
+    }
+    unit_cell_alignment = {
+        "x": align_lookup[orientations.unit_cell_alignment.x.name],
+        "y": align_lookup[orientations.unit_cell_alignment.y.name],
+        "z": align_lookup[orientations.unit_cell_alignment.z.name],
+    }
+    type_lookup = {
+        "QUATERNION": "quat",
+        "EULER": "euler",
+    }
+    type_ = type_lookup[orientations.representation.type.name]
+    oris = {
+        "type": type_,
+        "unit_cell_alignment": unit_cell_alignment,
+    }
+
+    if type_ == "quat":
+        quat_order = orientations.representation.quat_order.name.lower().replace("_", "-")
+        oris["quaternions"] = np.array(orientations.data)
+        oris["quat_component_ordering"] = quat_order
+    elif type_ == "euler":
+        oris["euler_angles"] = np.array(orientations.data)
+        oris["euler_degrees"] = orientations.representation.euler_is_degrees
+
+    return oris
