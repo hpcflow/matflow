@@ -718,6 +718,13 @@
           rules:
             - path: inputs.damask_numerics
               condition: { value.equal_to: null }
+        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: resources.environments.damask_env.version
+              default: false
+              condition: { value.equal_to: 3.0.0-alpha7 }
       output_file_parsers:
         damask_log:
           from_files: [damask_stdout_file]
