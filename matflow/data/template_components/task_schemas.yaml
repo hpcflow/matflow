@@ -712,12 +712,18 @@
           rules:
             - path: inputs.damask_numerics
               condition: { value.not_equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
         - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
           stdout: stdout.log
           stderr: stderr.log
           rules:
             - path: inputs.damask_numerics
               condition: { value.equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
         - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
           stdout: stdout.log
           stderr: stderr.log
