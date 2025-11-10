@@ -1,0 +1,55 @@
+loops:
+  - name: markov_chain_state # [inner loop]
+    tasks: [5, 6, 7]
+    num_iterations: 9 # num_states - 1: (1 / p_0) - 1
+
+  - name: proposal_update # [middle loop]
+    tasks: [3, 4, 5, 6, 7]
+    num_iterations: 50 # num_batches = num_samples * p_0 / num_chains_per_update
+
+  - name: levels # [outer loop]
+    tasks: [2, 3, 4, 5, 6, 7]
+    num_iterations: 5
+    termination_task: 2
+    termination:
+      path: outputs.is_finished
+      condition: { value.equal_to: true }
+
+resources:
+  any:
+    combine_scripts: true
+
+tasks:
+  - schema: sample_direct_MC
+    inputs:
+      dimension: 200
+    repeats: 1000 # num_samples
+  - schema: system_analysis_toy_model
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+    groups:
+      - name: all
+  - schema: collate_results # [outer loop]
+    inputs:
+      p_0: 0.1
+  - schema: update_proposal # [middle loop]
+  - schema: initialise_markov_chains_ACS # [middle loop]
+    inputs:
+      num_chains_per_update: 2
+    sequences:
+      - path: inputs.chain_index
+        values::from_range:
+          start: 0
+          stop: 2 # num_chains_per_update
+          step: 1
+  - schema: generate_next_state_ACS # [inner loop]
+    inputs:
+      prop_std: 0.5 # initial std dev
+  - schema: system_analysis_toy_model # [inner loop]
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+  - schema: increment_chain # [inner loop]
+    groups:
+      - name: all

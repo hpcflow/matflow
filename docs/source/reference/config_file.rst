@@ -3,6 +3,8 @@ Configuration file
 
 Configurable settings that can be set within the configuration file are listed here.
 
+.. _default_config:
+
 Default config file
 ~~~~~~~~~~~~~~~~~~~
 

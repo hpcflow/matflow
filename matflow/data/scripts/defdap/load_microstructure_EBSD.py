@@ -1,32 +1,35 @@
 """Functions copied from matflow-defdap package."""
-
+from __future__ import annotations
 from pathlib import Path
 
 import defdap.ebsd as ebsd
 from defdap.quat import Quat
 import numpy as np
+from numpy.typing import NDArray
 from scipy.stats import mode
 from scipy.ndimage import zoom
 
 
 def load_microstructure_EBSD(
-    EBSD,
-    root_path,
-    scaling_factor,
-):
-    ebsd_map = load_EBSD_map(
+    EBSD: dict,
+    root_path: str,
+    scaling_factor: float,
+) -> dict:
+    ebsd_map = _load_EBSD_map(
         root_path=root_path,
         ebsd_filename=EBSD["filename"],
         ebsd_boundary_tol=EBSD.get("boundary_tol", 10),
         ebsd_min_grain_size=EBSD.get("min_grain_size", 10),
     )
 
-    EBSD_image = get_EBSD_image(ebsd_map, scaling_factor)
+    EBSD_image = _get_EBSD_image(ebsd_map, scaling_factor)
 
     return {"microstructure_image": EBSD_image}
 
 
-def load_EBSD_map(root_path, ebsd_filename, ebsd_boundary_tol, ebsd_min_grain_size):
+def _load_EBSD_map(
+    root_path: str, ebsd_filename: str, ebsd_boundary_tol: float, ebsd_min_grain_size: int
+) -> ebsd.Map:
     "Load EBSD map and detect grains."
 
     ebsd_map = ebsd.Map(Path(root_path).joinpath(ebsd_filename))
@@ -44,7 +47,7 @@ def load_EBSD_map(root_path, ebsd_filename, ebsd_boundary_tol, ebsd_min_grain_si
     return ebsd_map
 
 
-def get_EBSD_image(ebsd_map, scaling_factor):
+def _get_EBSD_image(ebsd_map: ebsd.Map, scaling_factor: float) -> dict:
     # Construct an array of Euler angles
     grain_quats = np.empty((len(ebsd_map), 4))
 
@@ -64,7 +67,7 @@ def get_EBSD_image(ebsd_map, scaling_factor):
 
     # Filter out -2 (too small grains) values in the grain image
     grain_image = ebsd_map.grains
-    remove_small_grain_points(grain_image)
+    _remove_small_grain_points(grain_image)
 
     # scale down image if needed
     if scaling_factor != 1:
@@ -98,7 +101,9 @@ def get_EBSD_image(ebsd_map, scaling_factor):
     return EBSD_image
 
 
-def select_area(i, j, grain_image, kind=None):
+def _select_area(
+    i: int, j: int, grain_image: NDArray, kind: str | None = None
+) -> tuple[NDArray, int]:
     on_edge = 0
 
     if kind == "4_closest":
@@ -143,10 +148,9 @@ def select_area(i, j, grain_image, kind=None):
     return area, on_edge
 
 
-def remove_small_grain_points(grain_image, max_iterations=200):
+def _remove_small_grain_points(grain_image: NDArray, max_iterations: int = 200):
     # num_neighbours - must have at least this many pixels surrounding
     # start checking for 8 neighbours, then 7 until 2
-    all_done = False
     for num_neighbours in range(8, 0, -1):
         print(
             f"Starting iterations with at least {num_neighbours} equal "
@@ -162,8 +166,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             if num_bad == 0:
                 # No bad values left, done
                 print("All bad points removed.")
-                all_done = True
-                break
+                return
             elif num_bad == num_bad_prev:
                 # Not removing any more
                 print("Number of bad points is not decreasing!")
@@ -181,7 +184,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             grain_image_new = np.copy(grain_image)
             for i, j in zip(*np.where(grain_image == -2)):
                 kind = "4_closest" if force else None
-                area, on_edge = select_area(i, j, grain_image, kind=kind)
+                area, on_edge = _select_area(i, j, grain_image, kind=kind)
                 area = area.flatten()
                 area = area[area > 0]  # remove -1 and -2
 
@@ -190,7 +193,7 @@ def remove_small_grain_points(grain_image, max_iterations=200):
                     grain_image_new[i, j] = area[np.argsort(sizes)[-1]]
 
                 else:
-                    mode_vals, mode_counts = mode(area)
+                    mode_vals, mode_counts = mode(area, keepdims=True)
                     for mode_val, mode_count in zip(mode_vals, mode_counts):
                         if mode_count >= num_neighbours:
                             grain_image_new[i, j] = mode_val
@@ -199,6 +202,3 @@ def remove_small_grain_points(grain_image, max_iterations=200):
             num_bad_prev = num_bad
             # [:, :] required to update the array passed in
             grain_image[:, :] = grain_image_new
-
-        if all_done:
-            break

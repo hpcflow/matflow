@@ -3,17 +3,21 @@ import sys
 import re
 from pathlib import Path
 
+_NUMBER_RE = re.compile(r"\d+")
+_VERSION_RE = re.compile(r"(v\d+\.\d+\.\d+((?:a|b|rc).*)?)")
 
-def pad_version(version, pad_length=3):
+
+def pad_version(version: str, pad_length: int = 3):
     p = ""
-    for n in re.findall(r"\d+", version):
-        p = p + str(n.zfill(pad_length))
+    n: str
+    for n in _NUMBER_RE.findall(version):
+        p += n.zfill(pad_length)
     if "a" not in version:
-        p = p + "999"  # stable versions before pre-releases (with `reverse=True`)
+        p += "9" * pad_length  # stable versions before pre-releases (with `reverse=True`)
     return p
 
 
-def write_switcher_json(*args):
+def write_switcher_json(*args: str):
     url_prefix = args[0] if args else "/"
     if not url_prefix.startswith("/"):
         url_prefix = f"/{url_prefix}"
@@ -31,16 +35,13 @@ def write_switcher_json(*args):
     dev_named = False
     stable_named = False
     for idx, vers in enumerate(all_vers):
-        is_dev = bool(
-            re.search(r"(v[0-9]+\.[0-9]+\.[0-9]+((?:a|b|rc).*)?)", vers).groups()[1]
-        )
+        is_dev = bool(_VERSION_RE.search(vers).group(1))
         if not is_dev and not stable_named:
             stable_named = True
             name = f"stable ({vers})"
             if idx == 0:
-                dev_named = (
-                    True  # don't label dev if there is no dev version beyond stable
-                )
+                dev_named = True
+                # don't label dev if there is no dev version beyond stable
         elif is_dev and not dev_named:
             dev_named = True
             name = f"dev ({vers})"

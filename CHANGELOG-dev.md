@@ -1,4 +1,737 @@
 
+<a name="v0.3.0a191"></a>
+## [v0.3.0a191](https://github.com/hpcflow/matflow-new/compare/v0.3.0a190...v0.3.0a191) - 2025.11.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a190"></a>
+## [v0.3.0a190](https://github.com/hpcflow/matflow-new/compare/v0.3.0a189...v0.3.0a190) - 2025.11.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a189"></a>
+## [v0.3.0a189](https://github.com/hpcflow/matflow-new/compare/v0.3.0a188...v0.3.0a189) - 2025.11.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a188"></a>
+## [v0.3.0a188](https://github.com/hpcflow/matflow-new/compare/v0.3.0a187...v0.3.0a188) - 2025.11.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a187"></a>
+## [v0.3.0a187](https://github.com/hpcflow/matflow-new/compare/v0.3.0a186...v0.3.0a187) - 2025.11.04
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* to reflect changes in default input sources behaviour in hpcflow
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into fix/default-inp-sources
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a186"></a>
+## [v0.3.0a186](https://github.com/hpcflow/matflow-new/compare/v0.3.0a185...v0.3.0a186) - 2025.10.29
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a185"></a>
+## [v0.3.0a185](https://github.com/hpcflow/matflow-new/compare/v0.3.0a184...v0.3.0a185) - 2025.10.28
+
+### ✨ Features
+
+* add support for specifying DAMASK `initial_conditions`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a184"></a>
+## [v0.3.0a184](https://github.com/hpcflow/matflow-new/compare/v0.3.0a183...v0.3.0a184) - 2025.10.28
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a183"></a>
+## [v0.3.0a183](https://github.com/hpcflow/matflow-new/compare/v0.3.0a182...v0.3.0a183) - 2025.09.22
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* add builtin jinja templates to pyinstaller hook
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a182"></a>
+## [v0.3.0a182](https://github.com/hpcflow/matflow-new/compare/v0.3.0a181...v0.3.0a182) - 2025.08.12
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a181"></a>
+## [v0.3.0a181](https://github.com/hpcflow/matflow-new/compare/v0.3.0a180...v0.3.0a181) - 2025.08.07
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a180"></a>
+## [v0.3.0a180](https://github.com/hpcflow/matflow-new/compare/v0.3.0a179...v0.3.0a180) - 2025.08.07
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a179"></a>
+## [v0.3.0a179](https://github.com/hpcflow/matflow-new/compare/v0.3.0a178...v0.3.0a179) - 2025.08.01
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a178"></a>
+## [v0.3.0a178](https://github.com/hpcflow/matflow-new/compare/v0.3.0a177...v0.3.0a178) - 2025.07.14
+
+### ♻ Code Refactoring
+
+* ensure both `target_def_grad_(rate)` and `strain_(rate)` are populated in `LoadStep.uniaxial`
+
+### ✨ Features
+
+* add `target_strain` and `target_strain_rate` args to `LoadStep.unaxial` for convenience
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a177"></a>
+## [v0.3.0a177](https://github.com/hpcflow/matflow-new/compare/v0.3.0a176...v0.3.0a177) - 2025.07.14
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a176"></a>
+## [v0.3.0a176](https://github.com/hpcflow/matflow-new/compare/v0.3.0a175...v0.3.0a176) - 2025.06.23
+
+### 🐛 Bug Fixes
+
+* missing import!
+* allow failure on macos for a test that gets rate-limited by github
+
+
+<a name="v0.3.0a175"></a>
+## [v0.3.0a175](https://github.com/hpcflow/matflow-new/compare/v0.3.0a174...v0.3.0a175) - 2025.06.23
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a174"></a>
+## [v0.3.0a174](https://github.com/hpcflow/matflow-new/compare/v0.3.0a173...v0.3.0a174) - 2025.06.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a173"></a>
+## [v0.3.0a173](https://github.com/hpcflow/matflow-new/compare/v0.3.0a172...v0.3.0a173) - 2025.06.02
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a172"></a>
+## [v0.3.0a172](https://github.com/hpcflow/matflow-new/compare/v0.3.0a171...v0.3.0a172) - 2025.05.29
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a171"></a>
+## [v0.3.0a171](https://github.com/hpcflow/matflow-new/compare/v0.3.0a170...v0.3.0a171) - 2025.05.29
+
+### 🐛 Bug Fixes
+
+* perturbations is a list in `SingleCrystalParameters`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a170"></a>
+## [v0.3.0a170](https://github.com/hpcflow/matflow-new/compare/v0.3.0a169...v0.3.0a170) - 2025.05.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a169"></a>
+## [v0.3.0a169](https://github.com/hpcflow/matflow-new/compare/v0.3.0a168...v0.3.0a169) - 2025.05.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a168"></a>
+## [v0.3.0a168](https://github.com/hpcflow/matflow-new/compare/v0.3.0a167...v0.3.0a168) - 2025.05.27
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a167"></a>
+## [v0.3.0a167](https://github.com/hpcflow/matflow-new/compare/v0.3.0a166...v0.3.0a167) - 2025.05.21
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a166"></a>
+## [v0.3.0a166](https://github.com/hpcflow/matflow-new/compare/v0.3.0a165...v0.3.0a166) - 2025.05.20
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a165"></a>
+## [v0.3.0a165](https://github.com/hpcflow/matflow-new/compare/v0.3.0a164...v0.3.0a165) - 2025.05.20
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a164"></a>
+## [v0.3.0a164](https://github.com/hpcflow/matflow-new/compare/v0.3.0a163...v0.3.0a164) - 2025.05.16
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a163"></a>
+## [v0.3.0a163](https://github.com/hpcflow/matflow-new/compare/v0.3.0a162...v0.3.0a163) - 2025.05.15
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a162"></a>
+## [v0.3.0a162](https://github.com/hpcflow/matflow-new/compare/v0.3.0a161...v0.3.0a162) - 2025.05.14
+
+### ✨ Features
+
+* added optional columns parameter to the from_file methods in microstructure seeds
+* add non-periodic option to generate volume element by voronoi
+
+### 👷 Build changes
+
+* merge branch 'develop' into feat/microstructure_generation
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a161"></a>
+## [v0.3.0a161](https://github.com/hpcflow/matflow-new/compare/v0.3.0a160...v0.3.0a161) - 2025.05.13
+
+### 🐛 Bug Fixes
+
+* missing import
+* failing macos (built executable) test due to rate limit
+
+
+<a name="v0.3.0a160"></a>
+## [v0.3.0a160](https://github.com/hpcflow/matflow-new/compare/v0.3.0a159...v0.3.0a160) - 2025.05.13
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a159"></a>
+## [v0.3.0a159](https://github.com/hpcflow/matflow-new/compare/v0.3.0a158...v0.3.0a159) - 2025.05.07
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a158"></a>
+## [v0.3.0a158](https://github.com/hpcflow/matflow-new/compare/v0.3.0a157...v0.3.0a158) - 2025.05.07
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a157"></a>
+## [v0.3.0a157](https://github.com/hpcflow/matflow-new/compare/v0.3.0a156...v0.3.0a157) - 2025.05.06
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a156"></a>
+## [v0.3.0a156](https://github.com/hpcflow/matflow-new/compare/v0.3.0a155...v0.3.0a156) - 2025.05.02
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a155"></a>
+## [v0.3.0a155](https://github.com/hpcflow/matflow-new/compare/v0.3.0a154...v0.3.0a155) - 2025.04.15
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a154"></a>
+## [v0.3.0a154](https://github.com/hpcflow/matflow-new/compare/v0.3.0a153...v0.3.0a154) - 2025.04.14
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a153"></a>
+## [v0.3.0a153](https://github.com/hpcflow/matflow-new/compare/v0.3.0a152...v0.3.0a153) - 2025.04.14
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a152"></a>
+## [v0.3.0a152](https://github.com/hpcflow/matflow-new/compare/v0.3.0a151...v0.3.0a152) - 2025.04.11
+
+### ✨ Features
+
+* support failure handling in subset sim workflows
+* add initial multi-level (two-level) MCMC subset-sim workflow
+* add subset-sim DAMASK-Mg adaptive proposal workflow
+* add toy model adaptive subset-sim workflow that uses a non-Python performance func
+* split subset-sim workflows into Al and Mg
+* add bool parameter to remove DAMASK hdf5 file in get_yield_stress OFP
+* add task generate_next_state_CS for subset-infinity/conditional sampling
+* add task to plot IPF with MTEX
+* add acceptance rate and propoal stddev parameter to subset workflows
+* add variations of subset simulation workflow
+* use `combine_scripts` and loop termination condition in subset sim workflow
+* update subset simulation demo workflow, simplify parameters
+* initial implementation of subset simulation
+
+### 🐛 Bug Fixes
+
+* some updates to SuS workflows
+* subset_simulation parameter flow tests
+* better support 1D subset-simulation problems
+* test test_subset_sim_DAMASK_Mg_two_level_parameter_flow
+* reuse env to reduce number of jobscripts in subset-sim two-level DAMASK
+* allow using pre-defined orientations in Dream 3D stats generator
+* delete damask HDF5 files in subset-sim workflows
+* quaternion vector sign in MTEX plot-IPF script
+* add missing scripts for adaptive subset-infinity
+* retrieval of loop iteration index in `collate_results`
+* improvments to DAMASK subset workflow
+* prevent `geom_load.hdf5` saving as artifact in `yield_stress` output file parser
+* update subset workflow to speed up MMA
+* logging in subset sim workflow script
+* **subset:** temp comment out logs and prints for now
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+* merge branch 'develop' into uq/subset-simulation
+
+
+<a name="v0.3.0a151"></a>
+## [v0.3.0a151](https://github.com/hpcflow/matflow-new/compare/v0.3.0a150...v0.3.0a151) - 2025.04.10
+
+### ✨ Features
+
+* bump hpcflow version
+* support python 3.13, and use it github actions workflows
+
+### 🐛 Bug Fixes
+
+* run poetry lock
+* do not trigger testing on PR edit event
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a150"></a>
+## [v0.3.0a150](https://github.com/hpcflow/matflow-new/compare/v0.3.0a149...v0.3.0a150) - 2025.04.09
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a149"></a>
+## [v0.3.0a149](https://github.com/hpcflow/matflow-new/compare/v0.3.0a148...v0.3.0a149) - 2025.04.07
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a148"></a>
+## [v0.3.0a148](https://github.com/hpcflow/matflow-new/compare/v0.3.0a147...v0.3.0a148) - 2025.04.06
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a147"></a>
+## [v0.3.0a147](https://github.com/hpcflow/matflow-new/compare/v0.3.0a146...v0.3.0a147) - 2025.04.06
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a146"></a>
+## [v0.3.0a146](https://github.com/hpcflow/matflow-new/compare/v0.3.0a145...v0.3.0a146) - 2025.04.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a145"></a>
+## [v0.3.0a145](https://github.com/hpcflow/matflow-new/compare/v0.3.0a144...v0.3.0a145) - 2025.03.30
+
+### ✨ Features
+
+* bump hpcflow version
+
+
+<a name="v0.3.0a144"></a>
+## [v0.3.0a144](https://github.com/hpcflow/matflow-new/compare/v0.3.0a143...v0.3.0a144) - 2025.03.29
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a143"></a>
+## [v0.3.0a143](https://github.com/hpcflow/matflow-new/compare/v0.3.0a142...v0.3.0a143) - 2025.03.28
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a142"></a>
+## [v0.3.0a142](https://github.com/hpcflow/matflow-new/compare/v0.3.0a141...v0.3.0a142) - 2025.03.28
+
+### 🐛 Bug Fixes
+
+* fix scipy pyinstaller issue
+
+
+<a name="v0.3.0a141"></a>
+## [v0.3.0a141](https://github.com/hpcflow/matflow-new/compare/v0.3.0a140...v0.3.0a141) - 2025.03.28
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* update envs examples
+* sync upstream shared docs and GHAs workflows
+* sync upstream shared docs and GHAs workflows
+
+
+<a name="v0.3.0a140"></a>
+## [v0.3.0a140](https://github.com/hpcflow/matflow-new/compare/v0.3.0a139...v0.3.0a140) - 2025.03.05
+
+
+<a name="v0.3.0a139"></a>
+## [v0.3.0a139](https://github.com/hpcflow/matflow-new/compare/v0.3.0a138...v0.3.0a139) - 2025.02.03
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a138"></a>
+## [v0.3.0a138](https://github.com/hpcflow/matflow-new/compare/v0.3.0a137...v0.3.0a138) - 2025.01.17
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a137"></a>
+## [v0.3.0a137](https://github.com/hpcflow/matflow-new/compare/v0.3.0a136...v0.3.0a137) - 2024.12.08
+
+### ♻ Code Refactoring
+
+* reuse util function from hpcflow
+
+### 🐛 Bug Fixes
+
+* add missing import
+* add tests for YAML-initialising load case, seeds, orientations
+
+### 👷 Build changes
+
+* merge branch 'develop' into test/params
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a136"></a>
+## [v0.3.0a136](https://github.com/hpcflow/matflow-new/compare/v0.3.0a135...v0.3.0a136) - 2024.12.08
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a135"></a>
+## [v0.3.0a135](https://github.com/hpcflow/matflow-new/compare/v0.3.0a134...v0.3.0a135) - 2024.12.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a134"></a>
+## [v0.3.0a134](https://github.com/hpcflow/matflow-new/compare/v0.3.0a133...v0.3.0a134) - 2024.12.05
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a133"></a>
+## [v0.3.0a133](https://github.com/hpcflow/matflow-new/compare/v0.3.0a132...v0.3.0a133) - 2024.12.05
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* centOS GHAs
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a132"></a>
+## [v0.3.0a132](https://github.com/hpcflow/matflow-new/compare/v0.3.0a131...v0.3.0a132) - 2024.11.14
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a131"></a>
+## [v0.3.0a131](https://github.com/hpcflow/matflow-new/compare/v0.3.0a130...v0.3.0a131) - 2024.10.24
+
+### 🐛 Bug Fixes
+
+* enable compatibility with new DAMASK Grid variable
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a130"></a>
 ## [v0.3.0a130](https://github.com/hpcflow/matflow-new/compare/v0.3.0a129...v0.3.0a130) - 2024.10.23
 

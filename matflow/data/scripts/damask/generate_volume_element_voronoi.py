@@ -1,21 +1,54 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import numpy as np
-from damask import GeomGrid
+from numpy.typing import ArrayLike
+
+try:
+    from damask import GeomGrid as grid_cls
+except ImportError:
+    from damask import Grid as grid_cls
 from damask_parse.utils import validate_volume_element, validate_orientations
+
+if TYPE_CHECKING:
+    from matflow.param_classes.orientations import Orientations
+    from matflow.param_classes.seeds import MicrostructureSeeds
 
 
 def generate_volume_element_voronoi(
-    microstructure_seeds,
-    VE_grid_size,
-    homog_label,
-    orientations,
-    scale_morphology,
-    scale_update_size,
-):
-    grid_obj = GeomGrid.from_Voronoi_tessellation(
+    microstructure_seeds: MicrostructureSeeds,
+    VE_grid_size: ArrayLike,
+    homog_label: str,
+    orientations: Orientations | None,
+    scale_morphology: ArrayLike | None,
+    scale_update_size: bool,
+    periodic: bool,
+) -> dict:
+    """
+    Generate a volume element by Voronoi tessellation from a provided set of seeds.
+
+    Parameters
+    ----------
+    microstructure_seeds
+        Seeds for the crystals in the Voronoi tessellation.
+    VE_grid_size
+        Volume element grid size
+    homog_label
+        Homogenization scheme label.
+    orientations
+        Orientation data for the seeds.
+    scale_morphology
+        How to scale the morphology.
+    scale_update_size
+        Whether to update the grid size based on the morphology scaling.
+    periodic
+        Whether to use periodic boundary conditions on the tessellation.
+        Defaults to true.
+    """
+    grid_obj = grid_cls.from_Voronoi_tessellation(
         cells=np.array(VE_grid_size),
         size=np.array(microstructure_seeds.box_size),
         seeds=np.array(microstructure_seeds.position),
-        periodic=True,
+        periodic=periodic,
     )
 
     if scale_morphology is not None:
@@ -36,6 +69,7 @@ def generate_volume_element_voronoi(
 
     if orientations is None:
         orientations = microstructure_seeds.orientations
+        assert orientations is not None
 
     # see `LatticeDirection` enum:
     align_lookup = {

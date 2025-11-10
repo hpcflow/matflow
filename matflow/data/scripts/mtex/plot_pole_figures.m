@@ -1,18 +1,16 @@
-function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
+function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
-    crystalSym = allOpts.crystal_symmetry;
+    crystalSym = allOpts.crystal_symmetry;    
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
-    reprTypes = {'quaternion', 'euler'};
     reprQuatOrders = {'scalar-vector', 'vector-scalar'};
 
     align = h5readatt(inputs_HDF5_path, '/orientations', 'unit_cell_alignment');
-    reprTypeInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_type');
     reprQuatOrderInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_quat_order');
 
     alignment = { ...
@@ -21,14 +19,11 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
                      sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
                  };
     crystalSym = crystalSymmetry(crystalSym, alignment{:});
-    oriType = reprTypes{reprTypeInt + 1};
     oriQuatOrder = reprQuatOrders{reprQuatOrderInt + 1};
 
-    millerDirs = Miller(num2cell(poleFigureDirections(1, :)), crystalSym);
-
-    for i = 2:size(poleFigureDirections, 1)
-        newMillerDir = Miller(num2cell(poleFigureDirections(i, :)), crystalSym);
-        millerDirs = [millerDirs, newMillerDir];
+    millerDirs = cell(size(poleFigureDirections, 1));
+    for i = 1:size(poleFigureDirections, 1)
+        millerDirs{i} = Miller(num2cell(poleFigureDirections(i, :)), crystalSym);
     end
 
     data = h5read(inputs_HDF5_path, '/orientations/data');
@@ -118,9 +113,8 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     if ~cLabelAdded
         annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
     end
-
-    fileName = 'pole_figure.png';
-    saveFigure(fileName);
+    
+    saveFigure('pole_figure.png');
 
     if ~useContours
         newMtexFigure('layout', [1, 1], 'visible', 'off');
@@ -130,5 +124,4 @@ function exitcode = plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
     close all;
 
-    exitcode = 1;
 end
