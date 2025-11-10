@@ -701,11 +701,23 @@
         - input_file: damask_numerics_file
           from_inputs: [damask_numerics]
           script: <<script:damask/write_numerics.py>>
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
       abortable: true
       commands:
-        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
           stdout: stdout.log
           stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.equal_to: null }
       output_file_parsers:
         damask_log:
           from_files: [damask_stdout_file]

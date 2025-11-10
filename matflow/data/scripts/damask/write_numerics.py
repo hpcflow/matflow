@@ -15,8 +15,4 @@ def write_numerics(path: Path | str, damask_numerics: dict):
         https://damask-multiphysics.org/documentation/file_formats/numerics.html
     """
     path_ = Path(path)
-    if damask_numerics is None:
-        with path.open("w") as f:
-            f.write("# empty\n")
-        return
     write_numerics_(dir_path=path_.parent, numerics=damask_numerics, name=path_.name)
