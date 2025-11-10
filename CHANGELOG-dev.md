@@ -1,4 +1,32 @@
 
+<a name="v0.3.0a194"></a>
+## [v0.3.0a194](https://github.com/hpcflow/matflow-new/compare/v0.3.0a193...v0.3.0a194) - 2025.11.10
+
+### ✨ Features
+
+* bump hpcflow version
+* continue supporting DAMASK v3.0.0-alpha7 (requires https://github.com/hpcflow/hpcflow-new/pull/892)
+* add multistep random loadcase with interpolation
+
+### 🐛 Bug Fixes
+
+* combining support for old and new DAMASK
+* update damask high-concurrency schema
+* DAMASK command line for v3.0.2
+* writing empty damask numerics file
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into software/damask_beta0
+* merge branch 'develop' into software/damask_beta0
+* update binary download links file [skip ci]
+* merge in develop
+
+### 🔄 Updates
+
+* support damask v3 beta0
+
+
 <a name="v0.3.0a193"></a>
 ## [v0.3.0a193](https://github.com/hpcflow/matflow-new/compare/v0.3.0a192...v0.3.0a193) - 2025.11.10
 
