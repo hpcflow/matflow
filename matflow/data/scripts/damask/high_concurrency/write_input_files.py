@@ -1,7 +1,7 @@
 from __future__ import annotations
 import copy
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from damask import __version__ as damask_version
 from damask_parse.writers import write_geom, write_load_case, write_material
@@ -20,6 +20,7 @@ def write_input_files(
     damask_phases: dict,
     single_crystal_parameters: dict | None,
     damask_numerics: dict | None,
+    initial_conditions: dict[str, Any] | None,
 ):
     """
     Write all the input files to DAMASK.
@@ -45,7 +46,7 @@ def write_input_files(
         https://damask-multiphysics.org/documentation/file_formats/numerics.html
     """
     geom_path = Path(path)
-    _write_geom(geom_path, volume_element)
+    _write_geom(geom_path, volume_element, initial_conditions=initial_conditions)
     _write_load(load_case, damask_solver)
     _write_material(
         volume_element,
@@ -57,8 +58,15 @@ def write_input_files(
         _write_numerics(damask_numerics)
 
 
-def _write_geom(path: Path, volume_element: dict):
-    write_geom(dir_path=path.parent, volume_element=volume_element, name=path.name)
+def _write_geom(
+    path: Path, volume_element: dict, initial_conditions: dict[str, Any] | None
+):
+    write_geom(
+        dir_path=path.parent,
+        volume_element=volume_element,
+        name=path.name,
+        initial_conditions=initial_conditions,
+    )
 
 
 def _write_load(load_case: LoadCase, damask_solver: dict[str, str]):
