@@ -1,14 +1,19 @@
+from __future__ import annotations
 from damask import seeds
 from damask import Rotation
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 def seeds_from_random(
-    VE_size,
-    num_grains,
-    phase_label,
+    VE_size: ArrayLike,
+    num_grains: int,
+    phase_label: str,
     orientation_coordinate_system=None,
-):
+) -> dict:
+    """
+    Generate a random arrangement of seeds for microstructure.
+    """
 
     VE_size = np.array(VE_size)
     position = seeds.from_random(VE_size, num_grains)

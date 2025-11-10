@@ -44,6 +44,10 @@ end
 function export_orientations_HDF5(orientations, fileName)
     alignment = prepare_crystal_alignment(orientations.CS);
     ori_data = [orientations.a, orientations.b, orientations.c, orientations.d];
+    
+    % TODO: why?
+    ori_data(:, 2:end) = ori_data(:, 2:end) * -1;
+
     ori_data = ori_data';
     h5create(fileName, '/orientations/data', size(ori_data));
     h5write(fileName, '/orientations/data', ori_data);

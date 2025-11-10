@@ -37,4 +37,4 @@ We support paths like:
 * `ssh://user@host/path/to/workflow.json` for remote json
 * `https://sandbox.zenodo.org/record/1210144/files/workflow.zip` for zenodo zarr-zip
 
-You can convert a zarr store to a zarr-zip store using `Workflow.to_zip()`.
+You can convert a zarr store to an archived zarr-zip store using `Workflow.zip()`.

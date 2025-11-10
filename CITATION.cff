@@ -1,0 +1,153 @@
+# See https://citation-file-format.github.io for more info about the format
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+
+preferred-citation:
+  type: article
+  doi: 10.12688/materialsopenres.17516.1
+  url: https://materialsopenresearch.org/articles/2-2
+  title: >
+    A novel integrated framework for reproducible formability predictions
+    using virtual materials testing
+  journal: Materials Open Research
+  volume: 2
+  year: 2023
+  month: 1
+  abstract: >
+    Background: Formed aluminium alloy sheet materials are increasingly
+    adopted in production processes such as vehicle manufacturing, due to the
+    potential for weight-saving and improved recyclability when compared to
+    more traditional steel alloys. To maximise these benefits whilst
+    maintaining sufficient mechanical properties, the link between formability
+    and microstructure must be better understood. Virtual materials testing is
+    a cost-effective strategy for generating microstructure-informed
+    formability predictions.
+
+    Methods: We developed an open-source hybrid framework, combining
+    experimental and computational tasks, for generating reproducible
+    formability predictions. Starting with experimental texture measurements
+    and stress-strain curves, we calibrated crystal plasticity (CP) model
+    parameters. The framework used these parameters to perform a large set of
+    multiaxial full-field CP simulations, from which various anisotropic yield
+    functions were fitted. With these anisotropy parameters, we then employed
+    a Marciniak-Kuczyński finite-element model to predict forming limit
+    curves, which we compared with those from experimental Nakazima tests.
+
+    Results: We executed the workflow with the aluminium alloy Surfalex HF
+    (AA6016A) as a case study material. The 18-parameter Barlat yield function
+    provided the best fit, compared to six-parameter functions. Predicted
+    forming limits depended strongly on the chosen hardening law, and good
+    agreement with the experimental forming limit curve was found. All of the
+    generated data have been uploaded to the Zenodo repository. A set of
+    Jupyter notebooks to allow interactive inspection of our methods and data
+    are also available.
+
+    Conclusions: We demonstrated a robust methodology for replicable virtual
+    materials testing, which enables cheaper and faster formability analyses.
+    This complete workflow is encoded within a simple yet highly customisable
+    computational pipeline that can be applied to any material. To maximise
+    reproducibility, our approach takes care to ensure our methods and data —
+    and the ways in which that data is processed — are unambiguously defined
+    during all steps of the workflow.
+  authors:
+    # Authors of this citation
+    - given-names: Adam
+      family-names: Plowman
+      affiliation: University of Manchester
+      # email: 
+      orcid: https://orcid.org/0000-0002-9781-7353
+      # website: 
+    - given-names: Patryk
+      family-names: Jedrasiak
+      affiliation: University of Cambridge
+      # email: 
+      orcid: https://orcid.org/0000-0001-6321-4821
+      # website: 
+    - given-names: Thomas
+      family-names: Jailin
+      affiliation: University of Manchester
+      # email: 
+      orcid: https://orcid.org/0000-0001-8580-8655
+      # website: 
+    - given-names: Peter
+      family-names: Crowther
+      affiliation: University of Manchester
+      # email: 
+      orcid: https://orcid.org/0000-0002-5430-6924
+      # website: 
+    - given-names: Sumeet
+      family-names: Mishra
+      affiliation: Indian Institute of Technology Roorkee
+      # email: 
+      orcid: https://orcid.org/0000-0002-9924-4894
+      # website: 
+    - given-names: Pratheek
+      family-names: Shanthraj
+      affiliation: University of Manchester
+      # email: 
+      orcid: https://orcid.org/0000-0002-6324-0306
+      # website: 
+    - given-names: Joao
+      family-names: Quinta Da Fonesca
+      affiliation: University of Manchester
+      # email: 
+      orcid: https://orcid.org/0000-0001-6063-8135
+      website: https://research.manchester.ac.uk/en/persons/joao.fonseca
+
+title: "matflow: A Workflow Management System for Materials Science"
+# version: 
+url: https://docs.matflow.io/
+authors:
+#    As above, but of the software itself and not the publication
+  - given-names: Adam
+    family-names: Plowman
+    alias: aplowman
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0002-9781-7353
+  - given-names: Peter
+    family-names: Crowther
+    alias: merrygoat
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0002-5430-6924
+  - given-names: Joao
+    family-names: Quinta Da Fonesca
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0001-6063-8135
+    website: https://research.manchester.ac.uk/en/persons/joao.fonseca
+  - given-names: Francisco
+    family-names: Herrerías-Azcué
+    alias: fherreazcue
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0002-5906-221X
+  - given-names: Michael
+    family-names: Atkinson
+    alias: mikesmic
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0003-4843-699X
+  - given-names: Christopher
+    family-names: Fullterton
+    alias: cjfullerton
+    affiliation: University of Manchester
+    # email: 
+    orcid: https://orcid.org/0000-0003-1306-2481
+contact:
+  # How to contact someone about the software
+  - address: >
+      University of Manchester,
+      Oxford Road
+    city: Manchester
+    country: GB
+    # email:
+    name: Joao Quinta Da Fonesca
+    post-code: M13 9PL
+license: MPL-2.0
+repository-code: https://github.com/hpcflow/matflow-new
+keywords:
+  - "workflow management"
+  - "materials science"
+  - "high-performance computing"

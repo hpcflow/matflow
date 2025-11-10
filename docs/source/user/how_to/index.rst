@@ -8,6 +8,10 @@ This help snippets guide you through common quick tasks in |app_name|.
 
    Configuration <config>
    Task Schemas <task_schemas>
+   Template Components <template_components>
    Workflow Templates <workflow_templates>
    Workflows <workflows>
    Environments <environments>
+   Meta-tasks <meta_tasks>
+   Loops <loops>
+   Resources <resources>

@@ -118,6 +118,8 @@
     Environment specifiers within script paths
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+    .. _environment_specifiers_in_script_paths:
+
     Specifier values can be referenced within script paths within action definitions. For example, here we expect the script to exist in a sub-directory named according to the ``version`` specifier of the environment:
 
     .. code-block:: yaml
