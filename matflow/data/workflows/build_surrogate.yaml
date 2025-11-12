@@ -1,0 +1,39 @@
+template_components:
+  task_schemas:
+    - objective: build_surrogate
+      inputs:
+        - parameter: X_train
+        - parameter: Y_train
+        - parameter: parameter_names
+        - parameter: n_restarts_optimizer
+          default_value: 5
+        - parameter: cross_validate
+          default_value: true
+        - parameter: scoring
+          default_value: r2
+        - parameter: normalize_y
+          default_value: true
+      outputs:
+        - parameter: surrogate
+      actions:
+        - environments:
+            - scope:
+                type: any
+              environment: sklearn_env
+          script: <<script:surrogates/build_surrogate.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+
+tasks:
+  - schema: build_surrogate
+    inputs:
+      X_train::from_load_txt:
+        file_path: D:/others_code/surrogatetools/examples/data/X_train.txt
+      Y_train::from_load_txt:
+        file_path: D:/others_code/surrogatetools/examples/data/Y_train.txt
+      parameter_names:
+        - a_1
+        - a_2
+        - a_3
+        - a_4
