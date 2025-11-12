@@ -7,7 +7,7 @@ loops:
     tasks:
       - perturb_parameters
       - process_moose_parameters
-      - simulation_moose_2
+      - moose_simulation_2
       - process_moose_response
       - lm_fit
     num_iterations: 10
@@ -31,7 +31,7 @@ tasks:
       plate_diff_nodes: 8 # ideally odd
       plate_diff: 50e-3
 
-  - schema: simulation_moose
+  - schema: moose_simulation
     resources:
       main:
         shell: wsl
@@ -125,7 +125,7 @@ tasks:
           step: 1
           stop: 3 # num fitting params + 1
 
-  - schema: simulation_moose
+  - schema: moose_simulation
     resources:
       main:
         shell: wsl

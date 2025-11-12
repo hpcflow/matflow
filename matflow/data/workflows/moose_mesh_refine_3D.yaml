@@ -2,7 +2,7 @@ loops:
   - name: mesh_refinement
     tasks:
       - generate_plate_mesh_3D
-      - simulation_moose
+      - moose_simulation
       - calculate_plate_SCF
       - refine_3D_plate_mesh
     num_iterations: 10
@@ -20,7 +20,7 @@ tasks:
       plate_diff_nodes: 8 # ideally odd
       plate_diff: 50e-3
 
-  - schema: simulation_moose
+  - schema: moose_simulation
     resources:
       main:
         shell: wsl

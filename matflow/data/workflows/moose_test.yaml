@@ -1,7 +1,6 @@
 template_components:
   task_schemas:
-    - objective: simulation
-      implementation: moose
+    - objective: moose_simulation_test
       inputs:
         - parameter: input_deck
         - parameter: input_deck_variables
@@ -21,7 +20,7 @@ template_components:
               stderr: stderr.log
 
 tasks:
-  - schema: simulation_moose
+  - schema: moose_simulation_test
     # resources:
     #   main:
     #     num_cores: 2

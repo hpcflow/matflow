@@ -1973,7 +1973,6 @@
       requires_dir: true
 
 - objective: generate_plate_mesh_3D
-  method: gmsh
   inputs:
     - parameter: geometry_name
     - parameter: plate_width
@@ -2018,8 +2017,7 @@
         outputs.gmsh_mesh_str: direct
       requires_dir: true
 
-- objective: simulation
-  implementation: moose
+- objective: moose_simulation
   inputs:
     - parameter: gmsh_mesh_str
     - parameter: FE_response_data
