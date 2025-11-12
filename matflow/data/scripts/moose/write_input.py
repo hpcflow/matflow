@@ -4,17 +4,23 @@ from pathlib import Path
 class MooseBlock:
     TAB = "    "
 
-    def __init__(self, name, collection, root=False, variables=None):
+    def __init__(self, name, collection, root=False, variables=None, elasticity=None):
         self.name = name
         self.root = root
         self.attributes = {}
         self.blocks = []
         self.variables = variables or {}
 
+        if elasticity and name == "elasticity":
+
+            # TODO: ideally want a "path" rather than "name"
+            collection.update(elasticity)
+            # print(f"MooseBlock: updating collection: {collection=!r}")
+
         for key, val in collection.items():
             # if isinstance(val, CommentedMap):
             if isinstance(val, dict):
-                self.blocks.append(MooseBlock(key, val))
+                self.blocks.append(MooseBlock(key, val, elasticity=elasticity))
                 continue
             self.attributes[key] = val
 
@@ -43,6 +49,12 @@ class MooseBlock:
             f.write(self.__str__())
 
 
-def write_input(path, input_deck, input_deck_variables):
-    input_deck = MooseBlock("root", input_deck, root=True, variables=input_deck_variables)
+def write_input(path, input_deck, input_deck_variables, elasticity):
+    input_deck = MooseBlock(
+        "root",
+        input_deck,
+        root=True,
+        variables=input_deck_variables,
+        elasticity=elasticity,
+    )
     input_deck.to_file(path)

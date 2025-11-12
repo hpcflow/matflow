@@ -1932,3 +1932,312 @@
         - scope:
             type: any
           environment: python_env
+
+- objective: generate_plate_mesh_2D
+  inputs:
+    - parameter: geometry_name
+    - parameter: plate_width
+      default_value: 100e-3
+    - parameter: hole_diameter
+      default_value: 25e-3
+    - parameter: hole_sect_nodes
+      default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
+    - parameter: plate_radial_nodes
+      default_value: 9 # number of nodes from the hole to the edges of the central section
+    - parameter: plate_diff
+      default_value: 50e-3 # length of rectangular extension
+    - parameter: plate_diff_nodes
+      default_value: 5 # number of nodes along the rectangular extension
+  outputs:
+    - parameter: gmsh_mesh_str
+  actions:
+    - environments:
+        any: gmsh_env
+      input_file_generators:
+        - input_file: gmsh_geo_file
+          from_inputs:
+            - geometry_name
+            - plate_width
+            - hole_diameter
+            - hole_sect_nodes
+            - plate_radial_nodes
+            - plate_diff_nodes
+            - plate_diff
+          jinja_template: gmsh/<<parameter:geometry_name>>_2D.geo
+      script: <<script:gmsh/run_geo.py>>
+      script_exe: python_script
+      script_data_in:
+        input_files.gmsh_geo_file: direct
+      script_data_out:
+        outputs.gmsh_mesh_str: direct
+      requires_dir: true
+
+- objective: generate_plate_mesh_3D
+  method: gmsh
+  inputs:
+    - parameter: geometry_name
+    - parameter: plate_width
+      default_value: 100e-3
+    - parameter: plate_thickness
+      default_value: 2e-3
+    - parameter: hole_diameter
+      default_value: 25e-3
+    - parameter: plate_thick_layers
+      default_value: 2
+    - parameter: hole_sect_nodes
+      default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
+    - parameter: plate_radial_nodes
+      default_value: 9 # number of nodes from the hole to the edges of the central section
+    - parameter: plate_diff
+      default_value: 50e-3 # length of rectangular extension
+    - parameter: plate_diff_nodes
+      default_value: 5 # number of nodes along the rectangular extension
+  outputs:
+    - parameter: gmsh_mesh_str
+  actions:
+    - environments:
+        any: gmsh_env
+      input_file_generators:
+        - input_file: gmsh_geo_file
+          from_inputs:
+            - geometry_name
+            - plate_width
+            - plate_thickness
+            - hole_diameter
+            - plate_thick_layers
+            - hole_sect_nodes
+            - plate_radial_nodes
+            - plate_diff_nodes
+            - plate_diff
+          jinja_template: gmsh/<<parameter:geometry_name>>.geo
+      script: <<script:gmsh/run_geo.py>>
+      script_exe: python_script
+      script_data_in:
+        input_files.gmsh_geo_file: direct
+      script_data_out:
+        outputs.gmsh_mesh_str: direct
+      requires_dir: true
+
+- objective: simulation
+  implementation: moose
+  inputs:
+    - parameter: gmsh_mesh_str
+    - parameter: FE_response_data
+    - parameter: input_deck
+    - parameter: input_deck_variables
+      default_value: null
+    - parameter: elasticity
+      default_value: null
+  outputs:
+    - parameter: FE_response
+  actions:
+    - environments:
+        any: moose_processing_env
+        main: moose_env
+      input_file_generators:
+        - input_file: gmsh_mesh_file
+          from_inputs: [gmsh_mesh_str]
+          script: <<script:moose/dump_mesh.py>>
+        - input_file: moose_input_deck
+          from_inputs: [input_deck, input_deck_variables, elasticity]
+          script_data_in:
+            input_deck: direct
+          script: <<script:moose/write_input.py>>
+      abortable: true
+      commands:
+        - command: <<executable:proteus>> -i input.i
+          stdout: stdout.log
+          stderr: stderr.log
+      output_file_parsers:
+        FE_response:
+          from_files: [moose_exodus_file]
+          save_files: false
+          script: <<script:moose/parse_exodus.py>>
+          inputs: [FE_response_data]
+
+- objective: calculate_plate_SCF
+  inputs:
+    - parameter: FE_response
+    - parameter: plate_width
+    - parameter: hole_diameter
+    - parameter: plate_diff
+  outputs:
+    - parameter: SCF
+    - parameter: expected_SCF
+    - parameter: is_expected
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/calculate_plate_SCF_2D.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: refine_2D_plate_mesh
+  inputs:
+    - parameter: SCF
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+  outputs:
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/refine_plate_mesh_2D.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: refine_3D_plate_mesh
+  inputs:
+    - parameter: SCF
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+    - parameter: plate_thick_layers
+  outputs:
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+    - parameter: plate_thick_layers
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/refine_plate_mesh.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: get_reference_data_moose
+  inputs:
+    - parameter: FE_response
+  outputs:
+    - parameter: x
+    - parameter: reference_response
+  actions:
+    - script: <<script:lm_fit/get_reference_data_moose.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: get_reference_data_toy_model
+  inputs:
+    - parameter: p_true
+  outputs:
+    - parameter: x
+    - parameter: reference_response
+  actions:
+    - script: <<script:lm_fit/get_reference_data_toy_model.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: perturb_parameters
+  inputs:
+    - parameter: p_0
+      default_value: null
+    - parameter: p_i
+      default_value: null
+    - parameter: p_scales
+      default_value: null
+  outputs:
+    - parameter: perturbations
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: p_i
+  actions:
+    - script: <<script:lm_fit/perturb_parameters.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: system_analysis_toy_model_2
+  inputs:
+    - parameter: x
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: index
+  outputs:
+    - parameter: system_response
+  actions:
+    - script: <<script:lm_fit/system_analysis_toy_model.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: process_moose_parameters
+  inputs:
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: index
+  outputs:
+    - parameter: elasticity
+  actions:
+    - script: <<script:lm_fit/process_moose_parameters.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: process_moose_response
+  inputs:
+    - parameter: FE_response
+  outputs:
+    - parameter: system_response
+  actions:
+    - script: <<script:lm_fit/process_moose_response.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: lm_fit
+  inputs:
+    - parameter: system_response
+      group: jac_approx
+    - parameter: p_scales
+    - parameter: reference_response
+    - parameter: perturbations
+    - parameter: damping
+      default_value: null
+    - parameter: p_i
+    - parameter: stop_tol
+  outputs:
+    - parameter: p_i
+    - parameter: damping
+    - parameter: fit_parameters
+    - parameter: is_converged
+  actions:
+    - script: <<script:lm_fit/lm_fit.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
