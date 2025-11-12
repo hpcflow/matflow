@@ -1,4 +1,187 @@
 
+<a name="v0.3.0a196"></a>
+## [v0.3.0a196](https://github.com/hpcflow/matflow-new/compare/v0.3.0a195...v0.3.0a196) - 2025.11.12
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a195"></a>
+## [v0.3.0a195](https://github.com/hpcflow/matflow-new/compare/v0.3.0a194...v0.3.0a195) - 2025.11.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a194"></a>
+## [v0.3.0a194](https://github.com/hpcflow/matflow-new/compare/v0.3.0a193...v0.3.0a194) - 2025.11.10
+
+### ✨ Features
+
+* bump hpcflow version
+* continue supporting DAMASK v3.0.0-alpha7 (requires https://github.com/hpcflow/hpcflow-new/pull/892)
+* add multistep random loadcase with interpolation
+
+### 🐛 Bug Fixes
+
+* combining support for old and new DAMASK
+* update damask high-concurrency schema
+* DAMASK command line for v3.0.2
+* writing empty damask numerics file
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into software/damask_beta0
+* merge branch 'develop' into software/damask_beta0
+* update binary download links file [skip ci]
+* merge in develop
+
+### 🔄 Updates
+
+* support damask v3 beta0
+
+
+<a name="v0.3.0a193"></a>
+## [v0.3.0a193](https://github.com/hpcflow/matflow-new/compare/v0.3.0a192...v0.3.0a193) - 2025.11.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a192"></a>
+## [v0.3.0a192](https://github.com/hpcflow/matflow-new/compare/v0.3.0a191...v0.3.0a192) - 2025.11.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a191"></a>
+## [v0.3.0a191](https://github.com/hpcflow/matflow-new/compare/v0.3.0a190...v0.3.0a191) - 2025.11.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a190"></a>
+## [v0.3.0a190](https://github.com/hpcflow/matflow-new/compare/v0.3.0a189...v0.3.0a190) - 2025.11.06
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a189"></a>
+## [v0.3.0a189](https://github.com/hpcflow/matflow-new/compare/v0.3.0a188...v0.3.0a189) - 2025.11.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a188"></a>
+## [v0.3.0a188](https://github.com/hpcflow/matflow-new/compare/v0.3.0a187...v0.3.0a188) - 2025.11.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a187"></a>
+## [v0.3.0a187](https://github.com/hpcflow/matflow-new/compare/v0.3.0a186...v0.3.0a187) - 2025.11.04
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* to reflect changes in default input sources behaviour in hpcflow
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into fix/default-inp-sources
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a186"></a>
+## [v0.3.0a186](https://github.com/hpcflow/matflow-new/compare/v0.3.0a185...v0.3.0a186) - 2025.10.29
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a185"></a>
+## [v0.3.0a185](https://github.com/hpcflow/matflow-new/compare/v0.3.0a184...v0.3.0a185) - 2025.10.28
+
+### ✨ Features
+
+* add support for specifying DAMASK `initial_conditions`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a184"></a>
+## [v0.3.0a184](https://github.com/hpcflow/matflow-new/compare/v0.3.0a183...v0.3.0a184) - 2025.10.28
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a183"></a>
 ## [v0.3.0a183](https://github.com/hpcflow/matflow-new/compare/v0.3.0a182...v0.3.0a183) - 2025.09.22
 

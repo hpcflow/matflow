@@ -668,6 +668,8 @@
       default_value: null
     - parameter: remove_damask_hdf5
       default_value: false
+    - parameter: initial_conditions
+      default_value: null
   outputs:
     - parameter: damask_log
     - parameter: damask_post_processing_result
@@ -684,7 +686,7 @@
           environment: damask_env
       input_file_generators:
         - input_file: damask_geom_file
-          from_inputs: [volume_element]
+          from_inputs: [volume_element, initial_conditions]
           script: <<script:damask/write_geom.py>>
         - input_file: damask_load_file
           from_inputs: [load_case, damask_solver]
@@ -704,9 +706,31 @@
               condition: { value.not_equal_to: null }
       abortable: true
       commands:
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
         - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
           stdout: stdout.log
           stderr: stderr.log
+          rules:
+            - path: resources.environments.damask_env.version
+              default: false
+              condition: { value.equal_to: 3.0.0-alpha7 }
       output_file_parsers:
         damask_log:
           from_files: [damask_stdout_file]
@@ -759,6 +783,10 @@
       default_value: null
     - parameter: damask_numerics
       default_value: null
+    - parameter: remove_damask_hdf5
+      default_value: false
+    - parameter: initial_conditions
+      default_value: null
   outputs:
     - parameter: VE_response
   actions:
@@ -779,18 +807,33 @@
             - damask_phases
             - single_crystal_parameters
             - damask_numerics
+            - initial_conditions
           script: <<script:damask/high_concurrency/write_input_files.py>>
       abortable: true
       commands:
-        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
           stdout: stdout.log
           stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.equal_to: null }
       output_file_parsers:
         VE_response: # this generates VTK files as well if requested
           from_files: [damask_hdf5_file]
-          save_files: false
+          save_files: [damask_viz_files]
+          clean_up: [damask_viz_files]
           script: <<script:damask/high_concurrency/process_HDF5.py>>
-          inputs: [damask_post_processing, VE_response_data, damask_viz]
+          inputs:
+            - damask_post_processing
+            - VE_response_data
+            - damask_viz
+            - remove_damask_hdf5
 
 - objective: read_tensile_test
   doc: Read tensile test data from CSV.
@@ -1526,7 +1569,6 @@
 
 - objective: evaluate_yield_stress_limit_state
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: threshold_yield_stress
     - parameter: yield_stress
   outputs:
@@ -1823,7 +1865,6 @@
 
 - objective: evaluate_limit_state_normal_sum
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: sum_y
     - parameter: target_pf
     - parameter: dimension

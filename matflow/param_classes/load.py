@@ -834,6 +834,88 @@ class LoadStep(ParameterValue):
         return obj._remember_name_args(_method_name, _method_args)
 
     @classmethod
+    def random_inc(
+        cls,
+        total_time: Union[int, float],
+        num_increments: int,
+        target_def_grad: float,
+        start_def_grad: Optional[np.typing.ArrayLike] = None,
+        dump_frequency: Optional[int] = 1,
+    ) -> LoadStep:
+        """Random load step continuing from a start point.
+
+        Parameters
+        ----------
+        total_time : float or int
+            Total simulation time.
+        num_increments
+            Number of simulation increments.
+        target_def_grad : float
+            Maximum of each deformation gradient component
+        start_def_grad : numpy.ndarray of shape (3, 3), optional
+            Starting deformation gradient of load step. Identity if not given.
+        dump_frequency : int, optional
+            By default, 1, meaning results are written out every increment.
+        """
+        if start_def_grad is None:
+            start_def_grad = np.eye(3)
+        if start_def_grad.shape != (3, 3):
+            msg = "start_def_grad must be an array of shape (3, 3)"
+            raise ValueError(msg)
+
+        dg_arr = np.copy(start_def_grad)
+        dg_arr += target_def_grad * np.where(np.random.random((3, 3)) > 0.5, 1.0, -1.0)
+        dg_arr /= np.cbrt(np.linalg.det(dg_arr))
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=dg_arr,
+            dump_frequency=dump_frequency,
+        )
+
+    @classmethod
+    def random_inc(
+        cls,
+        total_time: Union[int, float],
+        num_increments: int,
+        target_def_grad: float,
+        start_def_grad: Optional[np.typing.ArrayLike] = None,
+        dump_frequency: Optional[int] = 1,
+    ) -> LoadStep:
+        """Random load step continuing from a start point.
+
+        Parameters
+        ----------
+        total_time : float or int
+            Total simulation time.
+        num_increments
+            Number of simulation increments.
+        target_def_grad : float
+            Maximum of each deformation gradient component
+        start_def_grad : numpy.ndarray of shape (3, 3), optional
+            Starting deformation gradient of load step. Identity if not given.
+        dump_frequency : int, optional
+            By default, 1, meaning results are written out every increment.
+        """
+        if start_def_grad is None:
+            start_def_grad = np.eye(3)
+        if start_def_grad.shape != (3, 3):
+            msg = "start_def_grad must be an array of shape (3, 3)"
+            raise ValueError(msg)
+
+        dg_arr = np.copy(start_def_grad)
+        dg_arr += target_def_grad * np.where(np.random.random((3, 3)) > 0.5, 1.0, -1.0)
+        dg_arr /= np.cbrt(np.linalg.det(dg_arr))
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=dg_arr,
+            dump_frequency=dump_frequency,
+        )
+
+    @classmethod
     def uniaxial_cyclic(
         cls,
         max_stress: float,
@@ -1160,3 +1242,50 @@ class LoadCase(ParameterValue):
         See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
         """
         return cls(steps=LoadStep.from_npz_file(**kwargs))
+
+    @classmethod
+    def multistep_random_inc(
+        cls,
+        steps: List[Dict],
+        interpolate_steps: int,
+        interpolate_kind: Optional[Union[str, int]] = 3,
+    ) -> LoadCase:
+        """A load case with multiple steps.
+
+        Parameters
+        ----------
+
+        """
+        from scipy.interpolate import interp1d
+
+        step_objs = []
+        dg_arr = [np.eye(3)]
+        for step_i in steps:
+            step_i = copy.deepcopy(step_i)  # don't mutate
+            repeats = step_i.pop("repeats", 1)
+            method = LoadStep.random_inc
+            for _ in range(repeats):
+                step_obj = method(**step_i, start_def_grad=dg_arr[-1])
+                dg_arr.append(step_obj.target_def_grad)
+                step_objs.append(step_obj)
+        dg_arr = np.array(dg_arr)
+
+        dg_interp = interp1d(
+            np.arange(len(dg_arr)) * interpolate_steps,
+            dg_arr,
+            kind=interpolate_kind,
+            axis=0,
+        )
+
+        step_objs_full = []
+        for i, step_obj_i in enumerate(step_objs):
+            step_i = {
+                "total_time": step_obj_i.total_time / interpolate_steps,
+                "num_increments": int(step_obj_i.num_increments / interpolate_steps),
+                "dump_frequency": step_obj_i.dump_frequency,
+            }
+            for j in range(interpolate_steps):
+                dg = dg_interp(i * interpolate_steps + j + 1)
+                step_objs_full.append(LoadStep(**step_i, target_def_grad=dg))
+
+        return cls(steps=step_objs_full)
