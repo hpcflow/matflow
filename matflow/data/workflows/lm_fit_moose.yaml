@@ -10,25 +10,20 @@ loops:
       - moose_simulation_2
       - process_moose_response
       - lm_fit
-    num_iterations: 10
+    num_iterations: 7
     termination:
       path: outputs.is_converged
       condition: { value.equal_to: true }
 
 tasks:
   - schema: generate_plate_mesh_2D
-    # input_files:
-    #   gmsh_geo_file: D:/scratch/script.geo
     inputs:
       geometry_name: quarter_plate_with_hole
-      # mesh_scale: 1
-      # plate_scale:
       plate_width: 100e-3
       hole_diameter: 25e-3
-      # hole_sect_nodes: <<calc:odd(int(inputs.mesh_scale * 9))>> # must be odd?
-      hole_sect_nodes: 9 # must be odd?
-      plate_radial_nodes: 9 # 9
-      plate_diff_nodes: 8 # ideally odd
+      hole_sect_nodes: 9 # must be odd
+      plate_radial_nodes: 9
+      plate_diff_nodes: 8
       plate_diff: 50e-3
 
   - schema: moose_simulation
