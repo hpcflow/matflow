@@ -2081,12 +2081,15 @@
     - parameter: hole_sect_nodes
     - parameter: plate_radial_nodes
     - parameter: plate_diff_nodes
+    - parameter: SCF_diff
   actions:
     - environments:
         any: moose_processing_env
       script: <<script:moose/refine_plate_mesh_2D.py>>
       script_exe: python_script
-      script_data_in: direct
+      script_data_in:
+        SCF: { format: direct, all_iterations: true }
+        "*": direct
       script_data_out: direct
 
 - objective: refine_3D_plate_mesh

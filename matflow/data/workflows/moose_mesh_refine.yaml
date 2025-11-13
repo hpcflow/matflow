@@ -4,8 +4,11 @@ loops:
       - generate_plate_mesh_2D
       - moose_simulation
       - calculate_plate_SCF
-      - refine_3D_plate_mesh
-    num_iterations: 8
+      - refine_2D_plate_mesh
+    num_iterations: 6
+    termination:
+      path: outputs.SCF_diff
+      condition: { value.less_than: 0.02 }
 
 tasks:
   - schema: generate_plate_mesh_2D

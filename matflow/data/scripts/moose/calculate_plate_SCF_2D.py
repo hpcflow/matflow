@@ -32,9 +32,9 @@ def calculate_plate_SCF_2D(FE_response, plate_width, hole_diameter, plate_diff):
     k_t = 3 - 3.14 * width_ratio + 3.667 * width_ratio**2 - 1.527 * width_ratio**3
     expected_SCF = k_t / (1 - width_ratio)
 
-    # print(f"{width_ratio=!r}")
-    # print(f"{k_t=!r}")
-    # print(f"{expected_SCF=!r}")
-    # print(f"{stress_CF=!r}")
+    print(f"calculate_plate_SCF_2D: {width_ratio=!r}")
+    print(f"calculate_plate_SCF_2D: {k_t=!r}")
+    print(f"calculate_plate_SCF_2D: {expected_SCF=!r}")
+    print(f"calculate_plate_SCF_2D: {stress_CF=!r}")
 
     return {"SCF": stress_CF, "expected_SCF": expected_SCF}
