@@ -54,11 +54,6 @@ tasks:
             variable: disp_x
             boundary: "'x-mid-line'"
             value: 0.0
-          # top_y_traction_y:
-          #   type: FunctionDirichletBC
-          #   variable: disp_y
-          #   boundary: "'y-top-line'"
-          #   function: "'${topDispRate}*t'"
           Pressure:
             top:
               boundary: "'y-top-line'"
