@@ -7,14 +7,15 @@ included by MatFlow; namely: sklearn, pytensor, pymc, and on Windows, sklearnex.
 This code is taken entirely (with minor modifications) from:
 https://github.com/LightForm-group/surrogatetools.
 
+Some imports (including skops.io, scipy.stats, and scipy.optimize) are inlined into the
+methods where they are needed to reduce the effect on MatFlow's import time.
+
 """
 
 import platform
 from typing import ClassVar
 import numpy as np
-from scipy.stats import norm, uniform, sobol_indices
-from scipy.optimize import shgo
-import skops.io as sio
+
 
 from hpcflow.sdk.core.parameters import ParameterValue
 
@@ -50,6 +51,8 @@ class Surrogate(ParameterValue):
                 "sklearn.gaussian_process.kernels.Product",
                 "sklearn.gaussian_process.kernels.Sum",
             ]
+            import skops.io as sio
+
             self.model = sio.loads(model, trusted=trusted)
         else:
             self.model = None
@@ -62,6 +65,8 @@ class Surrogate(ParameterValue):
         """Serialise the scikit-learn model to bytes using skops."""
 
         if model := self.model:
+            import skops.io as sio
+
             return sio.dumps(model)
 
         else:
@@ -202,6 +207,8 @@ class Surrogate(ParameterValue):
             sobol: SobolResult
         """
 
+        from scipy.stats import norm, uniform, sobol_indices
+
         if use_fit == True:
             distributions = [
                 norm(loc=self.parameter_mean[i], scale=self.parameter_std[i])
@@ -220,6 +227,8 @@ class Surrogate(ParameterValue):
         return sobol
 
     def fit(self, Y_actual, Y_error, use_std=True, **kwargs):
+        from scipy.optimize import shgo
+
         def _loss(params, Y_actual, Y_error):
 
             params = np.array(params).reshape(1, -1)
@@ -249,11 +258,13 @@ class Surrogate(ParameterValue):
 
         return res
 
-    def perfom_inference(self, Y_actual, Y_error, initval=None, use_std=True, **kwargs):
+    def perform_inference(self, Y_actual, Y_error, initval=None, use_std=True, **kwargs):
 
         import pymc as pm
 
+        # TODO: is this needed?
         # pytensor.config.cxx = "/usr/bin/clang++" # Requirement for Apple Silicon
+
         import pytensor.tensor as pt
         from pytensor.graph import Apply, Op
 
