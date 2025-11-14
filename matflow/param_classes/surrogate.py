@@ -12,18 +12,27 @@ methods where they are needed to reduce the effect on MatFlow's import time.
 
 """
 
-import platform
+from __future__ import annotations
 from typing import ClassVar
 import numpy as np
-
-
 from hpcflow.sdk.core.parameters import ParameterValue
+
+import matflow as mf
 
 
 class Surrogate(ParameterValue):
 
     _typ: ClassVar[str] = "surrogate"
+
+    #: Whether we have yet patched scikit-learn with the Intel extension package.
     _is_patched: ClassVar[bool] = False
+
+    #: Path to the c++ compiler that Pytensor should use. If setting, this should be done
+    #: before an instance is created.
+    pytensor_config_cxx: ClassVar[str | None] = None
+
+    #: Whether we have yet configured Pytensor's cxx config option.
+    _pytensor_config_cxx_is_set: ClassVar[bool] = False
 
     def __init__(self, X, y, parameter_names=None, model=None, scale=True):
 
@@ -85,24 +94,18 @@ class Surrogate(ParameterValue):
 
     def scale_data(self, scale_X=True, scale_y=True):
 
-        # print(f"scale_data!")
-
         from sklearn.preprocessing import RobustScaler
 
         if self.X_scaler == None:
-            # print(f"setting X_scaler")
             self.X_scaler = RobustScaler().fit(self.X)
 
         if self.y_scaler == None:
-            # print(f"setting y_scaler")
             self.y_scaler = RobustScaler().fit(self.y)
 
         if scale_X == True:
-            # print(f"scaling X")
             self.X = self.X_scaler.transform(self.X)
 
         if scale_y == True:
-            # print(f"scaling y")
             self.y = self.y_scaler.transform(self.y)
 
         return None
@@ -122,7 +125,7 @@ class Surrogate(ParameterValue):
     @classmethod
     def _patch_once(cls):
         if not cls._is_patched:
-            if platform.system().lower() != "darwin":
+            if mf.run_time_info.platform != "macos":
                 from sklearnex import patch_sklearn
 
                 patch_sklearn()
@@ -165,18 +168,14 @@ class Surrogate(ParameterValue):
 
     def make_prediction(self, X, return_std=False, scalar_output=False):
 
-        # print(f"make_prediction: {self.X_scaler=!r}")
         if self.X_scaler is not None:
             X = self.X_scaler.transform(X)
-            # print(f"make_prediction: {self.X=!r}")
 
         y_prediction, y_error = self.model.predict(X, return_std=True)
-        # print(f"make_prediction: {y_prediction=!r}")
 
         if scalar_output == True:
             y_prediction = y_prediction.reshape(1, -1)
 
-        # print(f"make_prediction: {self.y_scaler=!r}")
         if self.y_scaler is not None:
             y_prediction = self.y_scaler.inverse_transform(y_prediction)
             y_error = y_error * self.y_scaler.scale_
@@ -258,13 +257,29 @@ class Surrogate(ParameterValue):
 
         return res
 
+    def _config_pytensor_once(self):
+        """
+        Configure the path to the C++ compiler that pytensor should use, using the
+        class variable `pytensor_config_cxx` if set, or, if on Apple silicon, setting to a
+        sensible default.
+        """
+
+        if self._pytensor_config_cxx_is_set:
+            return
+
+        import pytensor
+
+        if (pt_cxx := self.pytensor_config_cxx) is not None:
+            pytensor.config.cxx = pt_cxx
+        elif mf.run_time_info.is_apple_silicon:
+            pytensor.config.cxx = "/usr/bin/clang++"
+
+        self._pytensor_config_cxx_is_set = True
+
     def perform_inference(self, Y_actual, Y_error, initval=None, use_std=True, **kwargs):
 
+        self._config_pytensor_once()
         import pymc as pm
-
-        # TODO: is this needed?
-        # pytensor.config.cxx = "/usr/bin/clang++" # Requirement for Apple Silicon
-
         import pytensor.tensor as pt
         from pytensor.graph import Apply, Op
 
