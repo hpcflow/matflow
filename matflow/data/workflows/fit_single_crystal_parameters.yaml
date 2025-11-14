@@ -2,6 +2,8 @@ doc:
   - >
     Fit single crystal parameters using an experimental uniaxial tension stress-strain
     curve and an iterative Levenberg-Marquardt fitting process.
+    Note: For best results and least required iterations, user is advised to first
+    calculate approximate single crystal parameters from their experimental data.
 
 loops:
   - num_iterations: 2
