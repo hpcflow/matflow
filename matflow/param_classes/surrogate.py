@@ -12,6 +12,7 @@ methods where they are needed to reduce the effect on MatFlow's import time.
 
 """
 
+from __future__ import annotations
 from typing import ClassVar
 import numpy as np
 from hpcflow.sdk.core.parameters import ParameterValue
