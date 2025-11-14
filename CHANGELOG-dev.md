@@ -1,4 +1,22 @@
 
+<a name="v0.3.0a199"></a>
+## [v0.3.0a199](https://github.com/hpcflow/matflow-new/compare/v0.3.0a198...v0.3.0a199) - 2025.11.14
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* typing in py3.9
+* tidying up the `Surrogate` class
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into fix/surrogate-tidy
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a198"></a>
 ## [v0.3.0a198](https://github.com/hpcflow/matflow-new/compare/v0.3.0a197...v0.3.0a198) - 2025.11.14
 
