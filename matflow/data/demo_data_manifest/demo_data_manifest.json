@@ -31,5 +31,8 @@
     },
     "load_cases.npz": {
         "in_zip": "load_cases_npz.zip"
+    },
+    "surrogate_data": {
+        "in_zip": "surrogate_data.zip"
     }
 }

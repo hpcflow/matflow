@@ -1,15 +1,14 @@
 tasks:
   - schema: build_surrogate
     inputs:
-      # TODO: add as demo-data
       X_train::from_load_txt:
-        file_path: D:/others_code/surrogatetools/examples/data/X_train.txt
+        file_path: <<demo_data_file:surrogate_data>>/X_train.txt
       Y_train::from_load_txt:
-        file_path: D:/others_code/surrogatetools/examples/data/Y_train.txt
+        file_path: <<demo_data_file:surrogate_data>>/Y_train.txt
       X_test::from_load_txt:
-        file_path: D:/others_code/surrogatetools/examples/data/X_test.txt
+        file_path: <<demo_data_file:surrogate_data>>/X_test.txt
       Y_test::from_load_txt:
-        file_path: D:/others_code/surrogatetools/examples/data/Y_test.txt
+        file_path: <<demo_data_file:surrogate_data>>/Y_test.txt
       validate: true
       parameter_names:
         - a_1
