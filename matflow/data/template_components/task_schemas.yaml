@@ -1932,3 +1932,80 @@
         - scope:
             type: any
           environment: python_env
+
+- objective: build_surrogate
+  inputs:
+    - parameter: X_train
+    - parameter: Y_train
+    - parameter: parameter_names
+    - parameter: n_restarts_optimizer
+      default_value: 5
+    - parameter: cross_validate
+      default_value: true
+    - parameter: scoring
+      default_value: r2
+    - parameter: normalize_y
+      default_value: true
+    - parameter: validate
+      default_value: false
+    - parameter: X_test
+      default_value: null
+    - parameter: Y_test
+      default_value: null
+  outputs:
+    - parameter: surrogate
+    - parameter: validation
+    - parameter: versions
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/build_surrogate.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+- objective: fit_surrogate_from_test_data
+  inputs:
+    - parameter: surrogate
+    - parameter: Y_test
+    - parameter: test_index
+    - parameter: test_error
+    - parameter: iters
+    - parameter: n
+    - parameter: use_std
+  outputs:
+    - parameter: fitted_x
+    - parameter: optimize_result
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/fit_surrogate.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+- objective: perform_inference
+  inputs:
+    - parameter: surrogate
+    - parameter: Y_test
+    - parameter: test_index
+    - parameter: test_error
+    - parameter: draws
+    - parameter: tune
+    - parameter: chains
+    - parameter: cores
+    - parameter: fitted_x
+    - parameter: use_std
+  outputs:
+    - parameter: inference_data
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/perform_inference.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script

@@ -2,6 +2,7 @@ from hpcflow.sdk import app as sdk_app
 from hpcflow.sdk.config import ConfigOptions
 
 from matflow._version import __version__
+from matflow.encoders import get_encoders, get_decoders
 
 
 # provide access to app attributes:
@@ -39,6 +40,8 @@ app: sdk_app.App = sdk_app.App(
     demo_data_dir="matflow.data.demo_data",
     demo_data_manifest_dir="matflow.data.demo_data_manifest",
     docs_url="https://docs.matflow.io/stable",
+    encoders=get_encoders,
+    decoders=get_decoders,
 )  #: |app|
 
 # defer import to allow us to use the app logger in the ParameterValue classes:
