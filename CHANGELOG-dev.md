@@ -1,4 +1,32 @@
 
+<a name="v0.3.0a198"></a>
+## [v0.3.0a198](https://github.com/hpcflow/matflow-new/compare/v0.3.0a197...v0.3.0a198) - 2025.11.14
+
+### ♻ Code Refactoring
+
+* move build_surrogate task schemas
+* defer imports
+
+### ✨ Features
+
+* bump hpcflow version
+* use surrogat demo data
+* add `perform_inference` task
+* add fit_surrogate task
+* initial surrogate model support
+
+### 🐛 Bug Fixes
+
+* missing lock
+* indent!
+
+### 👷 Build changes
+
+* merge in develop
+* merge in develop
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a197"></a>
 ## [v0.3.0a197](https://github.com/hpcflow/matflow-new/compare/v0.3.0a196...v0.3.0a197) - 2025.11.14
 
