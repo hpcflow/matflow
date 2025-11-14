@@ -53,11 +53,34 @@ template_components:
           script_data_in: direct
           script_data_out: direct
           script_exe: python_script
+    - objective: perform_inference
+      inputs:
+        - parameter: surrogate
+        - parameter: Y_test
+        - parameter: test_index
+        - parameter: test_error
+        - parameter: draws
+        - parameter: tune
+        - parameter: chains
+        - parameter: cores
+        - parameter: fitted_x
+        - parameter: use_std
+      outputs:
+        - parameter: inference_data
+      actions:
+        - environments:
+            - scope:
+                type: any
+              environment: sklearn_env
+          script: <<script:surrogates/perform_inference.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
 
 tasks:
   - schema: build_surrogate
     inputs:
-      # TODO add as demo-data
+      # TODO: add as demo-data
       X_train::from_load_txt:
         file_path: D:/others_code/surrogatetools/examples/data/X_train.txt
       Y_train::from_load_txt:
@@ -79,4 +102,12 @@ tasks:
       test_error: 0.01
       iters: 5
       n: 250
+      use_std: true
+
+  - schema: perform_inference
+    inputs:
+      draws: 50_000
+      tune: 50_000
+      chains: 4
+      cores: 4
       use_std: true
