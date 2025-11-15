@@ -15,7 +15,7 @@ __dir__ = sdk_app.get_app_module_dir()
 # set app-level config options:
 config_options = ConfigOptions(
     directory_env_var="MATFLOW_CONFIG_DIR",
-    default_directory="~/.matflow-new",
+    default_directory="~/.matflow",
     default_known_configs_dir="github://hpcflow:matflow-configs@main",
 )
 
