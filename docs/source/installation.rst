@@ -91,7 +91,7 @@
     in particular the ``setup`` sections for each environment.
 
     Note that currently MatFlow works with DAMASK version ``3.0.0a7.post0``
-    but `not the latest versions <https://github.com/hpcflow/matflow-new/pull/284>`_.
+    but `not the latest versions <https://github.com/hpcflow/matflow/pull/284>`_.
     As such the MatFlow ``damask_parse`` environment should use ``pip install damask==3.0.0a7.post0``.
 
     Note also that any {{ app_name }} environment which activates a python virtual environment

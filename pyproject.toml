@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "matflow-new"
+name = "matflow"
 version = "0.3.0a200"
 description = "Computational workflows for materials science"
 authors = ["aplowman <adam.plowman@manchester.ac.uk>"]
