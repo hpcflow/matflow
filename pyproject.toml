@@ -21,6 +21,7 @@ matplotlib = "^3.7"
 typing-extensions = "^4.12.2"
 hpcflow-new2 = "0.2.0a268"
 skops = "^0.13.0"
+hpcflow = "0.1.16"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.12.2"

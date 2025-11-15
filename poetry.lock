@@ -402,6 +402,25 @@ html5lib = ["html5lib"]
 lxml = ["lxml"]
 
 [[package]]
+name = "beautifultable"
+version = "1.1.0"
+description = "Print text tables for terminals"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "beautifultable-1.1.0-py2.py3-none-any.whl", hash = "sha256:b34053a581976c4c23064bb0e918a7f6f22273cf196c787946db323a6a2b7d84"},
+    {file = "beautifultable-1.1.0.tar.gz", hash = "sha256:040bc987444965678f4ffdfa2f17ac357f1a13e5875b161c9a1899b375319d17"},
+]
+
+[package.dependencies]
+wcwidth = "*"
+
+[package.extras]
+all = ["pandas"]
+dev = ["pandas"]
+
+[[package]]
 name = "black"
 version = "22.12.0"
 description = "The uncompromising code formatter."
@@ -880,6 +899,23 @@ files = [
 ]
 
 [[package]]
+name = "dropbox"
+version = "10.1.2"
+description = "Official Dropbox API Client"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "dropbox-10.1.2-py2-none-any.whl", hash = "sha256:fddb4d1aa5ff2aba6f41a831deab8a7883b6e284b5e67e759583d40f5dc0d76d"},
+    {file = "dropbox-10.1.2-py3-none-any.whl", hash = "sha256:284285434b41297ab5dea94b07850d53b8470d628283701cc646fe06ea888735"},
+    {file = "dropbox-10.1.2.tar.gz", hash = "sha256:1d0bb2a919da26c46bbd1ba936ae44165385e08f22be64fb634a952a751b4f04"},
+]
+
+[package.dependencies]
+requests = ">=2.16.2"
+six = ">=1.12.0"
+
+[[package]]
 name = "entrypoints"
 version = "0.4"
 description = "Discover and load entry points from installed packages."
@@ -1190,7 +1226,7 @@ version = "3.1.1"
 description = "Lightweight in-process concurrent programming"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\""
 files = [
     {file = "greenlet-3.1.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:0bbae94a29c9e5c7e4a2b7f0aae5c17e8e90acbfd3bf6270eeba60c39fce3563"},
@@ -1310,6 +1346,26 @@ files = [
 
 [package.dependencies]
 numpy = ">=1.19.3"
+
+[[package]]
+name = "hpcflow"
+version = "0.1.16"
+description = "Generate and submit jobscripts for an automated simulate, process, archive workflow on high performance computing (HPC) systems."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "hpcflow-0.1.16-py3-none-any.whl", hash = "sha256:918635086f14db6fef7a548a803de792350d688f888a4f964bc653cc82d7c589"},
+    {file = "hpcflow-0.1.16.tar.gz", hash = "sha256:97a2f05be40d58ae5f9cfadacaa4954237ac0cd0ba3fbcdc0d309c9f58affae2"},
+]
+
+[package.dependencies]
+beautifultable = "*"
+click = ">7.0"
+dropbox = "10.1.2"
+"ruamel.yaml" = "*"
+six = ">1.11.0"
+sqlalchemy = ">=1.4.0"
 
 [[package]]
 name = "hpcflow-new2"
@@ -4417,7 +4473,7 @@ version = "2.0.40"
 description = "Database Abstraction Library"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "SQLAlchemy-2.0.40-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:ae9597cab738e7cc823f04a704fb754a9249f0b6695a6aeb63b74055cd417a96"},
     {file = "SQLAlchemy-2.0.40-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:37a5c21ab099a83d669ebb251fddf8f5cee4d75ea40a5a1653d9c43d60e20867"},
@@ -5073,4 +5129,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "bda7294317158104a8586a38c4a8ac307539ef382be8b27598987b1981a1d925"
+content-hash = "ed123edfd37b6e9cb5ba1a7585450f68af45d13026eaae444d61258d067308ad"
