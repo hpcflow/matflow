@@ -15,7 +15,7 @@ __dir__ = sdk_app.get_app_module_dir()
 # set app-level config options:
 config_options = ConfigOptions(
     directory_env_var="MATFLOW_CONFIG_DIR",
-    default_directory="~/.matflow-new",
+    default_directory="~/.matflow",
     default_known_configs_dir="github://hpcflow:matflow-configs@main",
 )
 
@@ -32,7 +32,7 @@ app: sdk_app.App = sdk_app.App(
     docs_import_conv="mf",
     description="Materials science workflow manager",
     gh_org="hpcflow",
-    gh_repo="matflow-new",
+    gh_repo="matflow",
     template_components=template_components,
     scripts_dir="data.scripts",  # relative to root package
     workflows_dir="data.workflows",  # relative to root package

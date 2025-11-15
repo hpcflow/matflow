@@ -4,7 +4,7 @@
 
 # MatFlow
 
-![PyPI - Version](https://img.shields.io/pypi/v/matflow-new) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/matflow-new)
+![PyPI - Version](https://img.shields.io/pypi/v/matflow) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/matflow)
 
 **Design, run, and share computational materials science workflows**
 
