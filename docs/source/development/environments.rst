@@ -44,7 +44,7 @@ In the container:
 * Create a new conda environment that contains :code:`damask-parse` and :code:`matflow`: :code:`conda create -n matflow_damask_parse_v3a7_env python=3.10`
 * Install :code:`libGL` for VTK (required by the damask python package) :code:`yum install mesa-libGL`
 * Activate the environment: :code:`conda activate matflow_damask_parse_v3a7_env`
-* Add packages via pip: :code:`pip install matflow-new damask-parse`
+* Add packages via pip: :code:`pip install matflow damask-parse`
 * Deactivate the environment: :code:`conda deactivate`
 * Pack the environment into a tarball: :code:`conda pack matflow_damask_parse_v3a7_env`
 * Save the resulting compressed file outside of the container and transfer to the target machine
