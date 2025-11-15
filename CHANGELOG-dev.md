@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a202"></a>
+## [v0.3.0a202](https://github.com/hpcflow/matflow/compare/v0.3.0a201...v0.3.0a202) - 2025.11.15
+
+### 🐛 Bug Fixes
+
+* update default config dir to `~/.matflow`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a201"></a>
 ## [v0.3.0a201](https://github.com/hpcflow/matflow/compare/v0.3.0a200...v0.3.0a201) - 2025.11.15
 
