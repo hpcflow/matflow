@@ -1,6 +1,6 @@
 {
     "org": "hpcflow",
-    "repo": "matflow-new",
+    "repo": "matflow",
     "app_name": "MatFlow",
     "app_package": "matflow",
     "docs_url_prefix": "",

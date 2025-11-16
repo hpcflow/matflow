@@ -101,6 +101,8 @@ tasks:
   - schema: sample_direct_MC
     inputs:
       dimension: 120 # 20 grains * (3 seed point dimensions + 3 orientation dimensions)
+    groups:
+      - name: all
     repeats: 100 # num_samples
   - schema: system_analysis
   - schema: collate_results # [outer loop]

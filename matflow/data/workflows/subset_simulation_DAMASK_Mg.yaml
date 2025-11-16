@@ -241,6 +241,8 @@ tasks:
     inputs:
       dimension: 120 # 20 grains * (3 seed point dimensions + 3 orientation dimensions)
     repeats: 100 # num_samples
+    groups:
+      - name: all
   - schema: system_analysis
   - schema: collate_results # [outer loop]
     inputs:

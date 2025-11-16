@@ -36,7 +36,7 @@ Checking out matflow
 ....................
 ::
 
-   git clone git@github.com:hpcflow/matflow-new.git
+   git clone git@github.com:hpcflow/matflow.git
 
 Install python dependencies with poetry
 ---------------------------------------
@@ -98,7 +98,7 @@ To do this, run::
 This will update the hpcflow-new dependency to point to your local copy.
 
 If this does not work, try doing it manually:
-First modify the ``matflow-new/pyproject.toml`` file replacing::
+First modify the ``matflow/pyproject.toml`` file replacing::
 
    hpcflow-new2 = "^0.2.0a14"
 

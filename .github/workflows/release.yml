@@ -19,11 +19,11 @@ jobs:
       release_branch: main
       app_name: MatFlow
       benchmark_make_workflow: ./matflow/data/workflows/tension_DAMASK_Al_N_repeats.yaml
-      docs_url_prefix: 
+      docs_url_prefix:
       executable_name: matflow
       pyinstaller_dir: pyinstaller
       pypi-url: https://upload.pypi.org/legacy/
-      repository: hpcflow/matflow-new
+      repository: hpcflow/matflow
       version_file: matflow/_version.py
       website_source_org: hpcflow
       website_source_repo: docs.matflow.io
