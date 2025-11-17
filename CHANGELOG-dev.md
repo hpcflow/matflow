@@ -1,4 +1,12 @@
 
+<a name="v0.3.0a206"></a>
+## [v0.3.0a206](https://github.com/hpcflow/matflow/compare/v0.3.0a205...v0.3.0a206) - 2025.11.17
+
+### 🐛 Bug Fixes
+
+* pyinstaller hook
+
+
 <a name="v0.3.0a205"></a>
 ## [v0.3.0a205](https://github.com/hpcflow/matflow/compare/v0.3.0a204...v0.3.0a205) - 2025.11.17
 
