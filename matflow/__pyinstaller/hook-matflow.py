@@ -1,7 +1,7 @@
 from PyInstaller.utils.hooks import collect_data_files
 
 hiddenimports = [
-    "matflow.data.demo_data_manifest",
+    "matflow.data.data_manifests",
     "matflow.data.scripts",
     "matflow.data.jinja_templates",
     "matflow.data.template_components",
@@ -12,7 +12,7 @@ hiddenimports = [
 
 py_include_kwargs = dict(include_py_files=True, excludes=("**/__pycache__",))
 datas = (
-    collect_data_files("matflow.data.demo_data_manifest")
+    collect_data_files("matflow.data.data_manifests")
     + collect_data_files("matflow.data.scripts", **py_include_kwargs)
     + collect_data_files("matflow.data.jinja_templates", **py_include_kwargs)
     + collect_data_files("matflow.data.template_components")
