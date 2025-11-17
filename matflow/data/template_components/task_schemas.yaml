@@ -422,8 +422,8 @@
     - parameter: crystal_symmetry
     - parameter: specimen_symmetry
     - parameter: ODF_components
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
   outputs:
     - parameter: orientations
@@ -436,9 +436,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_model_ODF
@@ -450,9 +450,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_model_ODF.m>>
@@ -464,9 +464,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_model_ODF/<<resource:platform>>_<<resource:CPU_arch>>/sample_texture_model_ODF.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_orientations
   doc: Visualise crystal orientations.

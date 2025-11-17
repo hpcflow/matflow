@@ -5,6 +5,7 @@
     "mtex/sample_orientations_CTF/win_AMD64/sample_orientations_CTF.exe": {},
     "mtex/sample_texture_CRC/win_AMD64/sample_texture_CRC.exe": {},
     "mtex/sample_texture_CTF/win_AMD64/sample_texture_CTF.exe": {},
+    "mtex/sample_texture_model_ODF/win_AMD64/sample_texture_model_ODF.exe": {},
     "mtex/sample_texture_ODF_mat/win_AMD64/sample_texture_ODF_mat.exe": {},
     "mtex/sample_texture_random/win_AMD64/sample_texture_random.exe": {}
 }
