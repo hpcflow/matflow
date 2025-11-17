@@ -206,7 +206,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: script # compile | precompiled
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -260,7 +260,7 @@
             value.equal_to: script
 
     - requires_dir: true
-      program: mtex/sample_texture_CTF/<<resource:platform>>/sample_texture_CTF.exe
+      program: mtex/sample_texture_CTF/<<resource:platform>>_<<resource:CPU_arch>>/sample_texture_CTF.exe
       program_data_in: json
       program_data_out: hdf5
       program_exe: run_precompiled_mtex
@@ -278,8 +278,8 @@
   method: from_CRC_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -300,9 +300,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_CRC
@@ -314,9 +314,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_CRC.m>>
@@ -328,17 +328,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_CRC/<<resource:platform>>_<<resource:CPU_arch>>/sample_texture_CRC.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
   method: from_ODF_mat_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: ODF_mat_file_path
     - parameter: num_orientations
@@ -353,9 +367,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_ODF_mat
@@ -367,9 +381,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_ODF_mat.m>>
@@ -381,9 +395,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_ODF_mat/<<resource:platform>>_<<resource:CPU_arch>>/sample_texture_ODF_mat.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from a model ODF file.
@@ -455,8 +483,9 @@
       default_value: null
     - parameter: use_one_colourbar
       default_value: False
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
+      propagation_mode: explicit
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -466,9 +495,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: plot_pole_figures
@@ -482,9 +511,9 @@
           environment: matlab_env
       save_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -498,9 +527,25 @@
           environment: matlab_env
       save_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/plot_pole_figures/<<resource:platform>>_<<resource:CPU_arch>>/plot_pole_figures.exe
+      program_data_in:
+        orientations: hdf5
+        "*": json
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_pole_figures, mtex_IPF_key]
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_orientations
   method: inverse_pole_figure
@@ -511,8 +556,9 @@
     - parameter: IPF_reference_directions
       default_value: ["z"]
     - parameter: use_contours
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
+      propagation_mode: explicit
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -522,9 +568,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: plot_inverse_pole_figures
@@ -538,9 +584,9 @@
           environment: matlab_env
       save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -554,9 +600,25 @@
           environment: matlab_env
       save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/plot_inverse_pole_figures/<<resource:platform>>_<<resource:CPU_arch>>/plot_inverse_pole_figures.exe
+      program_data_in:
+        orientations: hdf5
+        "*": json
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_multi_orientations
   # Note: this should be made redundant by some sort of built-in hpcflow functionality to
@@ -1380,8 +1442,8 @@
   method: from_CTF_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -1402,9 +1464,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_orientations_CTF
@@ -1416,9 +1478,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CTF.m>>
@@ -1430,17 +1492,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_orientations_CTF/<<resource:platform>>_<<resource:CPU_arch>>/sample_orientations_CTF.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_orientations
   doc: Get sample of crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -1461,9 +1537,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_orientations_CRC
@@ -1475,9 +1551,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CRC.m>>
@@ -1489,17 +1565,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_orientations_CRC/<<resource:platform>>_<<resource:CPU_arch>>/sample_orientations_CRC.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_compiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Get sample of crystal orientations by generation from a random model.
   method: random
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: specimen_symmetry
     - parameter: num_orientations
@@ -1515,9 +1605,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_random
@@ -1529,9 +1619,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_random.m>>
@@ -1543,9 +1633,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_random/<<resource:platform>>_<<resource:CPU_arch>>/sample_texture_random.exe
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: generate_rve
   method: from_damask_input_files
