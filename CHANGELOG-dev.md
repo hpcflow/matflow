@@ -1,4 +1,30 @@
 
+<a name="v0.3.0a205"></a>
+## [v0.3.0a205](https://github.com/hpcflow/matflow/compare/v0.3.0a204...v0.3.0a205) - 2025.11.17
+
+### ✨ Features
+
+* update sample_texture_model_ODF
+* update MTEX tasks to include precompiled execution mode
+* bump hpcflow version
+* move data/programs to a separate repo
+* add a demo workflow for demostrating different MTEX script exec modes
+* option to run `sample_texture_CTF` from a precompiled program
+
+### 🐛 Bug Fixes
+
+* remove outstanding `compile:` keys for MTEX task demo workflows
+* update MTEX demo workflows
+* add missing __init__.py
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into feat/programs
+* merge branch 'develop' into feat/programs
+* update binary download links file [skip ci]
+* merge branch 'develop' into feat/programs
+
+
 <a name="v0.3.0a204"></a>
 ## [v0.3.0a204](https://github.com/hpcflow/matflow/compare/v0.3.0a203...v0.3.0a204) - 2025.11.15
 
