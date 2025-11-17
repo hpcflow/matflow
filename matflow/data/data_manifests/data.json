@@ -1,0 +1,38 @@
+{
+    "ODF.mat": {
+        "in_zip": "ODF.zip"
+    },
+    "texture_Al.ctf": {
+        "in_zip": "texture_Al_CTF.zip"
+    },
+    "texture_Al_CRC": {
+        "in_zip": "texture_Al_CRC.zip"
+    },
+    "surfalex_tensile_test.csv": {
+        "in_zip": "surfalex_tensile_test.zip"
+    },
+    "load.yaml": {
+        "in_zip": "load.zip"
+    },
+    "geom.vti": {
+        "in_zip": "geom.zip"
+    },
+    "material.yaml": {
+        "in_zip": "material.zip"
+    },
+    "defdap_small_dataset": {
+        "in_zip": "defdap_small_dataset.zip"
+    },
+    "numerics_example.yaml": {
+        "in_zip": "numerics_example.zip"
+    },
+    "quaternions.txt": {
+        "in_zip": "quaternions.zip"
+    },
+    "load_cases.npz": {
+        "in_zip": "load_cases_npz.zip"
+    },
+    "surrogate_data": {
+        "in_zip": "surrogate_data.zip"
+    }
+}
