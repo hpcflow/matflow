@@ -1,11 +1,33 @@
 {
-    "mtex/plot_inverse_pole_figures/win_AMD64/plot_inverse_pole_figures.exe": {},
-    "mtex/plot_pole_figures/win_AMD64/plot_pole_figures.exe": {},
-    "mtex/sample_orientations_CRC/win_AMD64/sample_orientations_CRC.exe": {},
-    "mtex/sample_orientations_CTF/win_AMD64/sample_orientations_CTF.exe": {},
-    "mtex/sample_texture_CRC/win_AMD64/sample_texture_CRC.exe": {},
-    "mtex/sample_texture_CTF/win_AMD64/sample_texture_CTF.exe": {},
-    "mtex/sample_texture_model_ODF/win_AMD64/sample_texture_model_ODF.exe": {},
-    "mtex/sample_texture_ODF_mat/win_AMD64/sample_texture_ODF_mat.exe": {},
-    "mtex/sample_texture_random/win_AMD64/sample_texture_random.exe": {}
+    "mtex/plot_inverse_pole_figures/win_AMD64": {
+        "executable": "plot_inverse_pole_figures.exe"
+    },
+    "mtex/plot_pole_figures/win_AMD64": {
+        "executable": "plot_pole_figures.exe"
+    },
+    "mtex/sample_orientations_CRC/win_AMD64": {
+        "executable": "sample_orientations_CRC.exe"
+    },
+    "mtex/sample_orientations_CTF/win_AMD64": {
+        "executable": "sample_orientations_CTF.exe"
+    },
+    "mtex/sample_texture_CRC/win_AMD64": {
+        "executable": "sample_texture_CRC.exe"
+    },
+    "mtex/sample_texture_CTF/win_AMD64": {
+        "executable": "sample_texture_CTF.exe"
+    },
+    "mtex/sample_texture_CTF/linux_x86_64": {
+        "in_zip": "mtex/sample_texture_CTF/linux_x86_64/sample_texture_CTF.zip",
+        "executable": "run_sample_texture_CTF.sh"
+    },
+    "mtex/sample_texture_model_ODF/win_AMD64": {
+        "executable": "sample_texture_model_ODF.exe"
+    },
+    "mtex/sample_texture_ODF_mat/win_AMD64": {
+        "executable": "sample_texture_ODF_mat.exe"
+    },
+    "mtex/sample_texture_random/win_AMD64": {
+        "executable": "sample_texture_random.exe"
+    }
 }
