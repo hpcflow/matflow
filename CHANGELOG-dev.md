@@ -1,4 +1,18 @@
 
+<a name="v0.3.0a207"></a>
+## [v0.3.0a207](https://github.com/hpcflow/matflow/compare/v0.3.0a206...v0.3.0a207) - 2025.11.18
+
+### ✨ Features
+
+* bump hpcflow version
+* add first linux MTEX program
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into feat/program-extra-files
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a206"></a>
 ## [v0.3.0a206](https://github.com/hpcflow/matflow/compare/v0.3.0a205...v0.3.0a206) - 2025.11.17
 
