@@ -19,7 +19,10 @@
     },
     "mtex/sample_texture_CTF/linux_x86_64": {
         "zip_contents": "mtex/sample_texture_CTF/linux_x86_64/sample_texture_CTF.zip",
-        "executable": "run_sample_texture_CTF.sh"
+        "executable": "run_sample_texture_CTF.sh",
+        "set_executable": [
+            "*"
+        ]
     },
     "mtex/sample_texture_model_ODF/win_AMD64": {
         "executable": "sample_texture_model_ODF.exe"
