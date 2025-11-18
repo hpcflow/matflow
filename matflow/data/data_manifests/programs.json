@@ -30,6 +30,13 @@
     "mtex/sample_texture_ODF_mat/win_AMD64": {
         "executable": "sample_texture_ODF_mat.exe"
     },
+    "mtex/sample_texture_ODF_mat/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_ODF_mat/linux_x86_64/sample_texture_ODF_mat.zip",
+        "executable": "run_sample_texture_ODF_mat.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
     "mtex/sample_texture_random/win_AMD64": {
         "executable": "sample_texture_random.exe"
     }
