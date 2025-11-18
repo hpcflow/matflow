@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a208"></a>
+## [v0.3.0a208](https://github.com/hpcflow/matflow/compare/v0.3.0a207...v0.3.0a208) - 2025.11.18
+
+### 🐛 Bug Fixes
+
+* manifest for sample_texture_CTF linux program
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a207"></a>
 ## [v0.3.0a207](https://github.com/hpcflow/matflow/compare/v0.3.0a206...v0.3.0a207) - 2025.11.18
 
