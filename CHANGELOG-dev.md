@@ -1,4 +1,22 @@
 
+<a name="v0.3.0a209"></a>
+## [v0.3.0a209](https://github.com/hpcflow/matflow/compare/v0.3.0a208...v0.3.0a209) - 2025.11.20
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* set both the shell script and the binary to executable for linux MTEX program
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into feat/set-executable
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a208"></a>
 ## [v0.3.0a208](https://github.com/hpcflow/matflow/compare/v0.3.0a207...v0.3.0a208) - 2025.11.18
 
