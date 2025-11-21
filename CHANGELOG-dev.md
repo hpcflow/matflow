@@ -1,4 +1,37 @@
 
+<a name="v0.3.0a211"></a>
+## [v0.3.0a211](https://github.com/hpcflow/matflow/compare/v0.3.0a210...v0.3.0a211) - 2025.11.21
+
+### ✨ Features
+
+* implement mesh refinement and inverse optimisation MOOSE workflows
+* add plate geometry moose workflow
+* use template in gmsh mesh generation workflow
+* add some parametrisation to plate-with-hole
+* some initial basic gmsh integration
+* Add MOOSE simualtions
+
+### 🐛 Bug Fixes
+
+* remove commented-out
+* tidy up lm_fit_moose
+* moose mesh refine workflow
+* schemas
+* update gmsh workflow
+* task parametrisation
+* IFG inputs and format escpaing
+
+### 👷 Build changes
+
+* merge in develop
+* update binary download links file [skip ci]
+* merge branch 'develop' into software/moose
+* merge branch 'develop' into software/moose
+* merge
+* merge branch 'software/gmsh' into software/moose
+* merge in develop
+
+
 <a name="v0.3.0a210"></a>
 ## [v0.3.0a210](https://github.com/hpcflow/matflow/compare/v0.3.0a209...v0.3.0a210) - 2025.11.21
 
