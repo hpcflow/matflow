@@ -1,4 +1,19 @@
 
+<a name="v0.3.0a210"></a>
+## [v0.3.0a210](https://github.com/hpcflow/matflow/compare/v0.3.0a209...v0.3.0a210) - 2025.11.21
+
+### ✨ Features
+
+* add macos MTEX programs
+* update data manifest for linux mtex programs
+* bump hpcflow version
+* add `matflow env setup` for various envs
+
+### 👷 Build changes
+
+* merge branch 'bump/hpcflow' into feat/configure-env
+
+
 <a name="v0.3.0a209"></a>
 ## [v0.3.0a209](https://github.com/hpcflow/matflow/compare/v0.3.0a208...v0.3.0a209) - 2025.11.20
 
