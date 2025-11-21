@@ -12,6 +12,8 @@ import sys
 
 import matflow as mf
 
+from hpcflow.sdk.submission.schedulers.utils import run_cmd
+
 if TYPE_CHECKING:
     from hpcflow.sdk.core.environment import Environment
 
@@ -337,5 +339,65 @@ def env_configure_matlab(
         setup=setup,
         executables=executables,
         setup_label="matlab",
+    )
+    return new_env
+
+
+def env_configure_damask(
+    shell: Literal["bash", "powershell"],
+    setup: str | list[str] | None = None,
+    docker_image: str | None = None,
+    docker_archive: str | Path | None = None,
+    docker_exe: str | None = None,
+):
+    """Configure the MatFlow DAMASK environment.
+
+    If passing a path to an archive, the name of the image within the archive can be
+    passed via `docker_image`.
+
+    """
+
+    if sum((i is not None for i in (docker_image, docker_archive))) == 0:
+        raise ValueError(
+            f"Provide either the docker image name, or the docker archive file path "
+            f"(and optionally the image name within the archive)."
+        )
+
+    docker_exe = docker_exe or "docker"
+    if docker_archive:
+        # load with docker
+        cmd = (docker_exe, "load", "--input", str(docker_archive))
+        run_cmd(cmd)
+
+    DAMASK_GRID_CMD = {
+        "bash": (
+            f"docker run --rm --interactive --volume $PWD:/wd --env "
+            f"OMP_NUM_THREADS=1 {docker_image}"
+        ),
+        "powershell": (
+            f"docker run --rm --interactive --volume ${{PWD}}:/wd --env "
+            f"OMP_NUM_THREADS=1 {docker_image}"
+        ),
+    }
+
+    executables = []
+    executables.append(
+        mf.Executable(
+            label="damask_grid",
+            instances=[
+                mf.ExecutableInstance(
+                    command=DAMASK_GRID_CMD[shell],
+                    num_cores=1,
+                    parallel_mode=None,
+                ),
+            ],
+        )
+    )
+
+    new_env = mf.Environment(
+        name="damask_env",
+        setup=setup,
+        executables=executables,
+        setup_label="damask",
     )
     return new_env

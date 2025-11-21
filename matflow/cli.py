@@ -19,6 +19,7 @@ from matflow.environments import (
     env_configure_python_all,
     env_configure_dream3d,
     env_configure_matlab,
+    env_configure_damask,
 )
 
 
@@ -134,10 +135,45 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         )
         app.save_env(env)
 
+    @click.command()
+    @click.option(
+        "--docker-image",
+        help=(
+            "Name of the docker image to use to run DAMASK_grid; or the name of the "
+            "image expected within the archive."
+        ),
+    )
+    @click.option(
+        "--docker-archive",
+        help="Name of the docker archive to load the image from.",
+    )
+    @click.option(
+        "--docker-exe",
+        help="Docker executable file.",
+    )
+    def damask(
+        docker_image: str | None,
+        docker_archive: str | Path | None,
+        docker_exe: str | Path | None,
+    ):
+        """Configure the DAMASK environment.
+
+        In particular the `damask_grid` executable.
+
+        """
+        env = env_configure_damask(
+            shell,
+            docker_image=docker_image,
+            docker_archive=docker_archive,
+            docker_exe=docker_exe,
+        )
+        app.save_env(env)
+
     app.env_setup_CLI.add_command(dream3d)
     app.env_setup_CLI.add_command(python)
     app.env_setup_CLI.add_command(python_all)
     app.env_setup_CLI.add_command(matlab)
+    app.env_setup_CLI.add_command(damask)
 
 
 add_to_env_setup_CLI(mf)
