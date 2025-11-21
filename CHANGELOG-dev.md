@@ -1,4 +1,18 @@
 
+<a name="v0.3.0a212"></a>
+## [v0.3.0a212](https://github.com/hpcflow/matflow/compare/v0.3.0a211...v0.3.0a212) - 2025.11.21
+
+### ✨ Features
+
+* add env setup damask
+* bump hpcflow version
+
+### 👷 Build changes
+
+* merge branch 'env/docker' into bump/hpcflow
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a211"></a>
 ## [v0.3.0a211](https://github.com/hpcflow/matflow/compare/v0.3.0a210...v0.3.0a211) - 2025.11.21
 
