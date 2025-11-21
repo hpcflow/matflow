@@ -90,16 +90,16 @@
         and:
           - value.is_instance: [dict]
           - key.in:
-            - "type"
-            - "name"
-            - "crystal_structure"
-            - "volume_fraction"
-            - "size_distribution"
-            - "radial_distribution_function"
-            - "number_fraction_on_boundary"
-            - "preset_statistics_model"
-            - "ODF"
-            - "axis_ODF"
+              - "type"
+              - "name"
+              - "crystal_structure"
+              - "volume_fraction"
+              - "size_distribution"
+              - "radial_distribution_function"
+              - "number_fraction_on_boundary"
+              - "preset_statistics_model"
+              - "ODF"
+              - "axis_ODF"
     - path: [{ "type": "list_value" }, "type"]
       condition:
         and:
@@ -149,7 +149,8 @@
       condition:
         and:
           - value.is_instance: [dict]
-          - key.in: ["filename", "crop", "scale", "homog_points", "min_grain_size"]
+          - key.in:
+              ["filename", "crop", "scale", "homog_points", "min_grain_size"]
 - type: EBSD
   _validation:
     - path: []
@@ -157,7 +158,8 @@
       condition:
         and:
           - value.is_instance: [dict]
-          - key.in: ["filename", "boundary_tol", "min_grain_size", "homog_points"]
+          - key.in:
+              ["filename", "boundary_tol", "min_grain_size", "homog_points"]
 - type: EBSD_phase
   _validation:
     - path: []
@@ -171,11 +173,11 @@
         and:
           - value.is_instance: [str]
           - value.in:
-            - euler_to_spatial
-            - spatial_to_euler
-            # https://mtex-toolbox.github.io/EBSDReferenceFrame.html
-            - convertEuler2SpatialReferenceFrame
-            - convertSpatial2EulerReferenceFrame
+              - euler_to_spatial
+              - spatial_to_euler
+              # https://mtex-toolbox.github.io/EBSDReferenceFrame.html
+              - convertEuler2SpatialReferenceFrame
+              - convertSpatial2EulerReferenceFrame
 - type: EBSD_rotation
   _validation:
     - path: []
@@ -185,7 +187,7 @@
       condition:
         and:
           - value.is_instance: [dict]
-          - key.in: [ "euler_angles_deg", "keep_XY", "keep_euler" ]
+          - key.in: ["euler_angles_deg", "keep_XY", "keep_euler"]
 - type: num_orientations
   _validation:
     - path: []
@@ -221,14 +223,14 @@
         or `"incremental_data"` (now deprecated).
       condition:
         and:
-        - value.is_instance: [dict]
-        - key.in:
-          - "geom_path"
-          - "incremental_data"
-          - "volume_data"
-          - "phase_data"
-          - "field_data"
-          - "grain_data"
+          - value.is_instance: [dict]
+          - key.in:
+              - "geom_path"
+              - "incremental_data"
+              - "volume_data"
+              - "phase_data"
+              - "field_data"
+              - "grain_data"
 - type: homogenization
   _validation:
     - path: []
@@ -259,33 +261,33 @@
         and:
           - value.is_instance: [dict]
           - key.in: ["name", "args", "opts"]
-    - path: [{ "type": "list_value" }, "name" ]
+    - path: [{ "type": "list_value" }, "name"]
       doc: See `damask.Result` for what the operations do.
       condition:
         and:
           - value.is_instance: [str]
           - value.in:
-            # I think these are the relevant operations
-            - "add_absolute"
-            - "add_calculation"
-            - "add_stress_Cauchy"
-            - "add_determinant"
-            - "add_deviator"
-            - "add_eigenvalue"
-            - "add_eigenvector"
-            - "add_IPF_color"
-            - "add_maximum_shear"
-            - "add_equivalent_Mises"
-            - "add_norm"
-            - "add_stress_second_Piola_Kirchhoff"
-            - "add_pole"
-            - "add_rotation"
-            - "add_spherical"
-            - "add_strain"
-            - "add_stretch_tensor"
-            - "add_curl"
-            - "add_divergence"
-            - "add_gradient"
+              # I think these are the relevant operations
+              - "add_absolute"
+              - "add_calculation"
+              - "add_stress_Cauchy"
+              - "add_determinant"
+              - "add_deviator"
+              - "add_eigenvalue"
+              - "add_eigenvector"
+              - "add_IPF_color"
+              - "add_maximum_shear"
+              - "add_equivalent_Mises"
+              - "add_norm"
+              - "add_stress_second_Piola_Kirchhoff"
+              - "add_pole"
+              - "add_rotation"
+              - "add_spherical"
+              - "add_strain"
+              - "add_stretch_tensor"
+              - "add_curl"
+              - "add_divergence"
+              - "add_gradient"
 - type: damask_viz
   _validation:
     - path: []
@@ -296,8 +298,8 @@
       condition:
         or:
           - and:
-            - value.is_instance: [dict]
-            - key.in: ["increments", "phases", "homogenizations", "fields"]
+              - value.is_instance: [dict]
+              - key.in: ["increments", "phases", "homogenizations", "fields"]
           - value.is_instance: [list]
 - type: damask_solver
   _validation:
@@ -324,7 +326,7 @@
 - type: dump_path
   _validation:
     - path: []
-      doc: Where to write dump data. 
+      doc: Where to write dump data.
       condition: { value.is_instance: [str, path] }
 - type: yield_point # vol-avg equivalent plastic strain
   _validation:
@@ -451,13 +453,13 @@
           - value.is_instance: [list]
           - value.length.equal_to: 3
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [int, float]}
+      condition: { value.is_instance: [int, float] }
 - type: resolution
   _validation:
     - path: []
       condition: { value.is_instance: [list] }
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [int, float]}
+      condition: { value.is_instance: [int, float] }
 - type: levenberg_marquardt_fitter
   _validation:
     - path: []
@@ -475,7 +477,7 @@
     - path: []
       condition: { value.is_instance: [list] }
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [str]}
+      condition: { value.is_instance: [str] }
 - type: find_grains_algorithm
   _validation:
     - path: []
@@ -487,8 +489,7 @@
   _validation:
     - path: []
       doc:
-        description:
-          Single parameter to make an instance of MTEX `crystalSymmetry`.
+        description: Single parameter to make an instance of MTEX `crystalSymmetry`.
         examples:
           - "`cubic` - Cubic symmetry"
           - "`hexagonal` - Hexagonal symmetry"
@@ -505,7 +506,7 @@
           - value.is_instance: [list]
           - value.length.equal_to: 3
     - path: [{ "type": "list_value" }, { "type": "list_value" }]
-      condition: { value.is_instance: [int, float]}
+      condition: { value.is_instance: [int, float] }
 - type: IPF_reference_direction
   _validation:
     - path: []
@@ -522,7 +523,7 @@
           - value.is_instance: [list]
           - value.length.equal_to: 2
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [float]}
+      condition: { value.is_instance: [float] }
 - type: ODF_components
   _validation:
     - path: []
@@ -531,7 +532,7 @@
         and:
           - value.is_instance: [list]
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [dict]}
+      condition: { value.is_instance: [dict] }
 - type: order
   _validation:
     - path: []
@@ -556,7 +557,7 @@
           - value.is_instance: [list]
           - value.length.equal_to: 6
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [int]}
+      condition: { value.is_instance: [int] }
 - type: phase_ids
   _validation:
     - path: []
@@ -567,7 +568,7 @@
           - value.is_instance: [list]
           - value.length.equal_to: 6
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [int]}
+      condition: { value.is_instance: [int] }
 - type: phase_labels
   _validation:
     - path: []
@@ -578,7 +579,7 @@
           - value.is_instance: [list]
           - value.length.equal_to: 6
     - path: [{ "type": "list_value" }]
-      condition: { value.is_instance: [str]}
+      condition: { value.is_instance: [str] }
 - type: phase_label_mapping
   _validation:
     - path: []
@@ -600,3 +601,4 @@
 - type: single_crystal_parameters
 - type: tensile_test
 - type: yield_point_criteria
+- type: input_deck

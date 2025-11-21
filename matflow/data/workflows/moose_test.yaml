@@ -1,0 +1,88 @@
+template_components:
+  task_schemas:
+    - objective: moose_simulation_test
+      inputs:
+        - parameter: input_deck
+        - parameter: input_deck_variables
+          default_value: null
+      actions:
+        - environments:
+            processing: python_env
+            main: moose_env
+          input_file_generators:
+            - input_file: moose_input_deck
+              from_inputs: [input_deck, input_deck_variables]
+              script: <<script:moose/write_input.py>>
+          abortable: true
+          commands:
+            - command: <<executable:proteus>> -i input.i
+              stdout: stdout.log
+              stderr: stderr.log
+
+tasks:
+  - schema: moose_simulation_test
+    # resources:
+    #   main:
+    #     num_cores: 2
+    #     scheduler_args:
+    #       options:
+    #         --time: 01:00:00
+    # resources:
+    #   main:
+    #     shell: wsl
+    inputs:
+      input_deck:
+        Mesh:
+          generated:
+            type: GeneratedMeshGenerator
+            dim: 2
+            nx: 10
+            ny: 5
+            xmax: 100e-3
+            ymax: 50e-3
+            elem_type: QUAD4
+        Variables:
+          temperature:
+            initial_condition: 20.0
+        Kernels:
+          heat_conduction:
+            type: HeatConduction
+            variable: temperature
+        Materials:
+          copper_thermal:
+            type: HeatConductionMaterial
+            thermal_conductivity: 384.0
+            specific_heat: 406.0
+          copper_density:
+            type: GenericConstantMaterial
+            prop_names: density
+            prop_values: 8829.0
+        BCs:
+          heat_flux_out:
+            type: ConvectiveHeatFluxBC
+            variable: temperature
+            boundary: left
+            T_infinity: 20.0
+            heat_transfer_coefficient: 125.0e3
+          heat_flux_in:
+            type: NeumannBC
+            variable: temperature
+            boundary: right
+            value: 500.0e3
+        Executioner:
+          type: Steady
+        Postprocessors:
+          max_temp:
+            type: NodalExtremeValue
+            variable: temperature
+          avg_temp:
+            type: AverageNodalVariableValue
+            variable: temperature
+        Outputs:
+          exodus: true
+    # sequences:
+    #   - path: inputs.input_deck.BCs.heat_flux_out.heat_transfer_coefficient
+    #     values::from_random_normal:
+    #       mean: 125.0e3
+    #       std_dev: 5.0e3
+    #       num: 10

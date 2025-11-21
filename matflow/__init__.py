@@ -35,6 +35,7 @@ app: sdk_app.App = sdk_app.App(
     gh_repo="matflow",
     template_components=template_components,
     scripts_dir="data.scripts",  # relative to root package
+    jinja_templates_dir="data.jinja_templates",  # relative to root package
     workflows_dir="data.workflows",  # relative to root package
     config_options=config_options,
     data_manifest_dir="matflow.data.data_manifests",
