@@ -1,4 +1,21 @@
 
+<a name="v0.3.0a213"></a>
+## [v0.3.0a213](https://github.com/hpcflow/matflow/compare/v0.3.0a212...v0.3.0a213) - 2025.11.21
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* set executable bit on additional files for mtex programs
+
+### 👷 Build changes
+
+* merge branch 'develop' into fix/macos-mtex
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a212"></a>
 ## [v0.3.0a212](https://github.com/hpcflow/matflow/compare/v0.3.0a211...v0.3.0a212) - 2025.11.21
 
