@@ -1,0 +1,33 @@
+tasks:
+  - schema: build_surrogate
+    inputs:
+      X_train::from_load_txt:
+        file_path: <<demo_data_file:surrogate_data>>/X_train.txt
+      Y_train::from_load_txt:
+        file_path: <<demo_data_file:surrogate_data>>/Y_train.txt
+      X_test::from_load_txt:
+        file_path: <<demo_data_file:surrogate_data>>/X_test.txt
+      Y_test::from_load_txt:
+        file_path: <<demo_data_file:surrogate_data>>/Y_test.txt
+      validate: true
+      parameter_names:
+        - a_1
+        - a_2
+        - a_3
+        - a_4
+
+  - schema: fit_surrogate_from_test_data
+    inputs:
+      test_index: 3
+      test_error: 0.01
+      iters: 5
+      n: 250
+      use_std: true
+
+  - schema: perform_inference
+    inputs:
+      draws: 50_000
+      tune: 50_000
+      chains: 4
+      cores: 4
+      use_std: true

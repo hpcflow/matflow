@@ -21,7 +21,6 @@ tasks:
           halfwidth: 5
         - type: uniform
           component_fraction: 0.3 # component fractions must sum to 1!
-      compile: false
 
   - schema: visualise_orientations_pole_figure_mtex
     inputs:
@@ -31,4 +30,3 @@ tasks:
         - [1, 0, -1, 0]
         - [1, 1, -2, 0]
       use_contours: true
-      compile: false

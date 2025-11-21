@@ -11,7 +11,7 @@ on:
         default: '[1, 10, 100, 1000, 10000]'
       platform:
         description: "Which OS to use."
-        default: '["ubuntu-latest", "macos-13", "windows-latest"]'
+        default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
 
 jobs:
   workflow-benchmark:

@@ -1,0 +1,155 @@
+{
+    "mtex/plot_inverse_pole_figures/win_AMD64": {
+        "executable": "plot_inverse_pole_figures.exe"
+    },
+    "mtex/plot_inverse_pole_figures/linux_x86_64": {
+        "zip_contents": "mtex/plot_inverse_pole_figures/linux_x86_64/plot_inverse_pole_figures.zip",
+        "executable": "run_plot_inverse_pole_figures.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/plot_inverse_pole_figures/macos_arm64": {
+        "zip_contents": "mtex/plot_inverse_pole_figures/macos_arm64/plot_inverse_pole_figures.zip",
+        "executable": "run_plot_inverse_pole_figures.sh",
+        "set_executable": [
+            "run_plot_inverse_pole_figures.sh"
+        ]
+    },
+    "mtex/plot_pole_figures/win_AMD64": {
+        "executable": "plot_pole_figures.exe"
+    },
+    "mtex/plot_pole_figures/linux_x86_64": {
+        "zip_contents": "mtex/plot_pole_figures/linux_x86_64/plot_pole_figures.zip",
+        "executable": "run_plot_pole_figures.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/plot_pole_figures/macos_arm64": {
+        "zip_contents": "mtex/plot_pole_figures/macos_arm64/plot_pole_figures.zip",
+        "executable": "run_plot_pole_figures.sh",
+        "set_executable": [
+            "run_plot_pole_figures.sh"
+        ]
+    },
+    "mtex/sample_orientations_CRC/win_AMD64": {
+        "executable": "sample_orientations_CRC.exe"
+    },
+    "mtex/sample_orientations_CRC/linux_x86_64": {
+        "zip_contents": "mtex/sample_orientations_CRC/linux_x86_64/sample_orientations_CRC.zip",
+        "executable": "run_sample_orientations_CRC.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_orientations_CRC/macos_arm64": {
+        "zip_contents": "mtex/sample_orientations_CRC/macos_arm64/sample_orientations_CRC.zip",
+        "executable": "run_sample_orientations_CRC.sh",
+        "set_executable": [
+            "run_sample_orientations_CRC.sh"
+        ]
+    },
+    "mtex/sample_orientations_CTF/win_AMD64": {
+        "executable": "sample_orientations_CTF.exe"
+    },
+    "mtex/sample_orientations_CTF/linux_x86_64": {
+        "zip_contents": "mtex/sample_orientations_CTF/linux_x86_64/sample_orientations_CTF.zip",
+        "executable": "run_sample_orientations_CTF.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_orientations_CTF/macos_arm64": {
+        "zip_contents": "mtex/sample_orientations_CTF/macos_arm64/sample_orientations_CTF.zip",
+        "executable": "run_sample_orientations_CTF.sh",
+        "set_executable": [
+            "run_sample_orientations_CTF.sh"
+        ]
+    },
+    "mtex/sample_texture_CRC/win_AMD64": {
+        "executable": "sample_texture_CRC.exe"
+    },
+    "mtex/sample_texture_CRC/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_CRC/linux_x86_64/sample_texture_CRC.zip",
+        "executable": "run_sample_texture_CRC.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_texture_CRC/macos_arm64": {
+        "zip_contents": "mtex/sample_texture_CRC/macos_arm64/sample_texture_CRC.zip",
+        "executable": "run_sample_texture_CRC.sh",
+        "set_executable": [
+            "run_sample_texture_CRC.sh"
+        ]
+    },
+    "mtex/sample_texture_CTF/win_AMD64": {
+        "executable": "sample_texture_CTF.exe"
+    },
+    "mtex/sample_texture_CTF/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_CTF/linux_x86_64/sample_texture_CTF.zip",
+        "executable": "run_sample_texture_CTF.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_texture_CTF/macos_arm64": {
+        "zip_contents": "mtex/sample_texture_CTF/macos_arm64/sample_texture_CTF.zip",
+        "executable": "run_sample_texture_CTF.sh",
+        "set_executable": [
+            "run_sample_texture_CTF.sh"
+        ]
+    },
+    "mtex/sample_texture_model_ODF/win_AMD64": {
+        "executable": "sample_texture_model_ODF.exe"
+    },
+    "mtex/sample_texture_model_ODF/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_model_ODF/linux_x86_64/sample_texture_model_ODF.zip",
+        "executable": "run_sample_texture_model_ODF.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_texture_model_ODF/macos_arm64": {
+        "zip_contents": "mtex/sample_texture_model_ODF/macos_arm64/sample_texture_model_ODF.zip",
+        "executable": "run_sample_texture_model_ODF.sh",
+        "set_executable": [
+            "run_sample_texture_model_ODF.sh"
+        ]
+    },
+    "mtex/sample_texture_ODF_mat/win_AMD64": {
+        "executable": "sample_texture_ODF_mat.exe"
+    },
+    "mtex/sample_texture_ODF_mat/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_ODF_mat/linux_x86_64/sample_texture_ODF_mat.zip",
+        "executable": "run_sample_texture_ODF_mat.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_texture_ODF_mat/macos_arm64": {
+        "zip_contents": "mtex/sample_texture_ODF_mat/macos_arm64/sample_texture_ODF_mat.zip",
+        "executable": "run_sample_texture_ODF_mat.sh",
+        "set_executable": [
+            "run_sample_texture_ODF_mat.sh"
+        ]
+    },
+    "mtex/sample_texture_random/win_AMD64": {
+        "executable": "sample_texture_random.exe"
+    },
+    "mtex/sample_texture_random/linux_x86_64": {
+        "zip_contents": "mtex/sample_texture_random/linux_x86_64/sample_texture_random.zip",
+        "executable": "run_sample_texture_random.sh",
+        "set_executable": [
+            "*"
+        ]
+    },
+    "mtex/sample_texture_random/macos_arm64": {
+        "zip_contents": "mtex/sample_texture_random/macos_arm64/sample_texture_random.zip",
+        "executable": "run_sample_texture_random.sh",
+        "set_executable": [
+            "run_sample_texture_random.sh"
+        ]
+    }
+}
