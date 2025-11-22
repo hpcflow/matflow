@@ -1,0 +1,29 @@
+doc:
+  - >
+    Demonstration of passing DAMASK input files (load case file, geometry file, and
+    material file) directly to the `simulate_VE_loading_damask` task. Input parameters
+    that are used to generate these input files need not be passed.
+tasks:
+  - schema: simulate_VE_loading_damask
+    input_files:
+      damask_load_file: <<demo_data_file:load.yaml>>
+      damask_geom_file: <<demo_data_file:geom.vti>>
+      damask_material_file: <<demo_data_file:material.yaml>>
+    inputs:
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+          opts: { add_Mises: true }
+        - name: add_strain
+          args: { F: F, t: V, m: 0 }
+          opts: { add_Mises: true }
+      VE_response_data:
+        phase_data:
+          - field_name: sigma
+            phase_name: Al
+            out_name: vol_avg_stress
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_V^0(F)
+            phase_name: Al
+            out_name: vol_avg_strain
+            transforms: [{ mean_along_axes: 1 }]
