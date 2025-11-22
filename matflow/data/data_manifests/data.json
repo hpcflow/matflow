@@ -34,5 +34,8 @@
     },
     "surrogate_data": {
         "zip_file": "surrogate_data.zip"
+    },
+    "moose_input.i": {
+        "zip_file": "moose_input.zip"
     }
 }
