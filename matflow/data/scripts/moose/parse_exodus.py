@@ -33,7 +33,8 @@ def parse_exodus(moose_exodus_file, FE_response_data):
             "node_coordinates": np.empty((len(times), num_nodes, 3)),
         }
         for key in FE_response_data:
-            FE_response[key] = np.empty((len(times), num_nodes, *SHAPES[key]))
+            new_shape = (len(times), num_nodes, *SHAPES.get(key, tuple()))
+            FE_response[key] = np.empty(new_shape)
 
         for time_idx in range(num_incs):
             if time_idx > 0:
