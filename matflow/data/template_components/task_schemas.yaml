@@ -2250,14 +2250,12 @@
           rules:
             - path: inputs.gmsh_mesh_str
               condition: { value.not_equal_to: null }
-        - input_file: moose_input_deck
+        - input_file: moose_input_file
           from_inputs: [input_deck, input_deck_variables, elasticity]
-          script_data_in:
-            input_deck: direct
           script: <<script:moose/write_input.py>>
       abortable: true
       commands:
-        - command: <<executable:proteus>> -i input.i
+        - command: <<executable:proteus>> -i <<file:moose_input_file>>
           stdout: stdout.log
           stderr: stderr.log
       output_file_parsers:

@@ -4,4 +4,4 @@ doc: >
 tasks:
   - schema: moose_simulation
     input_files:
-      moose_input_deck: <<demo_data_file:moose_input.i>>
+      moose_input_file: <<demo_data_file:moose_input.i>>
