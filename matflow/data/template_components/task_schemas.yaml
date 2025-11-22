@@ -2228,9 +2228,11 @@
 
 - objective: moose_simulation
   inputs:
-    - parameter: gmsh_mesh_str
-    - parameter: FE_response_data
     - parameter: input_deck
+    - parameter: gmsh_mesh_str
+      default_value: null
+    - parameter: FE_response_data
+      default_value: null
     - parameter: input_deck_variables
       default_value: null
     - parameter: elasticity
@@ -2245,6 +2247,9 @@
         - input_file: gmsh_mesh_file
           from_inputs: [gmsh_mesh_str]
           script: <<script:moose/dump_mesh.py>>
+          rules:
+            - path: inputs.gmsh_mesh_str
+              condition: { value.not_equal_to: null }
         - input_file: moose_input_deck
           from_inputs: [input_deck, input_deck_variables, elasticity]
           script_data_in:
@@ -2261,6 +2266,9 @@
           save_files: false
           script: <<script:moose/parse_exodus.py>>
           inputs: [FE_response_data]
+          rules:
+            - path: inputs.FE_response_data
+              condition: { value.not_equal_to: null }
 
 - objective: calculate_plate_SCF
   inputs:

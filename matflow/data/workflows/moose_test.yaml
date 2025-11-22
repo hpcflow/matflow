@@ -1,35 +1,5 @@
-template_components:
-  task_schemas:
-    - objective: moose_simulation_test
-      inputs:
-        - parameter: input_deck
-        - parameter: input_deck_variables
-          default_value: null
-      actions:
-        - environments:
-            processing: python_env
-            main: moose_env
-          input_file_generators:
-            - input_file: moose_input_deck
-              from_inputs: [input_deck, input_deck_variables]
-              script: <<script:moose/write_input.py>>
-          abortable: true
-          commands:
-            - command: <<executable:proteus>> -i input.i
-              stdout: stdout.log
-              stderr: stderr.log
-
 tasks:
-  - schema: moose_simulation_test
-    # resources:
-    #   main:
-    #     num_cores: 2
-    #     scheduler_args:
-    #       options:
-    #         --time: 01:00:00
-    # resources:
-    #   main:
-    #     shell: wsl
+  - schema: moose_simulation
     inputs:
       input_deck:
         Mesh:
@@ -80,9 +50,3 @@ tasks:
             variable: temperature
         Outputs:
           exodus: true
-    # sequences:
-    #   - path: inputs.input_deck.BCs.heat_flux_out.heat_transfer_coefficient
-    #     values::from_random_normal:
-    #       mean: 125.0e3
-    #       std_dev: 5.0e3
-    #       num: 10
