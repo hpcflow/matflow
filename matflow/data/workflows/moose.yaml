@@ -1,3 +1,8 @@
+doc: >
+  A very simple MOOSE workflow that runs a simulation using a MOOSE-generated mesh. The 
+  only input parameter is the `input_deck` parameter, which MatFlow formats into MOOSE's
+  main input file format.
+
 tasks:
   - schema: moose_simulation
     inputs:
