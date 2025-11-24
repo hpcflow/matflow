@@ -2145,10 +2145,9 @@
 - objective: generate_plate_mesh_2D
   inputs:
     - parameter: geometry_name
+    - parameter: hole_diameter
     - parameter: plate_width
       default_value: 100e-3
-    - parameter: hole_diameter
-      default_value: 25e-3
     - parameter: hole_sect_nodes
       default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
     - parameter: plate_radial_nodes
@@ -2157,6 +2156,16 @@
       default_value: 50e-3 # length of rectangular extension
     - parameter: plate_diff_nodes
       default_value: 5 # number of nodes along the rectangular extension
+    - parameter: generate_exodus
+      default_value: false
+    - parameter: _exodus_generation_input_deck
+      propagation_mode: explicit
+      default_value:
+        Mesh:
+          type: FileMesh
+          file: mesh.msh
+        Outputs:
+          exodus: true
   outputs:
     - parameter: gmsh_mesh_str
   actions:
@@ -2180,6 +2189,21 @@
       script_data_out:
         outputs.gmsh_mesh_str: direct
       requires_dir: true
+    - environments: # an action to convert the mesh file into an exodus file via a MOOSE run, for easier visalisation
+        any: moose_processing_env
+        main: moose_env
+      input_file_generators:
+        - input_file: moose_input_file
+          from_inputs: [_exodus_generation_input_deck]
+          script: <<script:moose/write_input.py>>
+      abortable: true
+      commands:
+        - command: <<executable:proteus>> -i <<file:moose_input_file>> --mesh-only
+          stdout: stdout.log
+          stderr: stderr.log
+      rules:
+        - path: inputs.generate_exodus
+          condition: { value.equal_to: true }
 
 - objective: generate_plate_mesh_3D
   inputs:
@@ -2244,12 +2268,12 @@
         any: moose_processing_env
         main: moose_env
       input_file_generators:
-        - input_file: gmsh_mesh_file
+        - # TODO: ideally this should be conditional on whether the input is sourced from
+          # a non-default source, which is not currently possible to express, so for now,
+          # we handle the case where it is empty by not writing anything in the script.
+          input_file: gmsh_mesh_file
           from_inputs: [gmsh_mesh_str]
           script: <<script:moose/dump_mesh.py>>
-          rules:
-            - path: inputs.gmsh_mesh_str
-              condition: { value.not_equal_to: null }
         - input_file: moose_input_file
           from_inputs: [input_deck, input_deck_variables, elasticity]
           script: <<script:moose/write_input.py>>
