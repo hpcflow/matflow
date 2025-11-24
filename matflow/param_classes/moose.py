@@ -3,19 +3,15 @@ The moose input deck.
 """
 
 from __future__ import annotations
-from collections.abc import Callable, Iterator
 import re
 
 import logging
 from pathlib import Path
-from typing import Any, cast
-from typing_extensions import ClassVar, Final, Self
+from typing import Any
+from typing_extensions import ClassVar
 
-import numpy as np
 from hpcflow.sdk.core.parameters import ParameterValue
-from hpcflow.sdk.core.utils import set_in_container, get_in_container
-
-import matflow as mf
+from hpcflow.sdk.core.utils import set_in_container
 
 logger = logging.getLogger(__name__)
 
