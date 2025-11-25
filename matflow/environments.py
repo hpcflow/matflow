@@ -180,11 +180,6 @@ def env_configure_matlab(
 
     if matlab_path:
         matlab_path_ = Path(matlab_path)
-        if not matlab_path_.is_dir():
-            raise ValueError(
-                "`matlab_path` must be specified as the base directory to the MATLAB "
-                "installation."
-            )
 
         mcc_ext = ".bat" if shell == "powershell" else ""
         exe_ext = ".exe" if shell == "powershell" else ""
@@ -249,13 +244,6 @@ def env_configure_matlab(
 
         mtex_path_ = Path(mtex_path)
 
-        # must be able to run matlab:
-        if not matlab_exe.is_file():
-            raise ValueError(f"MATLAB executable does not exist: {matlab_exe!r}.")
-
-        if not mtex_path_.is_dir():
-            raise ValueError(f"MTEX directory does not exist: {mtex_path_!r}.")
-
         executables.append(
             mf.Executable(
                 label="run_mtex",
@@ -313,10 +301,6 @@ def env_configure_matlab(
             )
 
     if matlab_runtime_path:
-        if not Path(matlab_runtime_path).is_dir():
-            raise ValueError(
-                f"MATLAB runtime directory does not exist: {matlab_runtime_path!r}."
-            )
         executables.append(
             mf.Executable(
                 label="run_precompiled_mtex",
@@ -348,37 +332,80 @@ def env_configure_damask(
     setup: str | list[str] | None = None,
     docker_image: str | None = None,
     docker_archive: str | Path | None = None,
-    docker_exe: str | None = None,
+    singularity_archive: str | Path | None = None,
+    singularity_sif: str | Path | None = None,
+    docker_exe: str = "docker",
+    singularity_exe: str = "singularity",
 ):
     """Configure the MatFlow DAMASK environment.
 
     If passing a path to an archive, the name of the image within the archive can be
     passed via `docker_image`.
 
+    Parameters
+    ----------
+    docker_image
+        Name of the docker image to use.
+    docker_archive:
+        File path to an archived docker tar file. Use `docker_image` to set the image
+        name within the tar (assumed to be "damask").
+    singularity_archive
+        File path to an archived docker tar file to be converted into a singularity
+        sif file to use.
+    singularity_sif
+        File path to a Singularity sif file to use.
     """
 
-    if sum((i is not None for i in (docker_image, docker_archive))) == 0:
-        raise ValueError(
-            f"Provide either the docker image name, or the docker archive file path "
-            f"(and optionally the image name within the archive)."
-        )
+    use_docker = bool(docker_image or docker_archive)
+    use_singularity = bool(singularity_sif or singularity_archive)
 
-    docker_exe = docker_exe or "docker"
-    if docker_archive:
-        # load with docker
-        cmd = (docker_exe, "load", "--input", str(docker_archive))
-        run_cmd(cmd)
+    if use_docker and use_singularity:
+        raise ValueError("Cannot use both singularity and docker!")
 
-    DAMASK_GRID_CMD = {
-        "bash": (
-            f"docker run --rm --interactive --volume $PWD:/wd --env "
-            f"OMP_NUM_THREADS=1 {docker_image}"
-        ),
-        "powershell": (
-            f"docker run --rm --interactive --volume ${{PWD}}:/wd --env "
-            f"OMP_NUM_THREADS=1 {docker_image}"
-        ),
-    }
+    if use_docker:
+        if docker_image is None and docker_archive is None:
+            raise ValueError(
+                f"Provide either the docker image name, or the docker archive file path "
+                f"(and optionally the image name within the archive)."
+            )
+
+        if docker_archive is not None and docker_image is None:
+            # assume image name to be damask:
+            docker_image = "damask"
+
+        if docker_archive:
+            # load with docker from an tar archive:
+            cmd = (docker_exe, "load", "--input", str(docker_archive))
+            run_cmd(cmd)
+
+        if use_docker:
+            DAMASK_GRID_CMD = {
+                "bash": (
+                    f"{docker_exe} run --rm --interactive --volume $PWD:/wd --env "
+                    f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
+                ),
+                "powershell": (
+                    f"{docker_exe} run --rm --interactive --volume ${{PWD}}:/wd --env "
+                    f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
+                ),
+            }
+    elif use_singularity:
+        if singularity_archive:
+            singularity_sif = singularity_sif or "damask.sif"  # i.e. pwd
+            cmd = (
+                singularity_exe,
+                "build",
+                singularity_sif,
+                f"docker-archive://{singularity_archive}",
+            )
+            run_cmd(cmd)
+
+        DAMASK_GRID_CMD = {
+            "bash": (
+                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} "
+                f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS"
+            ),
+        }
 
     executables = []
     executables.append(
@@ -387,7 +414,7 @@ def env_configure_damask(
             instances=[
                 mf.ExecutableInstance(
                     command=DAMASK_GRID_CMD[shell],
-                    num_cores=1,
+                    num_cores={"start": 1, "stop": 100},
                     parallel_mode=None,
                 ),
             ],
@@ -399,5 +426,108 @@ def env_configure_damask(
         setup=setup,
         executables=executables,
         setup_label="damask",
+    )
+    return new_env
+
+
+def env_configure_moose(
+    shell: Literal["bash", "powershell"],
+    setup: str | list[str] | None = None,
+    docker_image: str | None = None,
+    docker_archive: str | Path | None = None,
+    singularity_archive: str | Path | None = None,
+    singularity_sif: str | Path | None = None,
+    docker_exe: str = "docker",
+    singularity_exe: str = "singularity",
+):
+    """Configure the MatFlow MOOSE (proteus) environment.
+
+    If passing a path to an archive, the name of the image within the archive can be
+    passed via `docker_image`.
+
+    Parameters
+    ----------
+    docker_image
+        Name of the docker image to use.
+    docker_archive:
+        File path to an archived docker tar file. Use `docker_image` to set the image
+        name within the tar (assumed to be "proteus").
+    singularity_archive
+        File path to an archived docker tar file to be converted into a singularity
+        sif file to use.
+    singularity_sif
+        File path to a Singularity sif file to use.
+    """
+
+    use_docker = bool(docker_image or docker_archive)
+    use_singularity = bool(singularity_sif or singularity_archive)
+
+    if use_docker and use_singularity:
+        raise ValueError("Cannot use both singularity and docker!")
+
+    if use_docker:
+        if docker_image is None and docker_archive is None:
+            raise ValueError(
+                f"Provide either the docker image name, or the docker archive file path "
+                f"(and optionally the image name within the archive)."
+            )
+
+        if docker_archive is not None and docker_image is None:
+            # assume image name to be proteus:
+            docker_image = "proteus"
+
+        if docker_archive:
+            # load with docker from an tar archive:
+            cmd = (docker_exe, "load", "--input", str(docker_archive))
+            run_cmd(cmd)
+
+        if use_docker:
+            PROTEUS_CMD = {
+                "bash": (
+                    f"{docker_exe} run --rm --interactive --volume $PWD:/wd "
+                    f"{docker_image} --n-threads=$MATFLOW_RUN_NUM_THREADS"
+                ),
+                "powershell": (
+                    f"{docker_exe} run --rm --interactive --volume ${{PWD}}:/wd "
+                    f"{docker_image} --n-threads=$MATFLOW_RUN_NUM_THREADS"
+                ),
+            }
+    elif use_singularity:
+        if singularity_archive:
+            singularity_sif = singularity_sif or "proteus.sif"  # i.e. pwd
+            cmd = (
+                singularity_exe,
+                "build",
+                singularity_sif,
+                f"docker-archive://{singularity_archive}",
+            )
+            run_cmd(cmd)
+
+        PROTEUS_CMD = {
+            "bash": (
+                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} "
+                f"--n-threads=$MATFLOW_RUN_NUM_THREADS"
+            ),
+        }
+
+    executables = []
+    executables.append(
+        mf.Executable(
+            label="proteus",
+            instances=[
+                mf.ExecutableInstance(
+                    command=PROTEUS_CMD[shell],
+                    num_cores={"start": 1, "stop": 100},
+                    parallel_mode=None,
+                ),
+            ],
+        )
+    )
+
+    new_env = mf.Environment(
+        name="moose_env",
+        setup=setup,
+        executables=executables,
+        setup_label="moose",
     )
     return new_env
