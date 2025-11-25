@@ -178,6 +178,9 @@ def env_configure_matlab(
 
     """
 
+    matlab_exe = None
+    matlab_mcc = None
+
     if matlab_path:
         matlab_path_ = Path(matlab_path)
 
