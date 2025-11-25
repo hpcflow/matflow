@@ -402,7 +402,7 @@ def env_configure_damask(
 
         DAMASK_GRID_CMD = {
             "bash": (
-                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} "
+                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} --env "
                 f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS"
             ),
         }
@@ -414,7 +414,7 @@ def env_configure_damask(
             instances=[
                 mf.ExecutableInstance(
                     command=DAMASK_GRID_CMD[shell],
-                    num_cores={"start": 1, "stop": 100},
+                    num_cores={"start": 1, "stop": 100, "step": 1},
                     parallel_mode=None,
                 ),
             ],
@@ -517,7 +517,7 @@ def env_configure_moose(
             instances=[
                 mf.ExecutableInstance(
                     command=PROTEUS_CMD[shell],
-                    num_cores={"start": 1, "stop": 100},
+                    num_cores={"start": 1, "stop": 100, "step": 1},
                     parallel_mode=None,
                 ),
             ],
