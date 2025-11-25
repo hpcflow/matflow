@@ -1,0 +1,7 @@
+doc: >
+  A very simple MOOSE workflow that runs a simulation from an existing input deck file.
+
+tasks:
+  - schema: moose_simulation
+    input_files:
+      moose_input_file: <<demo_data_file:moose_input.i>>

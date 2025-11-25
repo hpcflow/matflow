@@ -22,9 +22,6 @@ tasks:
       plate_diff: 50e-3
 
   - schema: moose_simulation
-    resources:
-      main:
-        shell: wsl
     inputs:
       FE_response_data: [stress_y]
       elasticity:

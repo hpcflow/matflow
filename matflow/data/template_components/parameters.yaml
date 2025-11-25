@@ -588,6 +588,67 @@
         labels for created in the VE.
       condition: { value.is_instance: [dict] }
 
+- type: geometry_name
+  _validation:
+    - path: []
+      doc:
+        description: The name of the geometry to mesh. Currently only `quarter_plate_with_hole` is accepted.
+      condition: { value.is_instance: [str] }
+- type: plate_width
+  _validation:
+    - path: []
+      doc:
+        description: The width of the full plate.
+      condition: { value.is_instance: [float] }
+- type: hole_diameter
+  _validation:
+    - path: []
+      doc:
+        description: The diameter of the hole in the plate.
+      condition: { value.is_instance: [float] }
+
+- type: hole_sect_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place around the circumference of the quarter-hole.
+      condition: { value.is_instance: [int] }
+
+- type: plate_radial_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place along the radial direction.
+      condition: { value.is_instance: [int] }
+
+- type: plate_diff
+  _validation:
+    - path: []
+      doc:
+        description: The height of the extra block added to the top of the mesh.
+      condition: { value.is_instance: [int] }
+
+- type: plate_diff_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place along the vertical direction within the extra block added to the top of the mesh.
+      condition: { value.is_instance: [int] }
+
+- type: generate_exodus
+  _validation:
+    - path: []
+      doc:
+        description: Whether to generate an Exodus file of the mesh to allow visualisation in ParaView.
+      condition: { value.is_instance: [bool] }
+
+- type: gmsh_mesh_str
+  _validation:
+    - path: []
+      doc:
+        description: The Gmsh-generated mesh, as a string.
+      condition: { value.is_instance: [str] }
+
 # Types only used to transfer values between tasks
 - type: damask_post_processing_result
 - type: damask_viz_result

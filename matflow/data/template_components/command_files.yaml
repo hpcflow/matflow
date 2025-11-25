@@ -70,9 +70,11 @@
     name: pipeline.xdmf
   doc: DREAM.3D model data and metadata.
 
-- label: moose_input_deck
+- label: moose_input_file
   name:
     name: input.i
+  doc: |
+    The main MOOSE input file, whose format is described at: `https://mooseframework.inl.gov/application_usage/input_syntax.html <https://mooseframework.inl.gov/application_usage/input_syntax.html>`_
 
 - label: gmsh_geo_file
   name:
