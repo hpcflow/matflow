@@ -1,4 +1,35 @@
 
+<a name="v0.3.0a214"></a>
+## [v0.3.0a214](https://github.com/hpcflow/matflow/compare/v0.3.0a213...v0.3.0a214) - 2025.11.25
+
+### ♻ Code Refactoring
+
+* remove unused imports
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* updates to moose schemas
+* add `MooseInputDeck` parameter value class
+* add damask_from_input_files demo to compare with moose_from_files
+* add moose input file demo
+
+### 🐛 Bug Fixes
+
+* updates to env setup
+* various updates
+* small changes to moose stuff
+* assume scalar data in `parse_exodus` if shape not in lookup
+* rename basic moose workflow
+* basic moose workflow
+
+### 👷 Build changes
+
+* merge branch 'develop' into workshop-prep
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a213"></a>
 ## [v0.3.0a213](https://github.com/hpcflow/matflow/compare/v0.3.0a212...v0.3.0a213) - 2025.11.21
 
