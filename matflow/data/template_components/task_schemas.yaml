@@ -2479,3 +2479,20 @@
         - scope:
             type: any
           environment: python_env
+
+- objective: collate_CP_data
+  inputs:
+    - parameter: VE_response
+      group: CP_data
+  outputs:
+    - parameter: y_simulation
+    - parameter: theta
+    - parameter: parameter_names
+  actions:
+    - script: <<script:damask/collate_CP_data.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      script_pass_workflow: true
+      environments:
+        any: python_env
