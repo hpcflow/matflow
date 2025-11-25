@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from matflow.param_classes.moose import MooseInputDeck
+from matflow.param_classes.moose import MooseInputDeck
 
 
 def write_input(
@@ -18,6 +15,9 @@ def write_input(
         # this is just for generating an Exodus file from a Gmsh .msh file
         # for easier visualisation:
         input_deck = _exodus_generation_input_deck
+
+    if not isinstance(input_deck, MooseInputDeck):
+        input_deck = MooseInputDeck(**input_deck)
 
     if input_deck_variables:
         input_deck.add_variables(input_deck_variables)

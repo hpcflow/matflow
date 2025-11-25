@@ -2300,8 +2300,6 @@
     - parameter: plate_diff
   outputs:
     - parameter: SCF
-    - parameter: expected_SCF
-    - parameter: is_expected
   actions:
     - environments:
         any: moose_processing_env
