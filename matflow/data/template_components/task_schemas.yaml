@@ -2119,3 +2119,19 @@
         - delete_VTIs
         - delete_VTUs
         script: <<script:cipher/parse_cipher_outputs.py>>
+
+- objective: cluster_orientations
+  inputs:
+  - parameter: volume_element
+  outputs:
+  - parameter: volume_element
+  actions:
+  - script: <<script:cluster_orientations.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope:
+        type: any
+      environment: damask_parse_env # or cipher_processing_env?
+  
