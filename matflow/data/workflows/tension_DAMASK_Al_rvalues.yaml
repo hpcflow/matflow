@@ -1,0 +1,125 @@
+doc:
+  - >
+    Workflow to generate cube texture in 0, 45, and 90 orientation,
+    simulate tension in each direction
+    and calculate r-value
+
+tasks:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
+      crystal_symmetry: cubic
+      specimen_symmetry: orthorhombic
+      num_orientations: 2000
+      ODF_components:
+        - type: unimodal
+          component_fraction: 1.0
+          halfwidth: 5
+    sequences:
+      - path: inputs.ODF_components.0.modal_orientation_euler
+        values:
+          - [0, 0, 0] # Cube
+          - [45, 0, 0] # Rotated Cube
+          - [90, 0, 0] # Cube
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [1, 0, 0]
+        - [1, 1, 0]
+        - [1, 1, 1]
+      use_contours: true
+
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [32, 32, 32]
+      microstructure_seeds::from_random:
+        box_size: [1, 1, 1]
+        num_seeds: 2000
+        phase_label: Al
+
+  - schema: simulate_VE_loading_damask
+    resources:
+      main:
+        num_cores: 16
+        scheduler_args:
+          directives:
+            --time: 00:30:00
+            --partition: multicore
+      any:
+        num_cores: 8
+        scheduler_args:
+          directives:
+            --time: 00:30:00
+            --partition: multicore
+
+    inputs:
+      load_case::multistep:
+        steps:
+          - type: uniaxial # up to yield
+            total_time: 1
+            num_increments: 100
+            direction: x
+            target_def_grad_rate: 0.01
+          - type: uniaxial # plastic region
+            total_time: 15
+            num_increments: 15
+            direction: x
+            target_def_grad_rate: 0.01
+            dump_frequency: 1
+
+      homogenization:
+        SX:
+          mechanical: { type: "pass" }
+          N_constituents: 1
+      damask_phases:
+        Al:
+          lattice: cF
+          mechanical:
+            output: [F, P, F_p, O]
+            elastic:
+              type: Hooke
+              C_11: 106750000000
+              C_12: 60410000000
+              C_44: 28340000000
+            plastic:
+              type: phenopowerlaw
+              N_sl: [12]
+              h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
+              n_sl: 20
+              atol_xi: 1
+              dot_gamma_0_sl: 0.001
+              # From first M itrn...
+              h_0_sl-sl : 492.55676081175824e6 #Pa
+              xi_0_sl : 41.16486021041547e6 #Pa
+              xi_inf_sl : 104.11918505856846e6 #Pa
+              a_sl : 1.124832804719749
+
+      damask_post_processing:
+        # true stress
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+          opts: { add_Mises: true }
+        # plastic strain
+        - name: add_strain
+          args: { F: F_p, t: U, m: 0 }
+          opts: { add_Mises: true }
+
+      VE_response_data:
+        volume_data:
+          - field_name: O
+
+          # vol avg true stress tensor
+          - field_name: sigma
+            transforms: [{ mean_along_axes: 1 }]
+          # vol avg plastic strain tensor
+          - field_name: epsilon_U^0(F_p)
+            transforms: [{ mean_along_axes: 1 }]
+
+      damask_numerics:
+        solver:
+          grid:
+            mechanical:
+              N_iter_max: 250
+              N_cutback_max: 3
