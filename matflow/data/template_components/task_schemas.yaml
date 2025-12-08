@@ -1141,7 +1141,7 @@
 #   inputs:
 #     - parameter: material
 #     - parameter: load_case
-#     - paramater: RVE
+#     - parameter: RVE
 #   outputs:
 #     - parameter: RVE_response
 #   actions:
@@ -2137,4 +2137,3 @@
     - scope:
         type: any
       environment: damask_parse_env # or cipher_processing_env?
-  
