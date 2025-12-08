@@ -2126,6 +2126,10 @@
   - parameter: alpha_file_path
   - parameter: gamma_file_path
   - parameter: n_iterations
+  - parameter: alpha_start_index
+  - parameter: alpha_stop_index
+  - parameter: gamma_start_index
+  - parameter: gamma_stop_index
   outputs:
   - parameter: volume_element
   actions:

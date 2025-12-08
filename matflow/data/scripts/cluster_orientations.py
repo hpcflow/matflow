@@ -3,7 +3,16 @@ from damask_parse.utils import validate_volume_element
 from subsurface import Shuffle
 
 
-def cluster_orientations(volume_element, alpha_file_path, gamma_file_path, n_iterations):
+def cluster_orientations(
+    volume_element,
+    alpha_file_path,
+    gamma_file_path,
+    n_iterations,
+    alpha_start_index,
+    alpha_stop_index,
+    gamma_start_index,
+    gamma_stop_index,
+):
 
     # Convert zarr arrays to numpy arrays using existing code
     volume_element = validate_volume_element(volume_element)
@@ -13,15 +22,26 @@ def cluster_orientations(volume_element, alpha_file_path, gamma_file_path, n_ite
 
     # Replace subsets of quaternion values with those from files
     alpha = np.load(alpha_file_path)
-    random_alpha_subset = alpha[np.random.choice(alpha.shape[0], size=200, replace=False)]
-    quaternions[150:350] = np.array([list(x) for x in random_alpha_subset])
+    random_alpha_subset = alpha[
+        np.random.choice(
+            alpha.shape[0], size=alpha_stop_index - alpha_start_index, replace=False
+        )
+    ]
+    quaternions[alpha_start_index:alpha_stop_index] = np.array(
+        [list(x) for x in random_alpha_subset]
+    )
     gamma = np.load(gamma_file_path)
-    random_gamma_subset = gamma[np.random.choice(gamma.shape[0], size=200, replace=False)]
-    quaternions[500:700] = np.array([list(x) for x in random_gamma_subset])
+    random_gamma_subset = gamma[
+        np.random.choice(
+            gamma.shape[0], size=gamma_stop_index - gamma_start_index, replace=False
+        )
+    ]
+    quaternions[gamma_start_index:gamma_stop_index] = np.array(
+        [list(x) for x in random_gamma_subset]
+    )
     np.random.shuffle(quaternions)
 
     # Shuffle orientations
-    # orientations_shuffled_vol,misorientation_init = Shuffle(material_index, quaternions,0,exclude=[],minimize=True,return_full=True)
     orientations_shuffled_vol, misorientation = Shuffle(
         material_index,
         quaternions,
