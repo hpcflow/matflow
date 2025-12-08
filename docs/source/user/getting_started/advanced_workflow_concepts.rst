@@ -102,13 +102,13 @@
 
       tasks:
       - schema: my_schema
-      sequences:
-      - path: inputs.conductance_value
-      values:
-      - 0
-      - 100
-      - 200
-      nesting_order: 0
+        sequences:
+        - path: inputs.conductance_value
+          values:
+          - 0
+          - 100
+          - 200
+          nesting_order: 0
 
   Groups
   -------
