@@ -69,3 +69,22 @@
   we can see it requires hpcflow version 0.2.0a147. The specification of this dependency has since been updated
   such that current releases of MatFlow specify a particular version of hpcFlow.
   So, to get the correct version of hpcflow (for the case above), you can do: ``pip install hpcflow-new2==0.2.0a147``.
+
+
+  Debugging
+  ##########
+
+  Sometimes it is necessary to debug a task schema.
+  This is often easier done outside of {{ app_name }}, and one approach is to use a failed workflow run to extract the inputs
+  that were passed to the task schema, and run the rest of the code in a python script.
+  This can be achieved like this:
+
+  .. code-block:: python
+
+      import matflow as mf
+      wk = mf.Workflow("./path_to_failed_workflow/")
+      inputs = wk.tasks.failed_task_name.elements[0].iterations[0].action_runs[0].get_py_script_func_kwargs()
+      output = failed_task_name(**inputs)
+
+  For this approach you will need to define the functions in the `failed_task_schema` script locally, i.e. copy them from {{ app_name }}.
+ 
