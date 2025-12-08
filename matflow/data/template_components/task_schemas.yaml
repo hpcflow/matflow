@@ -2123,6 +2123,9 @@
 - objective: cluster_orientations
   inputs:
   - parameter: volume_element
+  - parameter: alpha_file_path
+  - parameter: gamma_file_path
+  - parameter: n_iterations
   outputs:
   - parameter: volume_element
   actions:
