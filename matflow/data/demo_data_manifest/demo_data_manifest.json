@@ -31,5 +31,8 @@
     },
     "load_cases.npz": {
         "in_zip": "load_cases_npz.zip"
+    },
+    "clustering_quaternions": {
+        "in_zip": "clustering_quaternions.zip"
     }
 }

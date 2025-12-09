@@ -40,8 +40,8 @@ tasks:
 
   - schema: cluster_orientations
     inputs:
-      alpha_file_path: /home/mbexegc2/projects/lightform/cipher-workflows/alpha_quat.npy
-      gamma_file_path: /home/mbexegc2/projects/lightform/cipher-workflows/gamma_mix.npy
+      alpha_file_path: <<demo_data_file:clustering_quaternions>>/alpha.npy
+      gamma_file_path: <<demo_data_file:clustering_quaternions>>/gamma.npy
       n_iterations: 60
       alpha_start_index: 150
       alpha_stop_index: 350
