@@ -83,3 +83,7 @@
 - label: precipitates_file
   name:
     name: precipitates.txt
+  
+- label: misorientation_plot
+  name:
+    name: misorientation.png

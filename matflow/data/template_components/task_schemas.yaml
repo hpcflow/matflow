@@ -2137,6 +2137,8 @@
     script_exe: python_script
     script_data_in: direct
     script_data_out: direct
+    save_files: [misorientation_plot]
+    requires_dir: true
     environments:
     - scope:
         type: any
