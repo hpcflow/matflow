@@ -1749,14 +1749,14 @@ numpy = ">=1.21.2"
 
 [[package]]
 name = "hpcflow"
-version = "0.2.0a284"
+version = "0.2.0a285"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.9"
 groups = ["main"]
 files = [
-    {file = "hpcflow-0.2.0a284-py3-none-any.whl", hash = "sha256:bf3e1df709e96c8a19e50c9b07a8ec0ed2d1cfe49c7f09228f1964ad2f9a9913"},
-    {file = "hpcflow-0.2.0a284.tar.gz", hash = "sha256:97f23d9c3be7fcaf6691cf1155e54eebaa4561b320231a9ba6976258e889b387"},
+    {file = "hpcflow-0.2.0a285-py3-none-any.whl", hash = "sha256:8b22c0d5fff2e33f7cf51fe6cf050fb63876f4be88a12fd21a62f70fe3dbdcdc"},
+    {file = "hpcflow-0.2.0a285.tar.gz", hash = "sha256:11035887151a6453b8951ae117c455ce418dde4e29ba62a7e237ec10e19bbc89"},
 ]
 
 [package.dependencies]
@@ -6606,4 +6606,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "71746588f757cbab0b73af5e05d4cb59b4e6ebc94a843225e1d4e125dd2b1f7c"
+content-hash = "850793247073c610a2a9380c488e68058c2095aaaca7aa51d361112667d4e299"
