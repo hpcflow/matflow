@@ -1,3 +1,8 @@
+doc:
+  - >
+    Produces a uniform grain structure with alpha and gamma fibre clusters
+    via monte Carlo Markov chains and simulates grain coarsening
+
 tasks:
     # rotated cube texture for the sub-grain matrix:
   - schema: sample_texture_from_model_ODF_mtex
