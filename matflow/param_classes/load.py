@@ -326,7 +326,7 @@ class LoadStep(ParameterValue):
             "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation_matrix": rotation,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -436,7 +436,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad_rate": target_def_grad_rate,
             "target_def_grad": target_def_grad,
-            "rotation_matrix": rotation,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -535,7 +535,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation_matrix": rotation,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
             "strain_rate_mode": strain_rate_mode,
         }
@@ -680,7 +680,7 @@ class LoadStep(ParameterValue):
             "normal_direction": normal_direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation_matrix": rotation,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -978,7 +978,7 @@ class LoadStep(ParameterValue):
                     "total_time": time_per_inc,
                     "stress": stress_arr[time_idx],
                     "target_def_grad": dg_arr,
-                    "rotation_matrix": rotation,
+                    "rotation": rotation,
                     "dump_frequency": dump_frequency,
                 }
             )
@@ -1113,6 +1113,7 @@ class LoadCase(ParameterValue):
         load_steps: list[dict[str, Any]] = []
         for step in self.steps:
             dct = step.to_dict()
+            dct["rotation_matrix"] = dct.pop("rotation", None)
             dct["def_grad_aim"] = dct.pop("target_def_grad", None)
             dct["def_grad_rate"] = dct.pop("target_def_grad_rate", None)
             load_steps.append(dct)
