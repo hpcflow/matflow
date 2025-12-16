@@ -81,6 +81,8 @@ class LoadStep(ParameterValue):
         `target_def_grad` or `target_def_grad_rate`.
     dump_frequency : int
         By default, 1, meaning results are written out every increment.
+    rotation : numpy.ma.core.MaskedArray, shape (3, 3)
+        Rotation matrix. Rotation to apply to the load case. By default, no rotation.
     """
 
     _DIR_IDX: Final[tuple[str, ...]] = ("x", "y", "z")
@@ -95,6 +97,7 @@ class LoadStep(ParameterValue):
         target_def_grad_rate: ArrayLike | None = None,
         target_vel_grad: ArrayLike | None = None,
         stress: ArrayLike | None = None,
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
     ) -> None:
         #: Total simulation time.
@@ -115,6 +118,8 @@ class LoadStep(ParameterValue):
         self.stress = stress
         #: How frequently results are written out; the number of steps per dump.
         self.dump_frequency = dump_frequency
+        #: Rotation matrix.
+        self.rotation = rotation
 
         # assigned if constructed via a helper class method:
         self._method_name: str | None = None
@@ -149,7 +154,8 @@ class LoadStep(ParameterValue):
             return False
         if not self.__cmp_tensors(self.target_vel_grad, other.target_vel_grad):
             return False
-
+        if not self.__cmp_tensors(self.rotation, other.rotation):
+            return False
         return True
 
     def _validate(self):
@@ -166,6 +172,10 @@ class LoadStep(ParameterValue):
 
         if isinstance(self.target_vel_grad, list):
             self.target_vel_grad = masked_array_from_list(self.target_vel_grad)
+
+        if self.rotation is not None:
+            if isinstance(self.rotation, list):
+                self.rotation = masked_array_from_list(self.rotation)
 
         if self.stress is not None:
             if isinstance(self.stress, list):
@@ -278,6 +288,7 @@ class LoadStep(ParameterValue):
         target_strain_rate: float | None = None,
         target_def_grad_rate: float | None = None,
         target_def_grad: float | None = None,
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
     ) -> Self:
         """
@@ -302,6 +313,8 @@ class LoadStep(ParameterValue):
         target_strain_rate: float
             Target engineering strain rate to achieve along the loading direction. Specify
             at most one of `target_strain_rate` and `target_def_grad_rate`.
+        rotation: array
+            Rotation matrix. Rotation to apply to the load case. By default, no rotation.
         dump_frequency : int, optional
             By default, 1, meaning results are written out every increment.
         """
@@ -315,6 +328,7 @@ class LoadStep(ParameterValue):
             "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -375,6 +389,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad_aim,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
+            rotation = rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -387,6 +402,7 @@ class LoadStep(ParameterValue):
         direction: str,
         target_def_grad: float | None = None,
         target_def_grad_rate: float | None = None,
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
     ) -> Self:
         """
@@ -407,6 +423,8 @@ class LoadStep(ParameterValue):
         target_def_grad_rate
             Target deformation gradient rate to achieve along both loading direction
             components.
+        rotation: array
+            Rotation matrix. Rotation to apply to the load case. By default, no rotation.
         dump_frequency
             By default, 1, meaning results are written out every increment.
         """
@@ -420,6 +438,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad_rate": target_def_grad_rate,
             "target_def_grad": target_def_grad,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -465,6 +484,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
+            rotation = rotation
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -477,6 +497,7 @@ class LoadStep(ParameterValue):
         direction: str,
         target_def_grad: float | None = None,
         target_def_grad_rate: float | None = None,
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
         strain_rate_mode: StrainRateMode | str | None = None,
     ) -> Self:
@@ -499,6 +520,8 @@ class LoadStep(ParameterValue):
         target_def_grad_rate
             Target deformation gradient rate to achieve along the loading direction
             component.
+        rotation: array
+            Rotation matrix. Rotation to apply to the load case. By default, no rotation.
         dump_frequency
             By default, 1, meaning results are written out every increment.
         strain_rate_mode
@@ -514,6 +537,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
             "strain_rate_mode": strain_rate_mode,
         }
@@ -604,6 +628,7 @@ class LoadStep(ParameterValue):
             target_def_grad_rate=def_grad_rate,
             target_vel_grad=vel_grad,
             stress=stress_arr,
+            rotation=rotation
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -616,6 +641,7 @@ class LoadStep(ParameterValue):
         normal_direction: str,
         target_def_grad: float | None = None,
         target_def_grad_rate: float | None = None,
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
     ) -> Self:
         """
@@ -643,6 +669,8 @@ class LoadStep(ParameterValue):
             The second element corresponds to the first-row, second-column (shear)
             component and the third element corresponds to the second-row, first-column
             (shear) component.
+        rotation: array
+            Rotation matrix. Rotation to apply to the load case. By default, no rotation.
         dump_frequency
             By default, 1, meaning results are written out every increment.
         """
@@ -654,6 +682,7 @@ class LoadStep(ParameterValue):
             "normal_direction": normal_direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
+            "rotation": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -713,6 +742,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
+            rotation = rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -925,6 +955,7 @@ class LoadStep(ParameterValue):
         num_cycles: int,
         direction: str,
         waveform: str = "sine",
+        rotation: ArrayLike | None = None,
         dump_frequency: int = 1,
     ) -> list[Self]:
         """
@@ -932,20 +963,22 @@ class LoadStep(ParameterValue):
 
         Parameters
         ----------
-        max_stress
+        max_stress : float
             Maximum scalar stress.
-        min_stress
+        min_stress : float
             Minimum scalar stress.
-        num_increments_per_cycle
+        num_increments_per_cycle : int
             Number of simulation increments per cycle.
-        num_cycles
+        num_cycles : int
             Total number of cycles.
-        direction
+        direction : str
             Direction in which to apply loading
-        waveform
+        waveform : str
             Waveform of stress cycle.
             Only `sine` currently supported.
-        dump_frequency
+        rotation: array
+            Rotation matrix. Rotation to apply to the load case. By default, no rotation.
+        dump_frequency : int
             By default, 1, meaning results are written out every increment.
         """
         try:
@@ -988,6 +1021,7 @@ class LoadStep(ParameterValue):
                     "total_time": time_per_inc,
                     "stress": stress_arr[time_idx],
                     "target_def_grad": dg_arr,
+                    "rotation": rotation,
                     "dump_frequency": dump_frequency,
                 }
             )
