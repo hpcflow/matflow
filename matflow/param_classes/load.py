@@ -81,7 +81,7 @@ class LoadStep(ParameterValue):
         `target_def_grad` or `target_def_grad_rate`.
     dump_frequency : int
         By default, 1, meaning results are written out every increment.
-    rotation : numpy.ma.core.MaskedArray, shape (3, 3)
+    rotation : numpy.array, shape (3, 3)
         Rotation matrix. Rotation to apply to the load case. By default, no rotation.
     """
 
