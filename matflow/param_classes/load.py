@@ -328,7 +328,7 @@ class LoadStep(ParameterValue):
             "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation": rotation,
+            "rotation_matrix": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -438,7 +438,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad_rate": target_def_grad_rate,
             "target_def_grad": target_def_grad,
-            "rotation": rotation,
+            "rotation_matrix": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -484,7 +484,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
-            rotation = rotation
+            rotation = rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -537,7 +537,7 @@ class LoadStep(ParameterValue):
             "direction": direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation": rotation,
+            "rotation_matrix": rotation,
             "dump_frequency": dump_frequency,
             "strain_rate_mode": strain_rate_mode,
         }
@@ -628,7 +628,7 @@ class LoadStep(ParameterValue):
             target_def_grad_rate=def_grad_rate,
             target_vel_grad=vel_grad,
             stress=stress_arr,
-            rotation=rotation
+            rotation=rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -682,7 +682,7 @@ class LoadStep(ParameterValue):
             "normal_direction": normal_direction,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
-            "rotation": rotation,
+            "rotation_matrix": rotation,
             "dump_frequency": dump_frequency,
         }
 
@@ -742,7 +742,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
-            rotation = rotation,
+            rotation=rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -1021,7 +1021,7 @@ class LoadStep(ParameterValue):
                     "total_time": time_per_inc,
                     "stress": stress_arr[time_idx],
                     "target_def_grad": dg_arr,
-                    "rotation": rotation,
+                    "rotation_matrix": rotation,
                     "dump_frequency": dump_frequency,
                 }
             )
