@@ -905,47 +905,6 @@ class LoadStep(ParameterValue):
         )
 
     @classmethod
-    def random_inc(
-        cls,
-        total_time: Union[int, float],
-        num_increments: int,
-        target_def_grad: float,
-        start_def_grad: Optional[np.typing.ArrayLike] = None,
-        dump_frequency: Optional[int] = 1,
-    ) -> LoadStep:
-        """Random load step continuing from a start point.
-
-        Parameters
-        ----------
-        total_time : float or int
-            Total simulation time.
-        num_increments
-            Number of simulation increments.
-        target_def_grad : float
-            Maximum of each deformation gradient component
-        start_def_grad : numpy.ndarray of shape (3, 3), optional
-            Starting deformation gradient of load step. Identity if not given.
-        dump_frequency : int, optional
-            By default, 1, meaning results are written out every increment.
-        """
-        if start_def_grad is None:
-            start_def_grad = np.eye(3)
-        if start_def_grad.shape != (3, 3):
-            msg = "start_def_grad must be an array of shape (3, 3)"
-            raise ValueError(msg)
-
-        dg_arr = np.copy(start_def_grad)
-        dg_arr += target_def_grad * np.where(np.random.random((3, 3)) > 0.5, 1.0, -1.0)
-        dg_arr /= np.cbrt(np.linalg.det(dg_arr))
-
-        return cls(
-            total_time=total_time,
-            num_increments=num_increments,
-            target_def_grad=dg_arr,
-            dump_frequency=dump_frequency,
-        )
-
-    @classmethod
     def uniaxial_cyclic(
         cls,
         max_stress: float,
