@@ -174,9 +174,7 @@ class LoadStep(ParameterValue):
             self.target_vel_grad = masked_array_from_list(self.target_vel_grad)
 
         if self.rotation is not None:
-            if isinstance(self.rotation, list):
-                self.rotation = masked_array_from_list(self.rotation)
-
+            self.rotation = np.asarray(self.rotation)
         if self.stress is not None:
             if isinstance(self.stress, list):
                 self.stress = masked_array_from_list(self.stress)
