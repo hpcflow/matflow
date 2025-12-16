@@ -1,0 +1,125 @@
+loops:
+  - name: lm_opt
+    tasks:
+      - perturb_parameters
+      - process_moose_parameters
+      - moose_simulation_2
+      - process_moose_response
+      - lm_fit
+    num_iterations: 7
+    termination:
+      path: outputs.is_converged
+      condition: { value.equal_to: true }
+
+tasks:
+  - schema: generate_plate_mesh_2D
+    inputs:
+      geometry_name: quarter_plate_with_hole
+      plate_width: 100e-3
+      hole_diameter: 25e-3
+      hole_sect_nodes: 9 # must be odd
+      plate_radial_nodes: 9
+      plate_diff_nodes: 8
+      plate_diff: 50e-3
+
+  - schema: moose_simulation
+    inputs:
+      FE_response_data: [disp_]
+      elasticity:
+        youngs_modulus: 200.0e+9
+        poissons_ratio: 0.3
+      input_deck:
+        GlobalParams:
+          displacements: "'disp_x disp_y'"
+        Mesh:
+          type: FileMesh
+          file: mesh.msh
+        Modules/TensorMechanics/Master:
+          all:
+            strain: SMALL
+            add_variables: true
+            material_output_family: MONOMIAL # MONOMIAL, LAGRANGE
+            material_output_order: FIRST # CONSTANT, FIRST, SECOND,
+            generate_output: "'vonmises_stress strain_xx strain_xy strain_xz strain_yx strain_yy strain_yz strain_zx strain_zy strain_zz stress_xx stress_xy stress_xz stress_yx stress_yy stress_yz stress_zx stress_zy stress_zz max_principal_strain mid_principal_strain min_principal_strain'"
+        BCs:
+          mid_y_fix_y:
+            type: DirichletBC
+            variable: disp_y
+            boundary: "'y-mid-line'"
+            value: 0.0
+          mid_x_fix_x:
+            type: DirichletBC
+            variable: disp_x
+            boundary: "'x-mid-line'"
+            value: 0.0
+          Pressure:
+            top:
+              boundary: "'y-top-line'"
+              function: "-1.4e8*t"
+        Materials:
+          elasticity:
+            type: ComputeIsotropicElasticityTensor
+          stress:
+            type: ComputeLinearElasticStress
+        Preconditioning:
+          SMP:
+            type: SMP
+            full: true
+        Executioner:
+          type: Transient
+          solve_type: "'PJFNK'"
+          petsc_options_iname: "'-pc_type -pc_hypre_type'"
+          petsc_options_value: "'hypre boomeramg'"
+          start_time: 0
+          end_time: 8
+          dt: 1
+        Postprocessors:
+          react_y_bot:
+            type: SidesetReaction
+            direction: "'0 1 0'"
+            stress_tensor: stress
+            boundary: "y-mid-line"
+          react_y_top:
+            type: SidesetReaction
+            direction: "'0 1 0'"
+            stress_tensor: stress
+            boundary: "y-top-line"
+          disp_y_max:
+            type: NodalExtremeValue
+            variable: disp_y
+          disp_x_max:
+            type: NodalExtremeValue
+            variable: disp_x
+        Outputs:
+          exodus: true
+
+  - schema: get_reference_data_moose
+
+  - schema: perturb_parameters # outputs `p_scales`
+    inputs:
+      p_0: [None, None]
+      p_0.0::from_normal:
+        loc: 100.0e+9
+        scale: 30.0e+9
+      p_0.1::from_uniform:
+        low: 0.1
+        high: 0.4
+
+  - schema: process_moose_parameters # outputs `elasticity` dict
+    sequences:
+      - path: inputs.index
+        values::from_range:
+          start: 0
+          step: 1
+          stop: 3 # num fitting params + 1
+
+  - schema: moose_simulation
+
+  - schema: process_moose_response # outputs `system_response`
+    groups:
+      - name: jac_approx
+
+  - schema: lm_fit
+    inputs:
+      damping: 1e-6
+      stop_tol: 1e-3

@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "matflow-new"
-version = "0.3.0a173"
+name = "matflow"
+version = "0.3.0a218"
 description = "Computational workflows for materials science"
 authors = ["aplowman <adam.plowman@manchester.ac.uk>"]
 license = "MIT"
@@ -19,7 +19,8 @@ numpy = [ # copied from hpcflow, shouldn't really be needed?
 pytest = {version = "^7.2.0", optional = true}
 matplotlib = "^3.7"
 typing-extensions = "^4.12.2"
-hpcflow-new2 = "0.2.0a222"
+skops = "^0.13.0"
+hpcflow = "0.2.0a285"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.12.2"
@@ -65,7 +66,7 @@ hook-dirs = "matflow.__pyinstaller:get_hook_dirs"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.3.0a173"
+version = "0.3.0a218"
 tag_format = "v$version"
 version_files = [ 
     "pyproject.toml:version",

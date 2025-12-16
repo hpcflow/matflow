@@ -69,3 +69,24 @@
   name:
     name: pipeline.xdmf
   doc: DREAM.3D model data and metadata.
+
+- label: moose_input_file
+  name:
+    name: input.i
+  doc: |
+    The main MOOSE input file, whose format is described at: `https://mooseframework.inl.gov/application_usage/input_syntax.html <https://mooseframework.inl.gov/application_usage/input_syntax.html>`_
+
+- label: gmsh_geo_file
+  name:
+    name: script.geo
+  doc: Gmsh geometry script file.
+- label: gmsh_mesh_file
+  name:
+    name: (.*\.msh)
+    is_regex: true
+  doc: Gmsh mesh file, typically generated from a Gmsh .geo script.
+- label: moose_exodus_file
+  name:
+    name: (.*\.e)
+    is_regex: true
+  doc: Moose output file in the Exodus (NetCDF) format.

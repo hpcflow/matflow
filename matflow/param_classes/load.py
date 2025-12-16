@@ -1,6 +1,7 @@
 """
 Loadings to apply to a simulated sample.
 """
+
 from __future__ import annotations
 from collections.abc import Callable, Iterator
 import copy
@@ -213,6 +214,24 @@ class LoadStep(ParameterValue):
         """More user-friendly access to method name."""
         return self._method_name or self.__class__.__name__
 
+    @property
+    def strain(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain"]
+
+    @property
+    def strain_rate(self) -> float | None:
+        """
+        For a limited subset of load step types (e.g. uniaxial), return the scalar target
+        strain rate.
+        """
+        if self.type in ("uniaxial",):
+            return self.method_args["target_strain_rate"]
+
     def __repr__(self) -> str:
         type_str = f"type={self.type!r}, " if self.type else ""
         if self.direction:
@@ -255,6 +274,8 @@ class LoadStep(ParameterValue):
         total_time: float | int,
         num_increments: int,
         direction: str,
+        target_strain: float | None = None,
+        target_strain_rate: float | None = None,
         target_def_grad_rate: float | None = None,
         target_def_grad: float | None = None,
         dump_frequency: int = 1,
@@ -272,9 +293,15 @@ class LoadStep(ParameterValue):
             A single character, "x", "y" or "z", representing the loading direction.
         target_def_grad : float
             Target deformation gradient to achieve along the loading direction component.
+        target_strain: float
+            Target engineering strain to achieve along the loading direction. Specify at
+            most one of `target_strain` and `target_def_grad`.
         target_def_grad_rate : float
             Target deformation gradient rate to achieve along the loading direction
             component.
+        target_strain_rate: float
+            Target engineering strain rate to achieve along the loading direction. Specify
+            at most one of `target_strain_rate` and `target_def_grad_rate`.
         dump_frequency : int, optional
             By default, 1, meaning results are written out every increment.
         """
@@ -284,17 +311,38 @@ class LoadStep(ParameterValue):
             "total_time": total_time,
             "num_increments": num_increments,
             "direction": direction,
-            "target_def_grad_rate": target_def_grad_rate,
+            "target_strain": target_strain,
+            "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
+            "target_def_grad_rate": target_def_grad_rate,
             "dump_frequency": dump_frequency,
         }
 
         # Validation:
-        msg = "Specify either `target_def_grad_rate` or `target_def_grad`."
-        if all([t is None for t in [target_def_grad_rate, target_def_grad]]):
+        msg = (
+            "Specify either `target_strain`, `target_strain_rate`, "
+            "``target_def_grad` or target_def_grad_rate`."
+        )
+        strain_arg = (
+            target_strain,
+            target_strain_rate,
+            target_def_grad,
+            target_def_grad_rate,
+        )
+        if sum(s is not None for s in strain_arg) != 1:
             raise ValueError(msg)
-        if all([t is not None for t in [target_def_grad_rate, target_def_grad]]):
-            raise ValueError(msg)
+
+        # convert strain (rate) to deformation gradient (rate) components, and ensure both
+        # strain(_rate) and def_grad(_rate) are populated:
+        if target_strain is not None:
+            target_def_grad = 1 + target_strain
+        elif target_def_grad is not None:
+            target_strain = target_def_grad - 1
+
+        if target_strain_rate is not None:
+            target_def_grad_rate = target_strain_rate
+        elif target_def_grad_rate is not None:
+            target_strain_rate = target_def_grad_rate
 
         if target_def_grad_rate is not None:
             def_grad_val = target_def_grad_rate
@@ -786,6 +834,88 @@ class LoadStep(ParameterValue):
         return obj._remember_name_args(_method_name, _method_args)
 
     @classmethod
+    def random_inc(
+        cls,
+        total_time: Union[int, float],
+        num_increments: int,
+        target_def_grad: float,
+        start_def_grad: Optional[np.typing.ArrayLike] = None,
+        dump_frequency: Optional[int] = 1,
+    ) -> LoadStep:
+        """Random load step continuing from a start point.
+
+        Parameters
+        ----------
+        total_time : float or int
+            Total simulation time.
+        num_increments
+            Number of simulation increments.
+        target_def_grad : float
+            Maximum of each deformation gradient component
+        start_def_grad : numpy.ndarray of shape (3, 3), optional
+            Starting deformation gradient of load step. Identity if not given.
+        dump_frequency : int, optional
+            By default, 1, meaning results are written out every increment.
+        """
+        if start_def_grad is None:
+            start_def_grad = np.eye(3)
+        if start_def_grad.shape != (3, 3):
+            msg = "start_def_grad must be an array of shape (3, 3)"
+            raise ValueError(msg)
+
+        dg_arr = np.copy(start_def_grad)
+        dg_arr += target_def_grad * np.where(np.random.random((3, 3)) > 0.5, 1.0, -1.0)
+        dg_arr /= np.cbrt(np.linalg.det(dg_arr))
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=dg_arr,
+            dump_frequency=dump_frequency,
+        )
+
+    @classmethod
+    def random_inc(
+        cls,
+        total_time: Union[int, float],
+        num_increments: int,
+        target_def_grad: float,
+        start_def_grad: Optional[np.typing.ArrayLike] = None,
+        dump_frequency: Optional[int] = 1,
+    ) -> LoadStep:
+        """Random load step continuing from a start point.
+
+        Parameters
+        ----------
+        total_time : float or int
+            Total simulation time.
+        num_increments
+            Number of simulation increments.
+        target_def_grad : float
+            Maximum of each deformation gradient component
+        start_def_grad : numpy.ndarray of shape (3, 3), optional
+            Starting deformation gradient of load step. Identity if not given.
+        dump_frequency : int, optional
+            By default, 1, meaning results are written out every increment.
+        """
+        if start_def_grad is None:
+            start_def_grad = np.eye(3)
+        if start_def_grad.shape != (3, 3):
+            msg = "start_def_grad must be an array of shape (3, 3)"
+            raise ValueError(msg)
+
+        dg_arr = np.copy(start_def_grad)
+        dg_arr += target_def_grad * np.where(np.random.random((3, 3)) > 0.5, 1.0, -1.0)
+        dg_arr /= np.cbrt(np.linalg.det(dg_arr))
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=dg_arr,
+            dump_frequency=dump_frequency,
+        )
+
+    @classmethod
     def uniaxial_cyclic(
         cls,
         max_stress: float,
@@ -870,6 +1000,63 @@ class LoadStep(ParameterValue):
                 cycle_i = cycle_i[:-1]
             out.extend(cycle_i)
         return [cls(**i)._remember_name_args(None, i) for i in out]
+
+    @classmethod
+    def from_npz_file(
+        cls,
+        npz_file_path: str,
+        idx: int,
+    ) -> list[Self]:
+        """
+        Construct a list of load steps using data from a Numpy .npz file. This is designed for running large arrays of simulations from the data in this file, where each uses a loadcase specified by a given index (`idx`).
+
+        Parameters
+        ----------
+        npz_file_path: str
+            Filepath to the npz file, which must be dict-like with at least the following keys:
+            num_incs: 1D numpy array
+                Array of the total number of increments to use for each loadcase.
+                (total number of increments the damask simulation should undergo)
+            inc_size: 2D numpy array
+                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation.
+                (1st D is loadstep, 2nd is principle components of strain.)
+            inc_size_final: 2D numpy array
+                Array of amount of strain of final loadsteps.
+                (1st D is loadstep, 2nd is principle components of strain.)
+            u_sampled_split: 4D numpy array
+                Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
+            strain_rate: 1D numpy array of one float
+                Scalar strain rate to be used for every simulation
+        idx: int
+            int index of desired loadcase to use.
+        """
+
+        data = np.load(npz_file_path)
+        num_incs = data["num_incs"]
+        inc_size = data["inc_size"]
+        inc_size_final = data["inc_size_final"]
+        u_sampled_split = data["u_sampled_split"]
+        strain_rate = data["strain_rate"]
+
+        load_steps = []
+        for j in range(num_incs[idx]):
+            inc_size_idx = (idx,) + (2,) * (len(inc_size.shape) - 1)
+            if j == num_incs[idx] - 1:
+                # final inc
+                dt = inc_size_final[inc_size_idx]
+            else:
+                dt = inc_size[inc_size_idx]
+            dt = abs(dt) / strain_rate
+
+            load_steps.append(
+                {
+                    "target_def_grad": u_sampled_split[idx, j],
+                    "total_time": dt.item(),
+                    "num_increments": 1,
+                }
+            )
+
+        return [cls(**i)._remember_name_args(None, i) for i in load_steps]
 
 
 @dataclass
@@ -1047,3 +1234,58 @@ class LoadCase(ParameterValue):
                     step_objs.append(LoadStep(**step_dict))
 
         return cls(steps=step_objs)
+
+    @classmethod
+    def from_npz_file(cls, **kwargs) -> Self:
+        """Importing loadcase from npz file
+
+        See :py:meth:`~LoadStep.from_npz_file` for argument documentation.
+        """
+        return cls(steps=LoadStep.from_npz_file(**kwargs))
+
+    @classmethod
+    def multistep_random_inc(
+        cls,
+        steps: List[Dict],
+        interpolate_steps: int,
+        interpolate_kind: Optional[Union[str, int]] = 3,
+    ) -> LoadCase:
+        """A load case with multiple steps.
+
+        Parameters
+        ----------
+
+        """
+        from scipy.interpolate import interp1d
+
+        step_objs = []
+        dg_arr = [np.eye(3)]
+        for step_i in steps:
+            step_i = copy.deepcopy(step_i)  # don't mutate
+            repeats = step_i.pop("repeats", 1)
+            method = LoadStep.random_inc
+            for _ in range(repeats):
+                step_obj = method(**step_i, start_def_grad=dg_arr[-1])
+                dg_arr.append(step_obj.target_def_grad)
+                step_objs.append(step_obj)
+        dg_arr = np.array(dg_arr)
+
+        dg_interp = interp1d(
+            np.arange(len(dg_arr)) * interpolate_steps,
+            dg_arr,
+            kind=interpolate_kind,
+            axis=0,
+        )
+
+        step_objs_full = []
+        for i, step_obj_i in enumerate(step_objs):
+            step_i = {
+                "total_time": step_obj_i.total_time / interpolate_steps,
+                "num_increments": int(step_obj_i.num_increments / interpolate_steps),
+                "dump_frequency": step_obj_i.dump_frequency,
+            }
+            for j in range(interpolate_steps):
+                dg = dg_interp(i * interpolate_steps + j + 1)
+                step_objs_full.append(LoadStep(**step_i, target_def_grad=dg))
+
+        return cls(steps=step_objs_full)

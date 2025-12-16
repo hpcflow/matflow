@@ -205,8 +205,8 @@
   method: from_CTF_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -227,9 +227,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_CTF
@@ -241,9 +241,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_CTF.m>>
@@ -255,17 +255,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_CTF/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -286,9 +300,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_CRC
@@ -300,9 +314,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_CRC.m>>
@@ -314,17 +328,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_CRC/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
   method: from_ODF_mat_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: ODF_mat_file_path
     - parameter: num_orientations
@@ -339,9 +367,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_ODF_mat
@@ -353,9 +381,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_ODF_mat.m>>
@@ -367,9 +395,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_ODF_mat/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Extract the crystal orientations from a model ODF file.
@@ -380,8 +422,8 @@
     - parameter: crystal_symmetry
     - parameter: specimen_symmetry
     - parameter: ODF_components
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
   outputs:
     - parameter: orientations
@@ -394,9 +436,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_model_ODF
@@ -408,9 +450,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_model_ODF.m>>
@@ -422,9 +464,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_model_ODF/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_orientations
   doc: Visualise crystal orientations.
@@ -441,8 +497,9 @@
       default_value: null
     - parameter: use_one_colourbar
       default_value: False
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
+      propagation_mode: explicit
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -452,9 +509,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: plot_pole_figures
@@ -468,9 +525,9 @@
           environment: matlab_env
       save_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -484,9 +541,25 @@
           environment: matlab_env
       save_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/plot_pole_figures/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in:
+        orientations: hdf5
+        "*": json
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_pole_figures, mtex_IPF_key]
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_orientations
   method: inverse_pole_figure
@@ -497,8 +570,9 @@
     - parameter: IPF_reference_directions
       default_value: ["z"]
     - parameter: use_contours
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
+      propagation_mode: explicit
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -508,9 +582,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: plot_inverse_pole_figures
@@ -524,9 +598,9 @@
           environment: matlab_env
       save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -540,9 +614,25 @@
           environment: matlab_env
       save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/plot_inverse_pole_figures/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in:
+        orientations: hdf5
+        "*": json
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: visualise_multi_orientations
   # Note: this should be made redundant by some sort of built-in hpcflow functionality to
@@ -668,6 +758,8 @@
       default_value: null
     - parameter: remove_damask_hdf5
       default_value: false
+    - parameter: initial_conditions
+      default_value: null
   outputs:
     - parameter: damask_log
     - parameter: damask_post_processing_result
@@ -684,7 +776,7 @@
           environment: damask_env
       input_file_generators:
         - input_file: damask_geom_file
-          from_inputs: [volume_element]
+          from_inputs: [volume_element, initial_conditions]
           script: <<script:damask/write_geom.py>>
         - input_file: damask_load_file
           from_inputs: [load_case, damask_solver]
@@ -704,9 +796,31 @@
               condition: { value.not_equal_to: null }
       abortable: true
       commands:
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.equal_to: null }
+            - path: resources.environments.damask_env.version
+              default: true
+              condition: { value.not_equal_to: 3.0.0-alpha7 }
         - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
           stdout: stdout.log
           stderr: stderr.log
+          rules:
+            - path: resources.environments.damask_env.version
+              default: false
+              condition: { value.equal_to: 3.0.0-alpha7 }
       output_file_parsers:
         damask_log:
           from_files: [damask_stdout_file]
@@ -759,6 +873,10 @@
       default_value: null
     - parameter: damask_numerics
       default_value: null
+    - parameter: remove_damask_hdf5
+      default_value: false
+    - parameter: initial_conditions
+      default_value: null
   outputs:
     - parameter: VE_response
   actions:
@@ -779,18 +897,33 @@
             - damask_phases
             - single_crystal_parameters
             - damask_numerics
+            - initial_conditions
           script: <<script:damask/high_concurrency/write_input_files.py>>
       abortable: true
       commands:
-        - command: <<executable:damask_grid>> --load load.yaml --geom geom.vti
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml --numerics numerics.yaml
           stdout: stdout.log
           stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.not_equal_to: null }
+        - command: <<executable:damask_grid>> --jobname geom_load --load load.yaml --geom geom.vti --material material.yaml
+          stdout: stdout.log
+          stderr: stderr.log
+          rules:
+            - path: inputs.damask_numerics
+              condition: { value.equal_to: null }
       output_file_parsers:
         VE_response: # this generates VTK files as well if requested
           from_files: [damask_hdf5_file]
-          save_files: false
+          save_files: [damask_viz_files]
+          clean_up: [damask_viz_files]
           script: <<script:damask/high_concurrency/process_HDF5.py>>
-          inputs: [damask_post_processing, VE_response_data, damask_viz]
+          inputs:
+            - damask_post_processing
+            - VE_response_data
+            - damask_viz
+            - remove_damask_hdf5
 
 - objective: simulate_VE_loading
   doc: Simulate applying a load case to a volume element.
@@ -1402,8 +1535,8 @@
   method: from_CTF_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -1424,9 +1557,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_orientations_CTF
@@ -1438,9 +1571,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CTF.m>>
@@ -1452,17 +1585,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_orientations_CTF/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_orientations
   doc: Get sample of crystal orientations from a channel reconstruction file.
   method: from_CRC_file
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -1483,9 +1630,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_orientations_CRC
@@ -1497,9 +1644,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CRC.m>>
@@ -1511,17 +1658,31 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_orientations_CRC/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_compiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: sample_texture
   doc: Get sample of crystal orientations by generation from a random model.
   method: random
   implementation: mtex
   inputs:
-    - parameter: compile
-      default_value: false
+    - parameter: execution_mode
+      default_value: precompiled # script | compile
       propagation_mode: explicit
     - parameter: specimen_symmetry
     - parameter: num_orientations
@@ -1537,9 +1698,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: sample_texture_random
@@ -1551,9 +1712,9 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: true
+            value.equal_to: compile
 
     - requires_dir: true
       script: <<script:mtex/sample_texture_random.m>>
@@ -1565,9 +1726,23 @@
             type: any
           environment: matlab_env
       rules:
-        - path: inputs.compile
+        - path: inputs.execution_mode
           condition:
-            value.equal_to: false
+            value.equal_to: script
+
+    - requires_dir: true
+      program: mtex/sample_texture_random/<<resource:platform>>_<<resource:CPU_arch>>
+      program_data_in: json
+      program_data_out: hdf5
+      program_exe: run_precompiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.execution_mode
+          condition:
+            value.equal_to: precompiled
 
 - objective: generate_rve
   method: from_damask_input_files
@@ -1605,7 +1780,6 @@
 
 - objective: evaluate_yield_stress_limit_state
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: threshold_yield_stress
     - parameter: yield_stress
   outputs:
@@ -1902,7 +2076,6 @@
 
 - objective: evaluate_limit_state_normal_sum
   inputs:
-    - parameter: x # required to ensure group defined on input x (not needed by this task)
     - parameter: sum_y
     - parameter: target_pf
     - parameter: dimension
@@ -1970,3 +2143,435 @@
         - scope:
             type: any
           environment: python_env
+
+- objective: build_surrogate
+  inputs:
+    - parameter: X_train
+    - parameter: Y_train
+    - parameter: parameter_names
+    - parameter: n_restarts_optimizer
+      default_value: 5
+    - parameter: cross_validate
+      default_value: true
+    - parameter: scoring
+      default_value: r2
+    - parameter: normalize_y
+      default_value: true
+    - parameter: validate
+      default_value: false
+    - parameter: X_test
+      default_value: null
+    - parameter: Y_test
+      default_value: null
+  outputs:
+    - parameter: surrogate
+    - parameter: validation
+    - parameter: versions
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/build_surrogate.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+- objective: fit_surrogate_from_test_data
+  inputs:
+    - parameter: surrogate
+    - parameter: Y_test
+    - parameter: test_index
+    - parameter: test_error
+    - parameter: iters
+    - parameter: n
+    - parameter: use_std
+  outputs:
+    - parameter: fitted_x
+    - parameter: optimize_result
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/fit_surrogate.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+- objective: perform_inference
+  inputs:
+    - parameter: surrogate
+    - parameter: Y_test
+    - parameter: test_index
+    - parameter: test_error
+    - parameter: draws
+    - parameter: tune
+    - parameter: chains
+    - parameter: cores
+    - parameter: fitted_x
+    - parameter: use_std
+  outputs:
+    - parameter: inference_data
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: sklearn_env
+      script: <<script:surrogates/perform_inference.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+
+- objective: generate_plate_mesh_2D
+  inputs:
+    - parameter: geometry_name
+    - parameter: hole_diameter
+    - parameter: plate_width
+      default_value: 100e-3
+    - parameter: hole_sect_nodes
+      default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
+    - parameter: plate_radial_nodes
+      default_value: 9 # number of nodes from the hole to the edges of the central section
+    - parameter: plate_diff
+      default_value: 50e-3 # length of rectangular extension
+    - parameter: plate_diff_nodes
+      default_value: 5 # number of nodes along the rectangular extension
+    - parameter: generate_exodus
+      default_value: false
+    - parameter: _exodus_generation_input_deck
+      propagation_mode: explicit
+      default_value:
+        Mesh:
+          type: FileMesh
+          file: mesh.msh
+        Outputs:
+          exodus: true
+  outputs:
+    - parameter: gmsh_mesh_str
+  actions:
+    - environments:
+        any: gmsh_env
+      input_file_generators:
+        - input_file: gmsh_geo_file
+          from_inputs:
+            - geometry_name
+            - plate_width
+            - hole_diameter
+            - hole_sect_nodes
+            - plate_radial_nodes
+            - plate_diff_nodes
+            - plate_diff
+          jinja_template: gmsh/<<parameter:geometry_name>>_2D.geo
+      script: <<script:gmsh/run_geo.py>>
+      script_exe: python_script
+      script_data_in:
+        input_files.gmsh_geo_file: direct
+      script_data_out:
+        outputs.gmsh_mesh_str: direct
+      requires_dir: true
+    - environments: # an action to convert the mesh file into an exodus file via a MOOSE run, for easier visalisation
+        any: moose_processing_env
+        main: moose_env
+      input_file_generators:
+        - input_file: moose_input_file
+          from_inputs: [_exodus_generation_input_deck]
+          script: <<script:moose/write_input.py>>
+      abortable: true
+      commands:
+        - command: <<executable:proteus>> -i <<file:moose_input_file>> --mesh-only
+          stdout: stdout.log
+          stderr: stderr.log
+      rules:
+        - path: inputs.generate_exodus
+          condition: { value.equal_to: true }
+
+- objective: generate_plate_mesh_3D
+  inputs:
+    - parameter: geometry_name
+    - parameter: plate_width
+      default_value: 100e-3
+    - parameter: plate_thickness
+      default_value: 2e-3
+    - parameter: hole_diameter
+      default_value: 25e-3
+    - parameter: plate_thick_layers
+      default_value: 2
+    - parameter: hole_sect_nodes
+      default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
+    - parameter: plate_radial_nodes
+      default_value: 9 # number of nodes from the hole to the edges of the central section
+    - parameter: plate_diff
+      default_value: 50e-3 # length of rectangular extension
+    - parameter: plate_diff_nodes
+      default_value: 5 # number of nodes along the rectangular extension
+  outputs:
+    - parameter: gmsh_mesh_str
+  actions:
+    - environments:
+        any: gmsh_env
+      input_file_generators:
+        - input_file: gmsh_geo_file
+          from_inputs:
+            - geometry_name
+            - plate_width
+            - plate_thickness
+            - hole_diameter
+            - plate_thick_layers
+            - hole_sect_nodes
+            - plate_radial_nodes
+            - plate_diff_nodes
+            - plate_diff
+          jinja_template: gmsh/<<parameter:geometry_name>>.geo
+      script: <<script:gmsh/run_geo.py>>
+      script_exe: python_script
+      script_data_in:
+        input_files.gmsh_geo_file: direct
+      script_data_out:
+        outputs.gmsh_mesh_str: direct
+      requires_dir: true
+
+- objective: moose_simulation
+  inputs:
+    - parameter: input_deck
+    - parameter: gmsh_mesh_str
+      default_value: null
+    - parameter: FE_response_data
+      default_value: null
+    - parameter: input_deck_variables
+      default_value: null
+    - parameter: elasticity
+      default_value: null
+  outputs:
+    - parameter: FE_response
+  actions:
+    - environments:
+        any: moose_processing_env
+        main: moose_env
+      input_file_generators:
+        - # TODO: ideally this should be conditional on whether the input is sourced from
+          # a non-default source, which is not currently possible to express, so for now,
+          # we handle the case where it is empty by not writing anything in the script.
+          input_file: gmsh_mesh_file
+          from_inputs: [gmsh_mesh_str]
+          script: <<script:moose/dump_mesh.py>>
+        - input_file: moose_input_file
+          from_inputs: [input_deck, input_deck_variables, elasticity]
+          script: <<script:moose/write_input.py>>
+      abortable: true
+      commands:
+        - command: <<executable:proteus>> -i <<file:moose_input_file>>
+          stdout: stdout.log
+          stderr: stderr.log
+      output_file_parsers:
+        FE_response:
+          from_files: [moose_exodus_file]
+          save_files: false
+          script: <<script:moose/parse_exodus.py>>
+          inputs: [FE_response_data]
+          rules:
+            - path: inputs.FE_response_data
+              condition: { value.not_equal_to: null }
+
+- objective: calculate_plate_SCF
+  inputs:
+    - parameter: FE_response
+    - parameter: plate_width
+    - parameter: hole_diameter
+    - parameter: plate_diff
+  outputs:
+    - parameter: SCF
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/calculate_plate_SCF_2D.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: refine_2D_plate_mesh
+  inputs:
+    - parameter: SCF
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+  outputs:
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+    - parameter: SCF_diff
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/refine_plate_mesh_2D.py>>
+      script_exe: python_script
+      script_data_in:
+        SCF: { format: direct, all_iterations: true }
+        "*": direct
+      script_data_out: direct
+
+- objective: refine_3D_plate_mesh
+  inputs:
+    - parameter: SCF
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+    - parameter: plate_thick_layers
+  outputs:
+    - parameter: hole_sect_nodes
+    - parameter: plate_radial_nodes
+    - parameter: plate_diff_nodes
+    - parameter: plate_thick_layers
+  actions:
+    - environments:
+        any: moose_processing_env
+      script: <<script:moose/refine_plate_mesh.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+
+- objective: get_reference_data_moose
+  inputs:
+    - parameter: FE_response
+  outputs:
+    - parameter: x
+    - parameter: reference_response
+  actions:
+    - script: <<script:lm_fit/get_reference_data_moose.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: get_reference_data_toy_model
+  inputs:
+    - parameter: p_true
+  outputs:
+    - parameter: x
+    - parameter: reference_response
+  actions:
+    - script: <<script:lm_fit/get_reference_data_toy_model.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: perturb_parameters
+  inputs:
+    - parameter: p_0
+      default_value: null
+    - parameter: p_i
+      default_value: null
+    - parameter: p_scales
+      default_value: null
+  outputs:
+    - parameter: perturbations
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: p_i
+  actions:
+    - script: <<script:lm_fit/perturb_parameters.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: system_analysis_toy_model_2
+  inputs:
+    - parameter: x
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: index
+  outputs:
+    - parameter: system_response
+  actions:
+    - script: <<script:lm_fit/system_analysis_toy_model.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: process_moose_parameters
+  inputs:
+    - parameter: p_perturbed
+    - parameter: p_scales
+    - parameter: index
+  outputs:
+    - parameter: elasticity
+  actions:
+    - script: <<script:lm_fit/process_moose_parameters.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: process_moose_response
+  inputs:
+    - parameter: FE_response
+  outputs:
+    - parameter: system_response
+  actions:
+    - script: <<script:lm_fit/process_moose_response.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: lm_fit
+  inputs:
+    - parameter: system_response
+      group: jac_approx
+    - parameter: p_scales
+    - parameter: reference_response
+    - parameter: perturbations
+    - parameter: damping
+      default_value: null
+    - parameter: p_i
+    - parameter: stop_tol
+  outputs:
+    - parameter: p_i
+    - parameter: damping
+    - parameter: fit_parameters
+    - parameter: is_converged
+  actions:
+    - script: <<script:lm_fit/lm_fit.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: collate_CP_data
+  inputs:
+    - parameter: VE_response
+      group: CP_data
+  outputs:
+    - parameter: y_simulation
+    - parameter: theta
+    - parameter: parameter_names
+  actions:
+    - script: <<script:damask/collate_CP_data.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      script_pass_workflow: true
+      environments:
+        any: python_env
