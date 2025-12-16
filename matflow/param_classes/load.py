@@ -389,7 +389,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad_aim,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
-            rotation = rotation,
+            rotation=rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
@@ -484,7 +484,7 @@ class LoadStep(ParameterValue):
             target_def_grad=def_grad,
             target_def_grad_rate=def_grad_rate,
             stress=stress_arr,
-            rotation = rotation,
+            rotation=rotation,
             dump_frequency=dump_frequency,
         )
         return obj._remember_name_args(_method_name, _method_args)
