@@ -90,3 +90,16 @@
     name: (.*\.e)
     is_regex: true
   doc: Moose output file in the Exodus (NetCDF) format.
+
+- label: vpsc_in_file
+  name:
+    name: VPSC8.in
+- label: vpsc_stdout_file
+  name:
+    name: RUN_LOG.OUT
+- label: vpsc_texture_output 
+  name:
+    name: TEX_PH1.OUT
+- label: vpsc_mech_output
+  name:
+    name: STR_STR.OUT
