@@ -931,28 +931,12 @@
   inputs:
     - parameter: volume_element
     - parameter: load_case
-    - parameter: homogenization
     - parameter: vpsc_phases
-    - parameter: vpsc_post_processing
-    - parameter: VE_response_data
-    - parameter: vpsc_viz
-      default_value: null
-    - parameter: single_crystal_parameters
-      default_value: null
     - parameter: vpsc_solver
       default_value: null
-    - parameter: vpsc_numerics
-      default_value: null
-    - parameter: calculate_yield_stress
-      default_value: null
-    - parameter: remove_vpsc_hdf5
-      default_value: false
   outputs:
     - parameter: vpsc_log
-    - parameter: vpsc_post_processing_result
     - parameter: VE_response
-    - parameter: vpsc_viz_result
-    - parameter: yield_stress
   actions:
     - environments:
         - scope:
@@ -963,46 +947,22 @@
           environment: vpsc_env
       input_file_generators:
         - input_file: vpsc_in_file
-          from_inputs: []
+          from_inputs: [volume_element, load_case]
           script: <<script:vpsc/write_vpsc_in.py>>
       abortable: true
       commands:
-        - command: ""
+        - command: vpsc8 
           stdout: []
           stderr: []
       output_file_parsers:
         vpsc_log:
           from_files: [vpsc_stdout_file]
           script: <<script:vpsc/read_log.py>>
-        vpsc_post_processing_result:
-          from_files: [vpsc_out_file]
-          save_files: false
-          script: <<script:vpsc/read_output_files.py>>
-          inputs: [vpsc_post_processing]
         VE_response:
-          from_files: [vpsc_out_file]
+          from_files: [vpsc_texture_output, vpsc_mech_output]
           save_files: false
           script: <<script:vpsc/extract_vpsc_out.py>>
           inputs: [VE_response_data]
-        vpsc_viz_result:
-          from_files: [vpsc_out_file]
-          save_files: [vpsc_viz_files]
-          clean_up: [vpsc_viz_files]
-          inputs: [vpsc_viz]
-          outputs: [VE_response]
-          script: <<script:vpsc/viz_vpsc_out.py>>
-          rules:
-            - path: inputs.vpsc_viz
-              condition: { value.not_equal_to: null }
-        yield_stress:
-          from_files: [vpsc_out_file]
-          save_files: false
-          inputs: [calculate_yield_stress, remove_vpsc_out]
-          outputs: [VE_response]
-          script: <<script:vpsc/get_yield_stress.py>>
-          rules:
-            - path: inputs.calculate_yield_stress
-              condition: { value.not_equal_to: null }
 
 - objective: read_tensile_test
   doc: Read tensile test data from CSV.
