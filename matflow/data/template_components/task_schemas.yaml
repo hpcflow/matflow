@@ -931,17 +931,14 @@
   inputs:
     - parameter: volume_element
     - parameter: load_case
-    - parameter: vpsc_phases
-    - parameter: vpsc_solver
+    - parameter: phases
       default_value: null
-  outputs:
-    - parameter: vpsc_log
-    - parameter: VE_response
+    - parameter: control
+      default_value: null
+    - parameter: numerics
+      default_value: null
   actions:
     - environments:
-        - scope:
-            type: processing
-          environment: vpsc_parse_env
         - scope:
             type: main
           environment: vpsc_env
@@ -954,15 +951,15 @@
         - command: vpsc8 
           stdout: []
           stderr: []
-      output_file_parsers:
-        vpsc_log:
-          from_files: [vpsc_stdout_file]
-          script: <<script:vpsc/read_log.py>>
-        VE_response:
-          from_files: [vpsc_texture_output, vpsc_mech_output]
-          save_files: false
-          script: <<script:vpsc/extract_vpsc_out.py>>
-          inputs: [VE_response_data]
+#       output_file_parsers:
+#         vpsc_log:
+#           from_files: [vpsc_stdout_file]
+#           script: <<script:vpsc/read_log.py>>
+#         VE_response:
+#           from_files: [vpsc_texture_output, vpsc_mech_output]
+#           save_files: false
+#           script: <<script:vpsc/extract_vpsc_out.py>>
+#           inputs: [VE_response_data]
 
 - objective: read_tensile_test
   doc: Read tensile test data from CSV.
