@@ -14,6 +14,7 @@ def cluster_orientations(
     gamma_start_index,
     gamma_stop_index,
 ):
+    """Method to rearrange a list of orientations by minimising the misorientation between neighbouring orientations."""
 
     # Convert zarr arrays to numpy arrays using existing code
     volume_element = validate_volume_element(volume_element)
