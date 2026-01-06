@@ -32,10 +32,40 @@ on:
         description: "PyInstaller log level"
         required: true
         default: "INFO"
+      tmate_debugging:
+        description: "Enable tmate debugging (https://github.com/marketplace/actions/debugging-with-tmate)"
+        required: true
+        default: false
+        type: boolean
+      unit_tests:
+        description: "Run unit tests on the built executables."
+        required: true
+        default: true
+        type: boolean
       unit_test_args:
         description: "CLI args to pass verbatim to pytest (unit tests)."
         required: false
         type: string
+        default: ""
+      integration_tests:
+        description: "Run integration tests on the built executables."
+        required: true
+        default: true
+        type: boolean
+      integration_test_args:
+        description: "CLI args to pass verbatim to pytest (integration tests)."
+        required: false
+        type: string
+        default: ""
+      config_data_dir:
+        description: "URL to set the config item `data_dir` to before running the tests."
+        type: string
+        required: false
+        default: ""
+      config_program_dir:
+        description: "URL to set the config item `program_dir` to before running the tests."
+        type: string
+        required: false
         default: ""
 
 jobs:
@@ -48,7 +78,12 @@ jobs:
       build_onedir: ${{ github.event.inputs.build_onedir }}
       build_onefile: ${{ github.event.inputs.build_onefile }}
       logLevel: ${{ github.event.inputs.logLevel }}
+      tmate_debugging: ${{ github.event.inputs.tmate_debugging }}
+      unit_tests: ${{ github.event.inputs.unit_tests }}
       unit_test_args: ${{ github.event.inputs.unit_test_args }}
+      integration_tests: ${{ github.event.inputs.integration_tests }}
+      integration_test_args: ${{ github.event.inputs.integration_test_args }}
+      config_data_dir: ${{ github.event.inputs.config_data_dir }}
+      config_program_dir: ${{ github.event.inputs.config_program_dir }}
       executable_name: matflow
       pyinstaller_dir: pyinstaller
-      python-version: "3.13"
