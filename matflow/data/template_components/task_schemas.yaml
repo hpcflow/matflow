@@ -926,7 +926,7 @@
             - remove_damask_hdf5
 
 - objective: simulate_orientations_loading
-  doc: Simulate applying a load case to a volume element.
+  doc: Simulate applying a load case to orientations
   implementation: vpsc
   inputs:
     - parameter: load_case
