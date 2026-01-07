@@ -925,11 +925,10 @@
             - damask_viz
             - remove_damask_hdf5
 
-- objective: simulate_VE_loading
+- objective: simulate_orientations_loading
   doc: Simulate applying a load case to a volume element.
   implementation: vpsc
   inputs:
-    - parameter: volume_element
     - parameter: load_case
     - parameter: phases
       default_value: null
@@ -942,9 +941,12 @@
         - scope:
             type: main
           environment: vpsc_env
+        - scope:
+            type: processing
+          environment: vpsc_parse_env
       input_file_generators:
         - input_file: vpsc_in_file
-          from_inputs: [volume_element, load_case]
+          from_inputs: [load_case, phases, control, numerics]
           script: <<script:vpsc/write_vpsc_in.py>>
       abortable: true
       commands:

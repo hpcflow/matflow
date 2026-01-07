@@ -15,7 +15,7 @@ tasks:
       homog_label: SX
       VE_grid_size: [8, 8, 8]
 
-  - schema: simulate_VE_loading_vpsc
+  - schema: simulate_orientations_loading_vpsc
     inputs:
       load_case::uniaxial:
         total_time: 100
