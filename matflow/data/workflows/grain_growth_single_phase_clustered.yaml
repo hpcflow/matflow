@@ -1,7 +1,7 @@
 doc:
   - >
-    Produces a uniform grain structure with alpha and gamma fibre clusters
-    via monte Carlo Markov chains and simulates grain coarsening
+    Generates a microstructure with a unimodal grain size distribution and simulates
+    grain coarsening based on misorientation dependant GB energy and mobility
 
 tasks:
     # rotated cube texture for the sub-grain matrix:

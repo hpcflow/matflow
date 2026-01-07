@@ -1,3 +1,8 @@
+doc:
+  - >
+    Generates a nucleus within a uniform microstructure and 
+    simulates grain coarsening based on misorientation dependant GB energy and mobility
+
 tasks:
     # rotated cube texture for the sub-grain matrix:
   - schema: sample_texture_from_model_ODF_mtex
