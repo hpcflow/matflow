@@ -6,6 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 import numpy as np
 import pytest
+from click.testing import CliRunner
 import matflow as mf
 from matflow.param_classes.load import LoadCase, LoadStep
 from matflow.param_classes.orientations import (
@@ -18,23 +19,6 @@ from matflow.param_classes.orientations import (
     QuatOrder,
 )
 from matflow.param_classes.seeds import MicrostructureSeeds
-
-
-def pytest_addoption(parser: pytest.Parser):
-    parser.addoption(
-        "--integration",
-        action="store_true",
-        default=False,
-        help="run integration-like workflow submission tests",
-    )
-
-
-def pytest_configure(config: pytest.Config):
-    config.addinivalue_line(
-        "markers",
-        "integration: mark test as an integration-like workflow submission test to run",
-    )
-    mf.run_time_info.in_pytest = True
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
@@ -53,22 +37,90 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
                 )
 
 
-def pytest_unconfigure(config: pytest.Config):
+@pytest.fixture(scope="session", autouse=True)
+def isolated_app_config(tmp_path_factory, pytestconfig):
+    """Pytest session-scoped fixture to apply a new default config for tests, and then
+    restore the original config after testing has completed."""
+    mf.run_time_info.in_pytest = True
+    original_config_dir = mf.config.config_directory
+    original_config_key = mf.config.config_key
+    mf.unload_config()
+    new_config_dir = tmp_path_factory.mktemp("app_config")
+    mf.load_config(config_dir=new_config_dir)
+
+    if pytestconfig.getoption("--configure-python-env"):
+        # for setting up a Python env using the currently active virtual/conda env:
+        mf.env_configure_python(use_current=True, save=True)
+        mf.print_envs()
+        mf.show_env(label="python")
+
+    if env_src_file := pytestconfig.getoption("--with-env-source"):
+        # for including envs (e.g. Python) from an existing env source file:
+        mf.config.append("environment_sources", env_src_file)
+        mf.config.save()
+        mf.print_envs()
+        mf.show_env(label="python")
+
+    yield
+    mf.unload_config()
+    mf.load_config(config_dir=original_config_dir, config_key=original_config_key)
     mf.run_time_info.in_pytest = False
 
 
-@pytest.fixture
-def null_config(tmp_path: Path):
-    if not mf.is_config_loaded:
-        mf.load_config(config_dir=tmp_path)
-    mf.run_time_info.in_pytest = True
-
-
-@pytest.fixture
-def new_null_config(tmp_path: Path):
+@pytest.fixture()
+def modifiable_config(tmp_path: Path):
+    """Pytest fixture to provide a fresh config which can be safely modified within the
+    test without affecting other tests."""
+    config_dir = mf.config.config_directory
+    config_key = mf.config.config_key
+    mf.unload_config()
     mf.load_config(config_dir=tmp_path)
-    mf.load_template_components(warn=False)
-    mf.run_time_info.in_pytest = True
+    yield
+    mf.unload_config()
+    mf.load_config(config_dir=config_dir, config_key=config_key)
+
+
+@pytest.fixture()
+def reload_template_components():
+    """Pytest fixture to reload the template components at the end of the test."""
+    yield
+    mf.reload_template_components()
+
+
+@pytest.fixture
+def unload_config():
+    mf.unload_config()
+
+
+@pytest.fixture
+def cli_runner():
+    """Pytest fixture to ensure the current config directory and key are used when
+    invoking the CLI."""
+    runner = CliRunner()
+    common_args = [
+        "--config-dir",
+        str(mf.config.config_directory),
+        "--config-key",
+        mf.config.config_key,
+    ]
+
+    # to avoid warnings about config already loaded, we unload first (the CLI command
+    # will immediately reload it):
+    mf.unload_config()
+
+    def invoke(args=None, cli=None, **kwargs):
+        all_args = common_args + (args or [])
+        cli = cli or mf.cli
+        return runner.invoke(cli, args=all_args, **kwargs)
+
+    return invoke
+
+
+def pytest_generate_tests(metafunc):
+    repeats_num = int(metafunc.config.getoption("--repeat"))
+    if repeats_num > 1:
+        metafunc.fixturenames.append("tmp_ct")
+        metafunc.parametrize("tmp_ct", range(repeats_num))
 
 
 @pytest.fixture

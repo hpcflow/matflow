@@ -4,10 +4,10 @@ import matflow as mf
 
 @pytest.mark.integration
 def test_subset_sim_toy_model_two_level_external_parameter_flow(
-    new_null_config, tmp_path
+    reload_template_components, tmp_path
 ):
 
-    # use `new_null_config` because currently these workflows include template components
+    # use `reload_template_components` because currently these workflows include template components
     wk = mf.make_demo_workflow(
         "subset_simulation_toy_model_two_level_external", path=tmp_path
     )
@@ -197,9 +197,11 @@ def test_subset_sim_toy_model_two_level_external_parameter_flow(
 
 
 @pytest.mark.integration
-def test_subset_sim_DAMASK_Mg_two_level_parameter_flow(new_null_config, tmp_path):
+def test_subset_sim_DAMASK_Mg_two_level_parameter_flow(
+    reload_template_components, tmp_path
+):
 
-    # use `new_null_config` because currently these workflows include template components
+    # use `reload_template_components` because currently these workflows include template components
     wk = mf.make_demo_workflow("subset_simulation_DAMASK_Mg_two_level", path=tmp_path)
 
     num_elements = wk.tasks.initialise_markov_chains.num_elements
