@@ -1,4 +1,28 @@
 
+<a name="v0.3.0a219"></a>
+## [v0.3.0a219](https://github.com/hpcflow/matflow/compare/v0.3.0a218...v0.3.0a219) - 2026.01.10
+
+### ♻ Code Refactoring
+
+* move `env_configure_python` to hpcflow
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* add missing hidden import
+* cli tests
+* tests
+* remove deprecated py3.9 support
+
+### 👷 Build changes
+
+* update GH action workflows to reflect recent upstream changes
+
+
 <a name="v0.3.0a218"></a>
 ## [v0.3.0a218](https://github.com/hpcflow/matflow/compare/v0.3.0a217...v0.3.0a218) - 2025.12.11
 
