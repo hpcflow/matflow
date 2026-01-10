@@ -8,6 +8,7 @@ hiddenimports = [
     "matflow.data.workflows",
     "matflow.param_classes",
     "matflow.tests.data",
+    "matflow.pytest_plugin",
 ]
 
 py_include_kwargs = dict(include_py_files=True, excludes=("**/__pycache__",))
