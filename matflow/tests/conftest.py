@@ -110,7 +110,7 @@ def cli_runner():
 
     def invoke(args=None, cli=None, **kwargs):
         all_args = common_args + (args or [])
-        cli = cli or mf.cli
+        cli = cli or mf.app.cli
         return runner.invoke(cli, args=all_args, **kwargs)
 
     return invoke
