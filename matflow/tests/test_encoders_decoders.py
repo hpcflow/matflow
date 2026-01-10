@@ -4,7 +4,7 @@ import matflow as mf
 
 
 @pytest.mark.xfail(reason="Requires the Arviz (Bayesian inference) package.")
-def test_encode_decode_arviz_inference_data(null_config, tmp_path):
+def test_encode_decode_arviz_inference_data(tmp_path):
 
     import arviz
 

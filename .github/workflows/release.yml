@@ -27,7 +27,6 @@ jobs:
       version_file: matflow/_version.py
       website_source_org: hpcflow
       website_source_repo: docs.matflow.io
-      python-version: "3.13"
     secrets:
       general-token: ${{ secrets.GITHUB_TOKEN }}
       commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN }}
