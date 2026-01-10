@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a221"></a>
+## [v0.3.0a221](https://github.com/hpcflow/matflow/compare/v0.3.0a220...v0.3.0a221) - 2026.01.10
+
+### 🐛 Bug Fixes
+
+* remove duplicate method `LoadStep.random_inc` (my fault!)
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a220"></a>
 ## [v0.3.0a220](https://github.com/hpcflow/matflow/compare/v0.3.0a219...v0.3.0a220) - 2026.01.10
 
