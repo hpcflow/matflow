@@ -19,6 +19,7 @@ template_components:
       actions:
         - commands:
             - command: echo <<parameter:p2>> # This one is printed to stdout
+            - command: echo $(( <<sum(parameter:p2)>> )) # Also printed to stdout
             - command: echo $(( <<sum(parameter:p2)>> )) # This is captured as p3
               stdout: <<int(parameter:p3)>>
 tasks:

@@ -2,6 +2,7 @@ from hpcflow.sdk import app as sdk_app
 from hpcflow.sdk.config import ConfigOptions
 
 from matflow._version import __version__
+from matflow.encoders import get_encoders, get_decoders
 
 
 # provide access to app attributes:
@@ -14,7 +15,7 @@ __dir__ = sdk_app.get_app_module_dir()
 # set app-level config options:
 config_options = ConfigOptions(
     directory_env_var="MATFLOW_CONFIG_DIR",
-    default_directory="~/.matflow-new",
+    default_directory="~/.matflow",
     default_known_configs_dir="github://hpcflow:matflow-configs@main",
 )
 
@@ -31,14 +32,18 @@ app: sdk_app.App = sdk_app.App(
     docs_import_conv="mf",
     description="Materials science workflow manager",
     gh_org="hpcflow",
-    gh_repo="matflow-new",
+    gh_repo="matflow",
     template_components=template_components,
     scripts_dir="data.scripts",  # relative to root package
+    jinja_templates_dir="data.jinja_templates",  # relative to root package
     workflows_dir="data.workflows",  # relative to root package
     config_options=config_options,
-    demo_data_dir="matflow.data.demo_data",
-    demo_data_manifest_dir="matflow.data.demo_data_manifest",
+    data_manifest_dir="matflow.data.data_manifests",
+    data_dir="github://hpcflow:matflow-data@main/data",
+    program_dir="github://hpcflow:matflow-data@main/programs",
     docs_url="https://docs.matflow.io/stable",
+    encoders=get_encoders,
+    decoders=get_decoders,
 )  #: |app|
 
 # defer import to allow us to use the app logger in the ParameterValue classes:

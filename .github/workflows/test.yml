@@ -55,9 +55,9 @@ jobs:
       CLI_path: matflow/cli.py
       CLI_path_win: matflow\cli.py
       executable_name: matflow
-      pytest_args: --verbose --exitfirst
+      pytest_args: ""
       python-versions: |
-        ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        ["3.10", "3.11", "3.12", "3.13"]
     secrets:
       pre-commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
     permissions:

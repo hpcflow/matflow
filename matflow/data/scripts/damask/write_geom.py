@@ -1,10 +1,15 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import Any
 
 from damask_parse.writers import write_geom as write_geom_
 
 
-def write_geom(path: Path | str, volume_element: dict):
+def write_geom(
+    path: Path | str,
+    volume_element: dict,
+    initial_conditions: dict[str, Any] | None = None,
+):
     """Write the geometry file for a spectral DAMASK simulation.
 
     Parameters
@@ -28,6 +33,13 @@ def write_geom(path: Path | str, volume_element: dict):
     The microstructure and texture parts are not included in the header
     of the generated file.
 
+    The initial conditions are not used when using the script in `visualise_VE`.
+
     """
     path_ = Path(path)  # if using as a non IFG script, `path` will be a normal input
-    write_geom_(dir_path=path_.parent, volume_element=volume_element, name=path_.name)
+    write_geom_(
+        dir_path=path_.parent,
+        volume_element=volume_element,
+        initial_conditions=initial_conditions,
+        name=path_.name,
+    )

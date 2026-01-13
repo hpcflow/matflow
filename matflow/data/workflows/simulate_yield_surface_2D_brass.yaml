@@ -15,7 +15,6 @@ tasks:
           modal_orientation_HKL: [1, 1, 0]
           modal_orientation_UVW: [1, -1, 2]
           halfwidth: 5
-      compile: false
 
   - schema: visualise_orientations_pole_figure_mtex
     inputs:
@@ -23,7 +22,6 @@ tasks:
       pole_figure_directions:
         - [1, 1, 1]
       use_contours: true
-      compile: false
 
   - schema: generate_microstructure_seeds_from_random
     inputs:

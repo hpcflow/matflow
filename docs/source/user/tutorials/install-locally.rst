@@ -42,7 +42,7 @@
   ==============================
 
   Once you have created and activated a Python environment (check for the environment name in brackets in your prompt), you can install {{ app_name }} using pip by running
-  ``pip install {{ dist_name }}``.
+  ``pip install --pre {{ dist_name }}``.
 
   This will install the latest version of {{ app_name }} from the Python Package Index (PyPI), and all the dependencies it needs.
   Once it has finished, check that {{ app_name }} has been installed correctly by running
