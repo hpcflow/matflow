@@ -4,16 +4,21 @@ doc:
     random voronoi tessellation is loaded uniaxially, using aluminium (Al) material
     parameters.
 tasks:
-  - schema: generate_microstructure_seeds_from_random
+  - schema: define_orientations
     inputs:
-      VE_size: [1, 1, 1]
-      num_grains: 4
-      phase_label: Al
-
-  - schema: generate_volume_element_from_voronoi
-    inputs:
-      homog_label: SX
-      VE_grid_size: [8, 8, 8]
+      orientations::from_file:
+        orientations::from_file:
+          path: path/to/eulers.txt
+          delimiter: "\t"
+          start_index: 1 # skip header
+          unit_cell_alignment:
+            x: a
+            y: b
+            z: c
+          representation:
+            type: euler
+            euler_is_degrees: false
+            euler_definition: bunge
 
   - schema: simulate_orientations_loading_vpsc
     inputs:
