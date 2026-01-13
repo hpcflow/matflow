@@ -28,11 +28,11 @@ tasks:
         direction: x
         target_def_grad_rate: 1.0e-3
         dump_frequency: 1
-      homogenization:
-        SX:
-          mechanical: { type: "pass" }
-          N_constituents: 1
-      vpsc_phases:
+#      homogenization:
+#        SX:
+#          mechanical: { type: "pass" }
+#          N_constituents: 1
+      phases:
         Al:
           lattice: cF
           mechanical:
