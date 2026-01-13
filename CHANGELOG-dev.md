@@ -1,4 +1,22 @@
 
+<a name="v0.3.0a222"></a>
+## [v0.3.0a222](https://github.com/hpcflow/matflow/compare/v0.3.0a221...v0.3.0a222) - 2026.01.13
+
+### ✨ Features
+
+* initial support for CIPHER simulations
+* initial support for CIPHER simulations
+
+### 🐛 Bug Fixes
+
+* demo of how to implement `from_statistics_dual_phase_orientations`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* merge
+
+
 <a name="v0.3.0a221"></a>
 ## [v0.3.0a221](https://github.com/hpcflow/matflow/compare/v0.3.0a220...v0.3.0a221) - 2026.01.10
 
