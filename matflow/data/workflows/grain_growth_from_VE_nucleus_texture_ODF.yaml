@@ -1,0 +1,168 @@
+doc:
+  - >
+    Generates a nucleus within a uniform microstructure and 
+    simulates grain coarsening based on misorientation dependant GB energy and mobility
+
+tasks:
+    # rotated cube texture for the sub-grain matrix:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
+      num_orientations: 1000
+      crystal_symmetry: cubic
+      specimen_symmetry: orthorhombic
+      ODF_components:
+        - type: unimodal
+          component_fraction: 1.0
+          modal_orientation_HKL: [0, 0, 1]
+          modal_orientation_UVW: [1, 1, 0]
+          halfwidth: 5
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false
+
+  # within gamma-fibre for the nucleus:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
+      num_orientations: 100
+      crystal_symmetry: cubic
+      specimen_symmetry: orthorhombic
+      ODF_components:
+        - type: unimodal
+          component_fraction: 1.0
+          modal_orientation_HKL: [1, 1, 1]
+          modal_orientation_UVW: [1, 1, 2]
+          halfwidth: 1
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false
+
+  - schema: generate_volume_element_from_statistics_dual_phase_orientations_Dream3D
+    input_sources:
+      orientations[phase_1]: task.sample_texture_from_model_ODF_mtex_1
+      orientations[phase_2]: task.sample_texture_from_model_ODF_mtex_2
+    inputs:
+      grid_size: [512, 512, 1]
+      resolution: [1, 1, 1] # side length is 512
+      periodic: false
+      phase_statistics:
+      - type: primary
+        name: sub-grain-matrix
+        crystal_structure: cubic
+        volume_fraction: 1.0
+        size_distribution:
+          ESD_mean: 10
+          ESD_log_stddev: 0.03
+          num_bins: 15
+      - type: precipitate
+        name: nuclei
+        crystal_structure: cubic
+        volume_fraction: 0.0
+        size_distribution:
+          ESD_mean: 2
+          ESD_log_stddev: 0.1
+          num_bins: 15
+        number_fraction_on_boundary: 1
+        radial_distribution_function:
+          min_distance: 10
+          max_distance: 80
+          num_bins: 50
+          box_size: [100, 100, 100]
+      precipitates:
+      - phase_number: 2
+        position: [256, 256, 0.5]
+        major_semi_axis_length: 45
+        mid_semi_axis_length: 45
+        minor_semi_axis_length: 45
+        euler_angle: [0, 0, 0]
+      RNG_seed: 0
+
+  - schema: visualise_VE_VTK
+
+  - schema: generate_phase_field_input_from_volume_element
+    inputs:
+      materials:
+      - name: sub-grain-matrix
+        properties:
+          chemicalenergy: none
+          molarvolume: 1e-5
+          temperature0: 500.0
+      - name: nuclei
+        properties:
+          chemicalenergy: none
+          molarvolume: 1e-5
+          temperature0: 500.0
+      interfaces:
+      - materials: [sub-grain-matrix, sub-grain-matrix]
+        properties:
+          width: 4.0
+          energy:
+            e0: 1.0e+8
+          mobility:
+            m0: 3.333e-11
+      - materials: [nuclei, nuclei]
+        properties:
+          width: 4.0
+          energy:
+            e0: 1.0e+8
+          mobility:
+            m0: 10.0e-11
+      - materials: [sub-grain-matrix, nuclei]
+        properties:
+          width: 4.0
+          energy:
+            e0: 2.0e+8
+          mobility:
+            m0: 10.0e-11
+      components: [ti]
+      outputs: [phaseid, matid, interfaceid, 0_phi]
+      solution_parameters:
+        abstol: 0.0001
+        amrinterval: 25
+        initblocksize: [1, 1]
+        initcoarsen: 9
+        initrefine: 9
+        interpolation: cubic
+        maxnrefine: 9
+        minnrefine: 0
+        outfile: out
+        outputfreq: 100
+        petscoptions: -ts_adapt_monitor -ts_rk_type 2a
+        random_seed: 1579993586
+        reltol: 0.0001
+        time: 40_000
+      interface_binning: # specify one or both of energy_range/mobility_range:
+        base_interface_name: [sub-grain-matrix-sub-grain-matrix, sub-grain-matrix-nuclei]
+        theta_max: 50
+        bin_width: 1
+        energy_range: [0.1e+8, 2.0e+8]
+        # mobility_range: [1.0e-11, 10.0e-11]
+        # n: 1 # mobility parameter
+        # B: 5 # mobility parameter
+
+  - schema: simulate_grain_growth
+    inputs:
+      num_VTU_files: 4
+      derive_outputs:
+      - name: num_voxels_per_phase
+      save_outputs:
+      - name: phaseid
+        time_interval: 5_000
+      - name: matid
+        number: 4
+      - name: interfaceid
+        number: 4
+      - name: 0_phi
+        number: 4
+      - name: num_voxels_per_phase
+        time_interval: 5_000
+      delete_VTUs: true

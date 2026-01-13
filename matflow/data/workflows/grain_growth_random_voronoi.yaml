@@ -1,0 +1,53 @@
+tasks:
+  - schema: generate_phase_field_input_from_random_voronoi
+    inputs:
+      num_phases: 2
+      grid_size: [128, 128]
+      size: [128, 128]
+      materials:
+        - name: Al
+          properties:
+            chemicalenergy: none
+            molarvolume: 1e-5
+            temperature0: 500.0
+      interfaces:
+        - materials: [Al, Al]
+          properties:
+            width: 4
+            energy:
+              e0: 5e+8
+            mobility:
+              m0: 1e-11
+      components: [al]
+      outputs: [phaseid, matid, interfaceid]
+      solution_parameters:
+        abstol: 0.0001
+        amrinterval: 25
+        initblocksize: [1, 1]
+        initcoarsen: 6
+        initrefine: 7
+        interpolation: cubic
+        maxnrefine: 7
+        minnrefine: 0
+        outfile: out
+        outputfreq: 10
+        petscoptions: -ts_adapt_monitor -ts_rk_type 2a
+        random_seed: 1579993586
+        reltol: 0.0001
+        time: 1000
+
+  - schema: simulate_grain_growth
+    inputs:
+      derive_outputs:
+        - name: num_voxels_per_phase
+      save_outputs:
+        - name: phaseid
+          time_interval: 500
+        - name: matid
+          number: 4
+        - name: interfaceid
+          number: 4
+        - name: 0_phi
+          number: 4
+        - name: num_voxels_per_phase
+          time_interval: 500
