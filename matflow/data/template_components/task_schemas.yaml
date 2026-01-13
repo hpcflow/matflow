@@ -950,7 +950,7 @@
           script: <<script:vpsc/write_vpsc_in.py>>
       abortable: true
       commands:
-        - command: vpsc8 
+        - command: <<executable:vpsc8>>
           stdout: []
           stderr: []
 #       output_file_parsers:
