@@ -66,52 +66,55 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
 
     path = Path(path)
     with path.open(mode='w') as f:
-        f.write('1 \n')
-        f.write(f'{len(phases)}\n')
-        f.write(' '.join(str(x) for x in phase_fractions) + '\n')
+        f.write('1                          (iregime ; -1=EL , 1=VP)\n')
+        f.write(f'{len(phases)}                          number of phases (nph)   \n')
+        f.write(' '.join(str(x) for x in phase_fractions) + '  0.0\n')
 
         for name, phase in phases.items():
-            f.write(f'# Info on phase `{name}`\n')
-            f.write(f'{phase["grain_shape_control"]} '
-                    f'{phase["fragmentation_control"]} '
-                    f'{phase["critical_aspect_ratio"]}\n')
-            f.write(' '.join(str(x) for x in phase['init_ellipsoid_ratios']) + '\n')
-            f.write(' '.join(str(x) for x in phase['init_ellipsoid_ori']) + '\n')
+            f.write(f'*INFORMATION ABOUT PHASE {name} \n')
+            f.write(f'{phase["grain_shape_control"]}   '
+                    f'{phase["fragmentation_control"]}   '
+                    f'{phase["critical_aspect_ratio"]}                   grain shape contrl, fragmentn, crit aspect ratio \n')
+            f.write('  '.join(str(x) for x in phase['init_ellipsoid_ratios']) + '                 initial ellipsoid ratios (dummy if ishape=4)\n')
+            f.write('  '.join(str(x) for x in phase['init_ellipsoid_ori']) + '                 init Eul ang ellips axes (dummy if ishape=3,4)\n')
 
-            f.write('blank\n')
+            f.write('* name and path of texture file (filetext)\n')
             f.write(f'{name}.tex\n')
-            f.write('blank\n')
+            f.write('* name and path of single crystal file (filecrys)\n')
             f.write(f'{name}.sx\n')
-            f.write('blank\n')
-            f.write('blank\n')
+            f.write('* name and path of grain shape file (dummy if ishape=0) (fileaxes)\n')
+            f.write('dummy\n')
+            f.write('* name and path of diffraction file (dummy if idiff=0)\n')
+            f.write('0\n')
+            f.write('dummy\n')
 
-        f.write('# Convergence paramenters\n')
+        f.write('*PRECISION SETTINGS FOR CONVERGENCE PROCEDURES (default values)\n')
         f.write(f'{numerics["errs"]} {numerics["errd"]} {numerics["errm"]} '
-                f'{numerics["errso"]}\n')
+                f'{numerics["errso"]}    errs,errd,errm,errso\n')
         f.write(f'{numerics["itmaxext"]} {numerics["itmaxint"]} '
-                f'{numerics["itmaxso"]}\n')
+                f'{numerics["itmaxso"]}     itmax:   max # of iter, external, internal and SO loops\n')
         f.write(f'{numerics["irsvar"]} {numerics["jrsini"]} '
-                f'{numerics["jrsfin"]} {numerics["jrstep"]}\n')
-        f.write(f'{numerics["ibcinv"]}\n')
+                f'{numerics["jrsfin"]} {numerics["jrstep"]}   irsvar & jrsini,jrsinp,jrstep (dummy if irsvar=0)\n')
+#        f.write(f'{numerics["ibcinv"]}\n')
 
-        f.write('# IO paramenters\n')
-        f.write(f'{control["irecover"]}\n')
-        f.write(f'{control["isave"]}\n')
-        f.write(f'{control["icubcomp"]}\n')
-        f.write(f'{control["nwrite"]}\n')
+        f.write('*INPUT/OUTPUT SETTINGS FOR THE RUN (default is zero)\n')
+        f.write(f'{control["irecover"]}              irecover:read grain states from POSTMORT.IN (1) or not (0)?\n')
+        f.write(f'{control["isave"]}              isave:   write grain states in POSTMORT.OUT at step (isave)?\n')
+        f.write(f'{control["icubcomp"]}              icubcomp:calculate fcc rolling components? \n')
+        f.write(f'{control["nwrite"]}             nwrite (frequency of texture downloads)\n')
 
-        f.write('# Model paramenters\n')
+        f.write('*MODELING CONDITIONS FOR THE RUN\n')
         f.write(f'{control["ihardlaw"]}\n')
         f.write(f'{control["iratesens"]}\n')
-        f.write(f'{control["interaction"]}\n')
+        f.write(f'{control["interaction"]}         interaction (0:FC,1:afinpe,2:secant,3:neff=xx,4:tangent,5:SO),neff \n')
         f.write(f'{control["iupdate_ori"]} {control["iupdate_shape"]} '
-                f'{control["iupdate_hard"]}\n')
-        f.write(f'{control["nneigh"]}\n')
-        f.write(f'{control["iflu"]}\n')
+                f'{control["iupdate_hard"]}        iupdate: update orient, grain shape, hardening \n')
+        f.write(f'{control["nneigh"]}              nneigh (0 for no neighbors, 1 for pairs, etc.)\n')
+        f.write(f'{control["iflu"]}               iflu (0: do not calc, 1: calc fluctuations)\n')
 
-        f.write('# Process paramenters\n')
+        f.write('*NUMBER OF PROCESSES (Lij const; Lij variable; PCYS ;LANKFORD; rigid rotatn)\n')
         f.write(f'{len(load_case)}\n')
-        f.write('blank\n')
+        f.write('*IVGVAR AND PATH/NAME OF FILE FOR EACH PROCESS\n')
         for i in range(len(load_case)):
             f.write('0\n')
             f.write(f'part_{i+1}.proc\n')
