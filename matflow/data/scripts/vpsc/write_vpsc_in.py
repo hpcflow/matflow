@@ -33,6 +33,7 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
         'ihardlaw': 0,
         'iratesens': 1,
         'interaction': 1,
+        'neff': 'dummy',
         'iupdate_ori': 1,
         'iupdate_shape': 1,
         'iupdate_hard': 1,
@@ -103,7 +104,7 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
         f.write(f'{control["nwrite"]}             nwrite (frequency of texture downloads)\n')
 
         f.write('*MODELING CONDITIONS FOR THE RUN\n')
-        f.write(f'{control["interaction"]}         interaction (0:FC,1:afinpe,2:secant,3:neff=xx,4:tangent,5:SO),neff \n')
+        f.write(f'{control["interaction"]}   {control["neff"]}      interaction (0:FC,1:afinpe,2:secant,3:neff=xx,4:tangent,5:SO),neff \n')
         f.write(f'{control["iupdate_ori"]} {control["iupdate_shape"]} '
                 f'{control["iupdate_hard"]}        iupdate: update orient, grain shape, hardening \n')
         f.write(f'{control["nneigh"]}              nneigh (0 for no neighbors, 1 for pairs, etc.)\n')
