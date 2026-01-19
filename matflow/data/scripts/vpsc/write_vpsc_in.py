@@ -82,7 +82,7 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
             f.write('* name and path of texture file (filetext)\n')
             f.write(f'{name}.tex\n')
             f.write('* name and path of single crystal file (filecrys)\n')
-            f.write(f'{name}.sx\n')
+            f.write(f'{name}.MTS\n')
             f.write('* name and path of grain shape file (dummy if ishape=0) (fileaxes)\n')
             f.write('dummy\n')
             f.write('* name and path of diffraction file (dummy if idiff=0)\n')
