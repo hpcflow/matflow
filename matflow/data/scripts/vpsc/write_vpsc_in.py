@@ -95,7 +95,6 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
                 f'{numerics["itmaxso"]}     itmax:   max # of iter, external, internal and SO loops\n')
         f.write(f'{numerics["irsvar"]} {numerics["jrsini"]} '
                 f'{numerics["jrsfin"]} {numerics["jrstep"]}   irsvar & jrsini,jrsinp,jrstep (dummy if irsvar=0)\n')
-#        f.write(f'{numerics["ibcinv"]}\n')
 
         f.write('*INPUT/OUTPUT SETTINGS FOR THE RUN (default is zero)\n')
         f.write(f'{control["irecover"]}              irecover:read grain states from POSTMORT.IN (1) or not (0)?\n')
@@ -104,8 +103,6 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
         f.write(f'{control["nwrite"]}             nwrite (frequency of texture downloads)\n')
 
         f.write('*MODELING CONDITIONS FOR THE RUN\n')
-        f.write(f'{control["ihardlaw"]}\n')
-        f.write(f'{control["iratesens"]}\n')
         f.write(f'{control["interaction"]}         interaction (0:FC,1:afinpe,2:secant,3:neff=xx,4:tangent,5:SO),neff \n')
         f.write(f'{control["iupdate_ori"]} {control["iupdate_shape"]} '
                 f'{control["iupdate_hard"]}        iupdate: update orient, grain shape, hardening \n')
