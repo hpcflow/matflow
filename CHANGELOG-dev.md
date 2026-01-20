@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a225"></a>
+## [v0.3.0a225](https://github.com/hpcflow/matflow/compare/v0.3.0a224...v0.3.0a225) - 2026.01.20
+
+### 🐛 Bug Fixes
+
+* add missing groups in subset sim workflows
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a224"></a>
 ## [v0.3.0a224](https://github.com/hpcflow/matflow/compare/v0.3.0a223...v0.3.0a224) - 2026.01.15
 
