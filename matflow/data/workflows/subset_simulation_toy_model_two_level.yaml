@@ -24,6 +24,8 @@ tasks:
     inputs:
       dimension: 200
     repeats: 100 # num_samples
+    groups:
+      - name: all
   - schema: system_analysis_toy_model
     inputs:
       dimension: 200
