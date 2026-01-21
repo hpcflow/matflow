@@ -936,6 +936,7 @@
       default_value: null
     - parameter: numerics
       default_value: null
+    - parameter: orientations
   actions:
     - environments:
         - scope:
@@ -948,6 +949,9 @@
         - input_file: vpsc_in_file
           from_inputs: [load_case, phases, control, numerics]
           script: <<script:vpsc/write_vpsc_in.py>>
+        - input_file: vpsc_texture_file
+          from_inputs: [orientations, phases]
+          script: <<script:vpsc/write_vpsc_filetext.py>>
       abortable: true
       commands:
         - command: <<executable:vpsc8>>

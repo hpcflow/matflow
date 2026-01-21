@@ -103,3 +103,6 @@
 - label: vpsc_mech_output
   name:
     name: STR_STR.OUT
+- label: vpsc_texture_file
+  name:
+    name: phase_name.tex
