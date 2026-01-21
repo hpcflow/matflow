@@ -43,7 +43,7 @@ def write_vpsc_filetext(path, orientations, phases):
     # Add weight column
     euler_angles = np.hstack((euler_angles, np.ones((num_oris, 1))))
 
-    with path.open(mode='w') as f:
+    with path_tex.open(mode='w') as f:
         f.write('blank\nblank\nblank\n')
         f.write(f'B   {num_oris}\n')
 

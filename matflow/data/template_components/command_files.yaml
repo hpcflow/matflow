@@ -105,4 +105,5 @@
     name: STR_STR.OUT
 - label: vpsc_texture_file
   name:
-    name: phase_name.tex
+    name: (.*\.tex)
+    is_regex: true
