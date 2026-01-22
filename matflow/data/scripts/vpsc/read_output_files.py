@@ -3,8 +3,6 @@ from copy import copy
 
 import numpy as np
 
-from damask_parse.utils import validate_orientations
-
 
 def read_output_files(path):
     volume_response = {}
