@@ -67,8 +67,8 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
 
     path = Path(path)
     with path.open(mode='w') as f:
-        f.write('1                          (iregime ; -1=EL , 1=VP)\n')
-        f.write(f'{len(phases)}                          number of phases (nph)   \n')
+        f.write(f'{1:<27}(iregime ; -1=EL , 1=VP)\n')
+        f.write(f'{len(phases):<27}number of phases (nph)\n')
         f.write(' '.join(str(x) for x in phase_fractions) + '  0.0\n')
 
         for name, phase in phases.items():
