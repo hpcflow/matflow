@@ -454,6 +454,16 @@
           - value.length.equal_to: 3
     - path: [{ "type": "list_value" }]
       condition: { value.is_instance: [int, float] }
+- type: weights
+  _validation:
+    - path: []
+      doc: relative length of grains in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
 - type: resolution
   _validation:
     - path: []
