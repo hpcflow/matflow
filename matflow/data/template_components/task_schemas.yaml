@@ -952,20 +952,21 @@
         - input_file: vpsc_texture_file
           from_inputs: [orientations, phases]
           script: <<script:vpsc/write_vpsc_filetext.py>>
+        - input_file: vpsc_single_crystal_file
+          from_inputs: [phases]
+          script: <<script:vpsc/write_vpsc_filecrys.py>>
+        - input_file: vpsc_process_file
+          from_inputs: [load_case]
+          script: <<script:vpsc/write_vpsc_fileproc.py>>
       abortable: true
       commands:
         - command: <<executable:vpsc8>>
           stdout: []
           stderr: []
-#       output_file_parsers:
-#         vpsc_log:
-#           from_files: [vpsc_stdout_file]
-#           script: <<script:vpsc/read_log.py>>
-#         VE_response:
-#           from_files: [vpsc_texture_output, vpsc_mech_output]
-#           save_files: false
-#           script: <<script:vpsc/extract_vpsc_out.py>>
-#           inputs: [VE_response_data]
+      output_file_parsers:
+        orientations_response:
+          from_files: [vpsc_mech_output, vpsc_texture_output]
+          script: <<script:vpsc/read_output_files.py>>
 
 - objective: read_tensile_test
   doc: Read tensile test data from CSV.

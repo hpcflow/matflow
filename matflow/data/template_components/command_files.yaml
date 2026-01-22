@@ -99,7 +99,7 @@
     name: RUN_LOG.OUT
 - label: vpsc_texture_output 
   name:
-    name: TEX_PH1.OUT
+    name: (TEX_PH.*\.OUT)
 - label: vpsc_mech_output
   name:
     name: STR_STR.OUT
@@ -107,3 +107,6 @@
   name:
     name: (.*\.tex)
     is_regex: true
+- label: vpsc_single_crystal_file
+  name:
+    name: (.*\.sx)

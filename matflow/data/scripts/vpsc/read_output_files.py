@@ -4,7 +4,7 @@ from copy import copy
 import numpy as np
 
 
-def read_output_files(path):
+def read_output_files(vpsc_mech_output, vpsc_texture_output):
     volume_response = {}
 
     # Read average stress/strain output file
@@ -12,7 +12,7 @@ def read_output_files(path):
     strstr_incs = {}
 
     inc = 0
-    with path.open(mode='r') as f:
+    with vpsc_mech_output.open(mode='r') as f:
         for line in f:
             line = line.split()
             if str(line[0]).lower() == 'evm':
@@ -73,16 +73,10 @@ def read_output_files(path):
 
     strain_vm = volume_response['avg_equivalent_strain']['data']
 
-    # Read orientations output file
-    # num_phases = 1
-    # for phase in range(num_phases):
-    phase = 0
-    path_tex = path.parent / f'TEX_PH{phase+1}.OUT'
-
     incs = []
     num_oris = None
     all_oris = []
-    with path_tex.open(mode='r') as f:
+    with vpsc_texture_output.open(mode='r') as f:
         try:
             while True:
                 strain = float(next(f).split()[-1])
