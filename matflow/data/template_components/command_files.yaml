@@ -110,6 +110,7 @@
 - label: vpsc_single_crystal_file
   name:
     name: (.*\.sx)
+    is_regex: true
 - label: vpsc_process_file
   name:
     name: (.*\.proc)
