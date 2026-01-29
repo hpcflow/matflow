@@ -13,9 +13,17 @@ def write_vpsc_filecrys(path, phases):
         if phase['lattice'].lower() == 'hexagonal':
             lattice_params = f'1. 1. {phase["c/a"]} 90. 90. 120.\n'
 
-            c_pars = phase['elastic_stiffness']
+            c_pars = phase['mechanical']['elastic']
+            # Convert to GPa
+            c_pars['C_11'] = c_pars['C_11'] / 1e9
+            c_pars['C_12'] = c_pars['C_12'] / 1e9
+            c_pars['C_13'] = c_pars['C_13'] / 1e9
+            c_pars['C_33'] = c_pars['C_33'] / 1e9
+            c_pars['C_44'] = c_pars['C_44'] / 1e9
+
             c_pars['Z'] = 0.0
             c_pars['C_66'] = (c_pars['C_11'] - c_pars['C_12']) / 2.
+
             stiffness = '{C_11} {C_12} {C_13} {Z} {Z} {Z}\n'.format(**c_pars)
             stiffness += '{C_12} {C_11} {C_13} {Z} {Z} {Z}\n'.format(**c_pars)
             stiffness += '{C_13} {C_13} {C_33} {Z} {Z} {Z}\n'.format(**c_pars)
@@ -26,7 +34,12 @@ def write_vpsc_filecrys(path, phases):
         elif phase['lattice'].lower() == 'cubic':
             lattice_params = '1. 1. 1. 90. 90. 90.\n'
 
-            c_pars = phase['elastic_stiffness']
+            c_pars = phase['mechanical']['elastic']
+            # Convert to GPa
+            c_pars['C_11'] = c_pars['C_11'] / 1e9
+            c_pars['C_12'] = c_pars['C_12'] / 1e9
+            c_pars['C_44'] = c_pars['C_44'] / 1e9
+
             c_pars['Z'] = 0.0
             stiffness = '{C_11} {C_12} {C_12} {Z} {Z} {Z}\n'.format(**c_pars)
             stiffness += '{C_12} {C_11} {C_12} {Z} {Z} {Z}\n'.format(**c_pars)
@@ -50,10 +63,10 @@ def write_vpsc_filecrys(path, phases):
             f.write(f'# Material: {name}\n')
             f.write(f'{phase["lattice"].upper()}\n')
             f.write(lattice_params)
-            f.write('# Elastic stiffness\n')
+            f.write('# Elastic stiffness (GPa)\n')
             f.write(stiffness)
             f.write('# Thermal expansion coefficients (ignored)\n')
-            f.write('0.0 0.0 0.0 0.0 0.0 0.0\n')
+            f.write('0.0 0.0 0.0 0.0 0.0 0.0 "alfcc"\n')
             f.write('# Slip and twinning modes\n')
             f.write(f'{num_modes}\n')
             f.write(f'{num_modes}\n')
