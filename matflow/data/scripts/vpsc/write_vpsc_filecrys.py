@@ -91,14 +91,14 @@ def write_vpsc_filecrys(path, phases):
 
         path_phase = path.parent / f'{name}.sx'
         with path_phase.open(mode='w') as f:
-            f.write(f'# Material: {name}\n')
+            f.write(f'* Material: {name}\n')
             f.write(f'{phase["lattice"].upper()}\n')
             f.write(lattice_params)
-            f.write('# Elastic stiffness (GPa)\n')
+            f.write('* Elastic stiffness (GPa)\n')
             f.write(stiffness)
-            f.write('# Thermal expansion coefficients (ignored)\n')
+            f.write('* Thermal expansion coefficients (ignored)\n')
             f.write('0.0 0.0 0.0 0.0 0.0 0.0 "alfcc"\n')
-            f.write('# Slip and twinning modes\n')
+            f.write('* Slip and twinning modes\n')
             f.write(f'{num_modes}\n')
             f.write(f'{num_modes}\n')
             f.write(' '.join(str(i) for i in range(1, num_modes + 1)) + '\n')
