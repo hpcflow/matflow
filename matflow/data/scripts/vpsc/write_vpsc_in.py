@@ -33,7 +33,7 @@ def write_vpsc_in(path, control, phases, load_case, numerics):
         'ihardlaw': 0,
         'iratesens': 1,
         'interaction': 1,
-        'neff': 'dummy',
+        'neff': '10',
         'iupdate_ori': 1,
         'iupdate_shape': 1,
         'iupdate_hard': 1,
