@@ -21,7 +21,7 @@ def cluster_orientations(
 
     quaternions = volume_element["orientations"]["quaternions"]
     # Convert quaternion representation to DAMASK format
-    quaternions[:,1:]*=-1
+    quaternions[:, 1:] *= -1
 
     material_index = volume_element["element_material_idx"]
     material_index_2d = material_index[:, :, 0]
@@ -64,7 +64,7 @@ def cluster_orientations(
     )
 
     # Convert quaternions back to MTEX notation
-    orientations_shuffled_vol[:,1:]*=-1
+    orientations_shuffled_vol[:, 1:] *= -1
     # Replace quaternions in volume element
     volume_element["orientations"]["quaternions"] = np.array(
         [list(x) for x in orientations_shuffled_vol]
