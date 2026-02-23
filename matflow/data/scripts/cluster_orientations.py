@@ -72,7 +72,7 @@ def cluster_orientations(
 
     plt.hist(misorientation)
     plt.hist(misorientation_init, color="r", alpha=0.5)
-    plt.legend(["Initial", "shuffled"], fontsize=5)
+    plt.legend(["Shuffled", "Initial"], fontsize=5)
     plt.xlabel("Misorientation")
     plt.ylabel("Number of grains")
     plt.savefig("misorientation.png")
