@@ -28,7 +28,7 @@ def generate_phase_field_input_from_random_voronoi_orientations(
         quats = orientations["quaternions"]
     except TypeError:
         # Convert to old matflow format
-        orientations =  _convert_orientations_to_old_matflow_format(orientations)
+        orientations = _convert_orientations_to_old_matflow_format(orientations)
         quats = orientations["quaternions"]
 
     # initialise `MaterialDefinition`, `InterfaceDefinition` and
