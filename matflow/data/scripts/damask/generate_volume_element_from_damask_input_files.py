@@ -11,6 +11,7 @@ def generate_volume_element_from_damask_input_files(
         "element_material_idx": geom_dat["element_material_idx"],
         "grid_size": geom_dat["grid_size"],
         "size": geom_dat["size"],
+        "initial_conditions": geom_dat["initial_conditions"],
         **material_data["volume_element"],
     }
 
