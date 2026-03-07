@@ -6,8 +6,8 @@ doc:
 tasks:
   - schema: define_orientations
     inputs:
-    orientations::from_file:
-      path: path/to/eulers.txt
+      orientations::from_file:
+        path: /mnt/iusers01/jf01/y15576gb/scratch/novelis_cp/vpsc/460_6014_0_eulers.txt
         delimiter: "\t"
         start_index: 1 # skip header
         unit_cell_alignment:
@@ -22,10 +22,10 @@ tasks:
   - schema: simulate_orientations_loading_vpsc
     inputs:
       load_case::uniaxial:
-        total_time: 100
-        num_increments: 200
+        total_time: 1
+        num_increments: 100
         direction: x
-        target_def_grad_rate: 1.0e-3
+        target_vel_grad: 0.01
         dump_frequency: 1
       phases:
         Al:

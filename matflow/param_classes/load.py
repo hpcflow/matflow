@@ -278,6 +278,7 @@ class LoadStep(ParameterValue):
         target_strain_rate: float | None = None,
         target_def_grad_rate: float | None = None,
         target_def_grad: float | None = None,
+        target_vel_grad: float | None = None,
         dump_frequency: int = 1,
     ) -> Self:
         """
@@ -299,6 +300,8 @@ class LoadStep(ParameterValue):
         target_def_grad_rate : float
             Target deformation gradient rate to achieve along the loading direction
             component.
+        target_vel_grad: float
+            Target velocity gradient to eachieve along loading direction
         target_strain_rate: float
             Target engineering strain rate to achieve along the loading direction. Specify
             at most one of `target_strain_rate` and `target_def_grad_rate`.
@@ -315,19 +318,21 @@ class LoadStep(ParameterValue):
             "target_strain_rate": target_strain_rate,
             "target_def_grad": target_def_grad,
             "target_def_grad_rate": target_def_grad_rate,
+            "target_vel_grad": target_vel_grad,
             "dump_frequency": dump_frequency,
         }
 
         # Validation:
         msg = (
             "Specify either `target_strain`, `target_strain_rate`, "
-            "``target_def_grad` or target_def_grad_rate`."
+            "``target_def_grad`, target_def_grad_rate` or `target_vel_grad`."
         )
         strain_arg = (
             target_strain,
             target_strain_rate,
             target_def_grad,
             target_def_grad_rate,
+            target_vel_grad,
         )
         if sum(s is not None for s in strain_arg) != 1:
             raise ValueError(msg)
@@ -349,6 +354,9 @@ class LoadStep(ParameterValue):
         else:
             def_grad_val = target_def_grad
 
+        if target_vel_grad is not None:
+            vel_grad_val = target_vel_grad
+
         try:
             loading_dir_idx = cls._DIR_IDX.index(direction)
         except ValueError:
@@ -367,6 +375,7 @@ class LoadStep(ParameterValue):
 
         def_grad_aim = dg_arr if target_def_grad is not None else None
         def_grad_rate = dg_arr if target_def_grad_rate is not None else None
+        vel_grad_aim = dg_arr if target_vel_grad is not None else None
 
         obj = cls(
             direction=direction,
@@ -374,6 +383,7 @@ class LoadStep(ParameterValue):
             num_increments=num_increments,
             target_def_grad=def_grad_aim,
             target_def_grad_rate=def_grad_rate,
+            target_vel_grad=vel_grad_aim,
             stress=stress_arr,
             dump_frequency=dump_frequency,
         )

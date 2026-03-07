@@ -1,3 +1,4 @@
+
 from pathlib import Path
 from copy import copy
 
@@ -6,17 +7,23 @@ import numpy as np
 from damask_parse.utils import validate_orientations
 
 
+def format_tensor33(tensor):
+    return f"""{tensor[0,0]}       {tensor[0,1]}       {tensor[0,2]}
+{tensor[1,0]}       {tensor[1,1]}       {tensor[1,2]}
+{tensor[2,0]}       {tensor[2,1]}       {tensor[2,2]}
+"""
+
+
 def write_vpsc_fileproc(path, load_case):
     path = Path(path)
 
     for i, load_part in enumerate(load_case):
-
-        vel_grad = load_part.get('vel_grad')
-        stress = load_part.get('stress')
-        # rot = load_part.get('rotation')  # maybe implement later
-        total_time = load_part['total_time']
-        num_increments = load_part['num_increments']
-        # freq = load_part.get('dump_frequency', 1)  # maybe implement later
+        vel_grad = load_part.target_vel_grad
+        stress = load_part.stress
+        # rot = load_part.rotation  # maybe implement later
+        total_time = load_part.total_time
+        num_increments = load_part.num_increments
+        # freq = load_part.dump_frequency  # maybe implement later
 
         if vel_grad is None and stress is None:
             msg = ('Specify either `vel_grad`, `stress` or both.')
@@ -59,15 +66,14 @@ def write_vpsc_fileproc(path, load_case):
 
         path_part = path.parent / f'part_{i+1}.proc'
         with path_part.open(mode='w') as f:
-
-            f.write(f' {num_increments} 7 {time_increment} 298.\n')
-            f.write('blank\n')
+            f.write(f' {num_increments} 1 {time_increment} 298. 298. nsteps  ictrl  eqincr  temp_ini   temp_fin\n')
+            f.write('* boundary conditions           iudot    |    flag for vel.grad.\n')
             vel_grad_mask = np.logical_not(vel_grad.mask).astype(int)
             f.write(format_tensor33(vel_grad_mask))
-            f.write('blank\n')
-            f.write(format_tensor33(vel_grad, fmt='.3e'))
-            f.write('blank\n')
+            f.write('*                               udot     |    vel.grad (first guess)\n')
+            f.write(format_tensor33(vel_grad))
+            f.write('*                               iscau    |    flag for Cauchy\n')
             stress_mask = np.logical_not(stress.mask).astype(int)
-            f.write(format_tensor33(stress_mask, sym=True))
-            f.write('blank\n')
-            f.write(format_tensor33(stress, fmt='.3e', sym=True))
+            f.write(format_tensor33(stress_mask))
+            f.write('*                               scauchy  |    Cauchy stress\n')
+            f.write(format_tensor33(stress))
