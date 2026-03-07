@@ -369,7 +369,11 @@ class LoadStep(ParameterValue):
         dg_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
         stress_arr = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
 
-        dg_arr[loading_dir_idx, loading_dir_idx] = def_grad_val
+        if def_grad_val:
+            dg_arr[loading_dir_idx, loading_dir_idx] = def_grad_val
+        elif vel_grad_val:
+            dg_arr[loading_dir_idx, loading_dir_idx] = vel_grad_val
+
         dg_arr.mask[loading_dir_idx, loading_dir_idx] = False
         stress_arr.mask[loading_dir_idx, loading_dir_idx] = True
 

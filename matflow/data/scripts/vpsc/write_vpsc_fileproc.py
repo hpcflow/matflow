@@ -13,6 +13,13 @@ def format_tensor33(tensor):
 {tensor[2,0]}       {tensor[2,1]}       {tensor[2,2]}
 """
 
+def partial_tensor33(tensor):
+    return f"""{tensor[0,0]}       {tensor[0,1]}       {tensor[0,2]}
+        {tensor[1,1]}       {tensor[1,2]}
+                {tensor[2,2]}
+"""
+
+
 
 def write_vpsc_fileproc(path, load_case):
     path = Path(path)
@@ -62,18 +69,19 @@ def write_vpsc_fileproc(path, load_case):
                        '`stress`')
                 raise ValueError(msg)
 
+        vel_grad_mask = np.logical_not(vel_grad.mask).astype(int)
+        stress_mask = np.logical_not(stress.mask).astype(int)
+
         time_increment = total_time / num_increments
 
         path_part = path.parent / f'part_{i+1}.proc'
         with path_part.open(mode='w') as f:
             f.write(f' {num_increments} 1 {time_increment} 298. 298. nsteps  ictrl  eqincr  temp_ini   temp_fin\n')
             f.write('* boundary conditions           iudot    |    flag for vel.grad.\n')
-            vel_grad_mask = np.logical_not(vel_grad.mask).astype(int)
             f.write(format_tensor33(vel_grad_mask))
             f.write('*                               udot     |    vel.grad (first guess)\n')
-            f.write(format_tensor33(vel_grad))
+            f.write(format_tensor33(vel_grad.filled(0.0)))
             f.write('*                               iscau    |    flag for Cauchy\n')
-            stress_mask = np.logical_not(stress.mask).astype(int)
-            f.write(format_tensor33(stress_mask))
+            f.write(partial_tensor33(stress_mask))
             f.write('*                               scauchy  |    Cauchy stress\n')
-            f.write(format_tensor33(stress))
+            f.write(partial_tensor33(stress.filled(0.0)))
