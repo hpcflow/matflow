@@ -44,7 +44,7 @@ def read_output_files(vpsc_mech_output, vpsc_texture_output):
     tensors_done = []
     for header in strstr_data.keys():
         try:
-            int(header[-1])
+            int(header[-2]) # if this doesnt fail, make a tensor
             # tensor output
             header = header[:-2]
             if header in tensors_done:
@@ -56,7 +56,7 @@ def read_output_files(vpsc_mech_output, vpsc_texture_output):
             data = vec6_to_tensor33sym(data.T)
             incs = strstr_incs[header + '11']
 
-        except ValueError:
+        except ValueError: # otherwise scalar result
             # scalar output
             data = np.array(strstr_data[header])
             incs = strstr_incs[header]

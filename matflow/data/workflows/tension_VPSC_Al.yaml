@@ -25,7 +25,7 @@ tasks:
         total_time: 1
         num_increments: 100
         direction: x
-        target_vel_grad: 0.01
+        target_vel_grad: 1
         dump_frequency: 1
       phases:
         Al:
