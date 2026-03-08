@@ -4,6 +4,15 @@ from copy import copy
 import numpy as np
 
 
+def vec6_to_tensor33sym(data):
+    formatted_data = []
+    for row in data:
+        tensor = np.array( [ [row[0], row[5], row[4]], [row[5], row[1], row[3]], [row[4], row[3], row[2]] ] )
+        formatted_data.append(tensor)
+    formatted_data = np.array(formatted_data)
+    return formatted_data
+
+
 def read_output_files(vpsc_mech_output, vpsc_texture_output):
     volume_response = {}
 
@@ -39,9 +48,15 @@ def read_output_files(vpsc_mech_output, vpsc_texture_output):
         'SCAU': ('avg_stress', 'Cauchy stress'),
         'SDEV': ('avg_deviatoric_stress', 'Deviatoric Cauchy stress'),
         'TEMP': ('avg_temperature', 'Temperature'),
+        'TIME': ('time', 'Time'),
+        'TAYLAV': ('taylav', 'Taylor Average'),
+        'WORKAV': ('workav', 'Work Average'),
+        'WRATE1': ('workrate1', 'Work Rate1'),
+        'WRATE2': ('workrate2', 'Work Rate2'),
     }
 
     tensors_done = []
+    print(strstr_data.keys())
     for header in strstr_data.keys():
         try:
             int(header[-2]) # if this doesnt fail, make a tensor
