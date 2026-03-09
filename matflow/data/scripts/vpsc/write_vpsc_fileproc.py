@@ -27,6 +27,8 @@ def write_vpsc_fileproc(path, load_case):
     for i, load_part in enumerate(load_case):
         vel_grad = load_part.target_vel_grad
         stress = load_part.stress
+        if load_part.direction:
+            direction = load_part.direction
         # rot = load_part.rotation  # maybe implement later
         total_time = load_part.total_time
         num_increments = load_part.num_increments
@@ -68,19 +70,25 @@ def write_vpsc_fileproc(path, load_case):
                 msg = ('`vel_grad` must be component-wise exclusive with '
                        '`stress`')
                 raise ValueError(msg)
+        if direction=='x':
+            ictrl = 1
+        elif direction=='y':
+            ictrl = 2
+        elif direction=='z':
+            ictrl = 3
 
         vel_grad_mask = np.logical_not(vel_grad.mask).astype(int)
         stress_mask = np.logical_not(stress.mask).astype(int)
 
-        time_increment = total_time / num_increments
+        time_increment = vel_grad.max() # for now
 
         path_part = path.parent / f'part_{i+1}.proc'
         with path_part.open(mode='w') as f:
-            f.write(f' {num_increments} 1 {time_increment} 298. 298. nsteps  ictrl  eqincr  temp_ini   temp_fin\n')
+            f.write(f' {num_increments} {ictrl} {time_increment} 298. 298. nsteps  ictrl  eqincr  temp_ini   temp_fin\n')
             f.write('* boundary conditions           iudot    |    flag for vel.grad.\n')
             f.write(format_tensor33(vel_grad_mask))
             f.write('*                               udot     |    vel.grad (first guess)\n')
-            f.write(format_tensor33(vel_grad.filled(0.0)))
+            f.write(format_tensor33(vel_grad.filled(-vel_grad.max()/2)))
             f.write('*                               iscau    |    flag for Cauchy\n')
             f.write(partial_tensor33(stress_mask))
             f.write('*                               scauchy  |    Cauchy stress\n')
