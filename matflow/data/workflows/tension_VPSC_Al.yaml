@@ -6,18 +6,8 @@ doc:
 tasks:
   - schema: define_orientations
     inputs:
-      orientations::from_file:
-        path: /mnt/iusers01/jf01/y15576gb/scratch/novelis_cp/vpsc/460_6014_0_eulers.txt
-        delimiter: "\t"
-        start_index: 1 # skip header
-        unit_cell_alignment:
-          x: a
-          y: b
-          z: c
-        representation:
-          type: euler
-          euler_is_degrees: false
-          euler_definition: bunge
+      orientations::from_random:
+        number: 100
 
   - schema: simulate_orientations_loading_vpsc
     inputs:
