@@ -1319,7 +1319,7 @@
 #   inputs:
 #     - parameter: material
 #     - parameter: load_case
-#     - paramater: RVE
+#     - parameter: RVE
 #   outputs:
 #     - parameter: RVE_response
 #   actions:
@@ -1385,6 +1385,61 @@
           from_files: [dream_3D_hdf5_file]
           save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
+
+- objective: generate_volume_element
+  method: from_statistics_dual_phase_orientations
+  implementation: Dream3D
+  inputs:
+  - parameter: grid_size
+  - parameter: resolution # Define either resolution or size as task input
+    default_value: null
+  - parameter: size # Define either resolution or size as task input
+    default_value: null
+  - parameter: origin
+    default_value: null
+  - parameter: periodic
+    default_value: true
+  - parameter: orientations
+    multiple: true
+    labels:
+      phase_1: {}
+      phase_2: {}
+  - parameter: phase_statistics
+  - parameter: precipitates
+    default_value: null
+  - parameter: RNG_seed
+  outputs:
+  - parameter: volume_element
+  actions:
+  - environments:
+    - scope: any
+      environment: dream_3D_env
+    input_file_generators:
+    - input_file: precipitates_file
+      from_inputs: [precipitates]
+      script: <<script:cipher/write_precipitates_file.py>>
+    - input_file: dream_3D_pipeline
+      from_inputs:
+      - grid_size
+      - resolution
+      - size
+      - origin
+      - periodic
+      - phase_statistics
+      - precipitates
+      script: <<script:cipher/generate_RVE_from_statistics_dual_phase_pipeline_writer.py>>
+    commands:
+    - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
+    output_file_parsers:
+      volume_element:
+        from_files: [dream_3D_hdf5_file]
+        script: <<script:cipher/parse_dream_3D_volume_element_from_stats.py>>
+        inputs:
+        - phase_statistics
+        - orientations
+        - RNG_seed
+
+
 
 - objective: generate_volume_element
   doc: Generate a volume element by extrusion of a 2D model.
@@ -2109,6 +2164,203 @@
         - scope:
             type: any
           environment: python_env
+
+- objective: generate_phase_field_input
+  method: from_random_voronoi
+  inputs:
+  - parameter: num_phases
+  - parameter: grid_size
+  - parameter: size
+  - parameter: materials
+  - parameter: interfaces
+  - parameter: components
+  - parameter: outputs
+  - parameter: solution_parameters
+  - parameter: random_seed
+    default_value: null
+  - parameter: is_periodic
+    default_value: false
+  - parameter: combine_phases
+    default_value: null
+  outputs:
+  - parameter: phase_field_input
+  actions:
+  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope: { type: any }
+      environment: cipher_processing_env
+
+- objective: generate_phase_field_input
+  method: from_random_voronoi_with_orientations
+  inputs:
+  - parameter: materials
+  - parameter: interfaces
+  - parameter: num_phases
+  - parameter: grid_size
+  - parameter: size
+  - parameter: components
+  - parameter: outputs
+  - parameter: solution_parameters
+  - parameter: random_seed
+    default_value: null
+  - parameter: is_periodic
+    default_value: false
+  - parameter: orientations
+  - parameter: interface_binning
+    default_value: null
+    # A dict that, if not None, is passed as keyword arguments to
+    # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+  - parameter: combine_phases
+    default_value: null
+  outputs:
+    - parameter: phase_field_input
+  actions:
+  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope: { type: any }
+      environment: cipher_processing_env
+
+- objective: generate_phase_field_input
+  method: from_volume_element
+  inputs:
+  - parameter: volume_element
+  - parameter: materials
+  - parameter: interfaces
+  - parameter: phase_type_map
+    default_value: null
+  - parameter: size
+    default_value: null
+  - parameter: components
+  - parameter: outputs
+  - parameter: solution_parameters
+  - parameter: random_seed
+    default_value: null
+  - parameter: interface_binning
+    default_value: null
+    # A dict that, if not None, is passed as keyword arguments to
+    # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+  - parameter: keep_3D
+    default_value: false
+  - parameter: combine_phases
+    default_value: null
+  outputs:
+  - parameter: phase_field_input
+  actions:
+  - script: <<script:cipher/generate_phase_field_input_from_volume_element.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope: { type: any }
+      environment: cipher_processing_env
+
+- objective: generate_phase_field_input
+  method: from_random_voronoi_with_orientations_gradient
+  inputs:
+  - parameter: materials
+  - parameter: interfaces
+  - parameter: num_phases
+  - parameter: grid_size
+  - parameter: size
+  - parameter: components
+  - parameter: outputs
+  - parameter: solution_parameters
+  - parameter: orientation_gradient
+  - parameter: random_seed
+  - parameter: is_periodic
+  - parameter: interface_binning
+    default_value: null
+    # A dict that, if not None, is passed as keyword arguments to
+      # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+  - parameter: combine_phases
+    default_value: null
+  outputs:
+  - parameter: phase_field_input
+  actions:
+  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations_gradient.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope: { type: any }
+      environment: cipher_processing_env
+
+- objective: simulate_grain_growth
+  inputs:
+  - parameter: phase_field_input
+  - parameter: num_VTU_files # how many VTU files to archive; mutually exclusive with `VTU_files_time_interval`
+    default_value: 2 # i.e. initial and final
+  - parameter: VTU_files_time_interval # time interval of VTU files to keep; mutually exclusive with `num_VTU_files`
+    default_value: null
+  - parameter: derive_outputs # list of derived outputs to generate; available: ["num_voxels_per_phase"]
+    default_value: null
+  - parameter: save_outputs # list of outputs to save to MatFlow
+    default_value: null
+  - parameter: delete_VTIs # delete intermediate VTI files used to save data?
+    default_value: true
+  - parameter: delete_VTUs # delete original VTU outputs from CIPHER?
+    default_value: false
+  - parameter: separate_mapping_files
+    default_value: false
+  outputs:
+  - parameter: phase_field_output
+  actions:
+  - environments:
+    - scope:
+        type: main
+      environment: cipher_env
+    - scope:
+        type: processing
+      environment: cipher_processing_env
+    input_file_generators:
+    - input_file: cipher_input_file
+      from_inputs: [phase_field_input, separate_mapping_files]
+      script: <<script:cipher/write_cipher_input.py>>
+    commands:
+    - command: <<executable:cipher>>
+      stdout: stdout.log
+      stderr: stderr.log
+    output_file_parsers:
+      phase_field_output:
+        from_files: [cipher_VTU_files]
+        inputs:
+        - num_VTU_files
+        - VTU_files_time_interval
+        - derive_outputs
+        - save_outputs
+        - delete_VTIs
+        - delete_VTUs
+        script: <<script:cipher/parse_cipher_outputs.py>>
+
+- objective: cluster_orientations
+  inputs:
+  - parameter: volume_element
+  - parameter: alpha_file_path
+  - parameter: gamma_file_path
+  - parameter: n_iterations
+  - parameter: alpha_start_index
+  - parameter: alpha_stop_index
+  - parameter: gamma_start_index
+  - parameter: gamma_stop_index
+  outputs:
+  - parameter: volume_element
+  actions:
+  - script: <<script:cluster_orientations.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    save_files: [misorientation_plot]
+    requires_dir: true
+    environments:
+    - scope:
+        type: any
+      environment: damask_parse_env
 
 - objective: build_surrogate
   inputs:

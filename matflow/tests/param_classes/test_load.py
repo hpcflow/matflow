@@ -22,20 +22,12 @@ def test_single_multistep_uniaxial():
     assert lc1 == lc2
 
 
-def test_load_case_yaml_init(null_config, tmp_path: Path, load_case_1: LoadCase):
+def test_load_case_yaml_init(tmp_path: Path, load_case_1: LoadCase):
     wk = make_test_data_YAML_workflow("define_load.yaml", path=tmp_path)
     load_case = wk.tasks.define_load_case.elements[0].inputs.load_case.value
     assert load_case == load_case_1
 
 
-@pytest.mark.xfail(
-    condition=sys.platform == "darwin",
-    raises=requests.exceptions.HTTPError,
-    reason=(
-        "GHA MacOS runners use the same IP address, so we get rate limited when "
-        "retrieving demo data from GitHub."
-    ),
-)
 def test_load_case_from_npz_file():
     npz_file_path = mf.get_demo_data_file_path("load_cases.npz")
     file_dat = np.load(npz_file_path)

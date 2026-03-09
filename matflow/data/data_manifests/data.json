@@ -37,5 +37,8 @@
     },
     "moose_input.i": {
         "zip_file": "moose_input.zip"
+    },
+    "clustering_quaternions": {
+        "zip_file": "clustering_quaternions.zip"
     }
 }

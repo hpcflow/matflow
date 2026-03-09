@@ -1,4 +1,6 @@
 - name: null_env
+  specifiers:
+    is_built_in: true
   doc: Default system environment with no special settings. Used for tests.
 # - name: python_env
 #   executables:

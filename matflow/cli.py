@@ -16,7 +16,6 @@ import matflow as mf
 from matflow import cli
 from matflow.environments import (
     env_configure_moose,
-    env_configure_python,
     env_configure_python_all,
     env_configure_dream3d,
     env_configure_matlab,
@@ -65,15 +64,6 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
 
     @click.command()
     @click.option(
-        "-n",
-        "--name",
-        multiple=True,
-        help=(
-            "In addition to the `python_env` set up these other named environments "
-            '(suffixed by "_env"), also with a `python_script` executable.'
-        ),
-    )
-    @click.option(
         "--use-current/--no-use-current",
         is_flag=True,
         default=True,
@@ -82,33 +72,18 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
             "`python_script` executable to the environment."
         ),
     )
-    def python(name: list[str], use_current: bool):
-        """Configure environments with `python_script` executables."""
-        envs = env_configure_python(
-            shell,
-            names=name,
-            use_current=use_current,
-        )
-        for env in envs:
-            app.logger.debug(f"Saving 'python' environment: {env.name!r}.")
-            app.save_env(env)
-
-    @click.command()
     @click.option(
-        "--use-current/--no-use-current",
+        "--replace/--no-replace",
         is_flag=True,
-        default=True,
-        help=(
-            "Use the currently active conda-like or Python virtual environment to add a "
-            "`python_script` executable to the environment."
-        ),
+        default=False,
+        help="If True, replace existing environments.",
     )
-    def python_all(use_current: bool):
+    def python_all(use_current: bool, replace: bool):
         """Configure all Python environments with the same setup."""
         envs = env_configure_python_all(shell, use_current=use_current)
         for env in envs:
             app.logger.debug(f"Saving 'python' environment: {env.name!r}.")
-            app.save_env(env)
+            app.save_env(env, replace=replace)
 
     @click.command()
     @click.option(
@@ -241,7 +216,6 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         app.save_env(env)
 
     app.env_setup_CLI.add_command(dream3d)
-    app.env_setup_CLI.add_command(python)
     app.env_setup_CLI.add_command(python_all)
     app.env_setup_CLI.add_command(matlab)
     app.env_setup_CLI.add_command(damask)

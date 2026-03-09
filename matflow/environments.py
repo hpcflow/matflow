@@ -8,29 +8,14 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 from typing import TYPE_CHECKING, Literal
-import sys
 
 import matflow as mf
 
 from hpcflow.sdk.submission.schedulers.utils import run_cmd
+from hpcflow.sdk.utils.envs import norm_env_setup, get_env_py_exe
 
 if TYPE_CHECKING:
     from hpcflow.sdk.core.environment import Environment
-
-
-def __norm_setup(setup: str | list[str] | None = None):
-    if setup is None:
-        return []
-    if isinstance(setup, str):
-        return [setup]
-    return setup
-
-
-def __get_py_exe(shell: Literal["bash", "powershell"]) -> str:
-    return {
-        "bash": sys.executable,
-        "powershell": f"& '{sys.executable}'",
-    }[shell]
 
 
 def env_configure_dream3d(
@@ -55,8 +40,8 @@ def env_configure_dream3d(
             f"{pipeline_runner_path!r}."
         )
 
-    setup_py = __norm_setup(setup_py)
-    setup_runner = __norm_setup(setup_runner)
+    setup_py = norm_env_setup(setup_py)
+    setup_runner = norm_env_setup(setup_runner)
     RUNNER = {
         "bash": str(pipeline_runner_path),
         "powershell": f"& '{pipeline_runner_path}'",
@@ -76,7 +61,7 @@ def env_configure_dream3d(
             label="python_script",
             instances=[
                 mf.ExecutableInstance(
-                    command=(f'{__get_py_exe(shell)} "<<script_path>>" <<args>>'),
+                    command=(f'{get_env_py_exe(shell)} "<<script_path>>" <<args>>'),
                     num_cores=1,
                     parallel_mode=None,
                 ),
@@ -92,47 +77,6 @@ def env_configure_dream3d(
     )
 
 
-def env_configure_python(
-    shell: Literal["bash", "powershell"],
-    setup: str | list[str] | None = None,
-    names: list[str] | None = None,
-    use_current: bool = True,
-) -> list[Environment]:
-    """Configure Python MatFlow environments.
-
-    Parameters
-    ----------
-    names:
-        If specified, also set up these named environments using the same Python
-        executable and setup, otherwise just set up the `python_env` environment.
-    """
-    setup = __norm_setup(setup)
-    executables = [
-        mf.Executable(
-            label="python_script",
-            instances=[
-                mf.ExecutableInstance(
-                    command=(f'{__get_py_exe(shell)} "<<script_path>>" <<args>>'),
-                    num_cores=1,
-                    parallel_mode=None,
-                ),
-            ],
-        ),
-    ]
-    setup = mf.get_env_setup(shell) if use_current else setup
-    environments = []
-    for name in sorted(set(["python", *(names if names else [])])):
-        environments.append(
-            mf.Environment(
-                name=f"{name}_env",
-                setup=setup,
-                executables=executables,
-                setup_label="python",
-            )
-        )
-    return environments
-
-
 def env_configure_python_all(
     shell: Literal["bash", "powershell"],
     setup: str | list[str] | None = None,
@@ -141,7 +85,7 @@ def env_configure_python_all(
     """
     Configure all of the Python environments, using the same setup.
     """
-    return env_configure_python(
+    return mf.env_configure_python(
         shell=shell,
         setup=setup,
         use_current=use_current,

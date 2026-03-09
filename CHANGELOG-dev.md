@@ -1,4 +1,114 @@
 
+<a name="v0.3.0a226"></a>
+## [v0.3.0a226](https://github.com/hpcflow/matflow/compare/v0.3.0a225...v0.3.0a226) - 2026.01.20
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a225"></a>
+## [v0.3.0a225](https://github.com/hpcflow/matflow/compare/v0.3.0a224...v0.3.0a225) - 2026.01.20
+
+### 🐛 Bug Fixes
+
+* add missing groups in subset sim workflows
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a224"></a>
+## [v0.3.0a224](https://github.com/hpcflow/matflow/compare/v0.3.0a223...v0.3.0a224) - 2026.01.15
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a223"></a>
+## [v0.3.0a223](https://github.com/hpcflow/matflow/compare/v0.3.0a222...v0.3.0a223) - 2026.01.15
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a222"></a>
+## [v0.3.0a222](https://github.com/hpcflow/matflow/compare/v0.3.0a221...v0.3.0a222) - 2026.01.13
+
+### ✨ Features
+
+* initial support for CIPHER simulations
+* initial support for CIPHER simulations
+
+### 🐛 Bug Fixes
+
+* demo of how to implement `from_statistics_dual_phase_orientations`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* merge
+
+
+<a name="v0.3.0a221"></a>
+## [v0.3.0a221](https://github.com/hpcflow/matflow/compare/v0.3.0a220...v0.3.0a221) - 2026.01.10
+
+### 🐛 Bug Fixes
+
+* remove duplicate method `LoadStep.random_inc` (my fault!)
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a220"></a>
+## [v0.3.0a220](https://github.com/hpcflow/matflow/compare/v0.3.0a219...v0.3.0a220) - 2026.01.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+
+<a name="v0.3.0a219"></a>
+## [v0.3.0a219](https://github.com/hpcflow/matflow/compare/v0.3.0a218...v0.3.0a219) - 2026.01.10
+
+### ♻ Code Refactoring
+
+* move `env_configure_python` to hpcflow
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* add missing hidden import
+* cli tests
+* tests
+* remove deprecated py3.9 support
+
+### 👷 Build changes
+
+* update GH action workflows to reflect recent upstream changes
+
+
 <a name="v0.3.0a218"></a>
 ## [v0.3.0a218](https://github.com/hpcflow/matflow/compare/v0.3.0a217...v0.3.0a218) - 2025.12.11
 
