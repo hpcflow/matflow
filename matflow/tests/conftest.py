@@ -44,9 +44,13 @@ def isolated_app_config(tmp_path_factory, pytestconfig):
     mf.run_time_info.in_pytest = True
     original_config_dir = mf.config.config_directory
     original_config_key = mf.config.config_key
+
+    # honour config overrides provided via top-level CLI options `--with-config`:
+    overrides = copy.deepcopy(mf.config._overrides)
+
     mf.unload_config()
     new_config_dir = tmp_path_factory.mktemp("app_config")
-    mf.load_config(config_dir=new_config_dir)
+    mf.load_config(config_dir=new_config_dir, overrides=overrides)
 
     if pytestconfig.getoption("--configure-python-env"):
         # for setting up a Python env using the currently active virtual/conda env:
@@ -63,7 +67,11 @@ def isolated_app_config(tmp_path_factory, pytestconfig):
 
     yield
     mf.unload_config()
-    mf.load_config(config_dir=original_config_dir, config_key=original_config_key)
+    mf.load_config(
+        config_dir=original_config_dir,
+        config_key=original_config_key,
+        overrides=overrides,
+    )
     mf.run_time_info.in_pytest = False
 
 
