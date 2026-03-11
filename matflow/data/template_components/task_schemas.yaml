@@ -2748,3 +2748,21 @@
       script_pass_workflow: true
       environments:
         any: python_env
+
+- objective: modify_VE
+  doc: Modify a volume element by adding an initial temperature
+  method: set_initial_temperature
+  inputs:
+  - parameter: volume_element
+  - parameter: initial_temperature
+  outputs:
+  - parameter: initial_conditions
+  actions:
+  - script: <<script:damask/set_initial_temperature.py>>
+    script_exe: python_script
+    script_data_in: direct
+    script_data_out: direct
+    environments:
+    - scope:
+        type: any
+      environment: python_env
