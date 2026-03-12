@@ -277,6 +277,31 @@ class LoadStep(ParameterValue):
         )
 
     @classmethod
+    def null(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+        ) -> Self:
+        """A zero load case"""
+
+        target_def_grad = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
+        stress = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
+
+        _method_name = "null"
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+        }
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=target_def_grad,
+            stress=stress
+            )
+
+
+    @classmethod
     def uniaxial(
         cls,
         total_time: float | int,
