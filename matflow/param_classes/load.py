@@ -121,7 +121,7 @@ class LoadStep(ParameterValue):
         #: Rotation matrix.
         self.rotation = rotation
 
-        # assigned if constructed via a helper class method:
+        # assigned if constructed via a class method:
         self._method_name: str | None = None
         self._method_args: dict[str, Any] | None = None
 
