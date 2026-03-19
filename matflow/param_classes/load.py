@@ -1145,6 +1145,11 @@ class LoadCase(ParameterValue):
         return load_steps
 
     @classmethod
+    def null(cls, **kwargs) -> Self:
+        """A null load case."""
+        return cls(steps=[LoadStep.null(**kwargs)])
+
+    @classmethod
     def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
 
