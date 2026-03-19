@@ -282,10 +282,9 @@ class LoadStep(ParameterValue):
         total_time: float | int,
         num_increments: int,
     ) -> Self:
-        """A zero load case"""
+        """A zero deformation load step"""
 
-        target_def_grad = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
-        stress = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
+        target_def_grad = np.eye(3)
 
         _method_name = "null"
         _method_args = {
@@ -297,7 +296,6 @@ class LoadStep(ParameterValue):
             total_time=total_time,
             num_increments=num_increments,
             target_def_grad=target_def_grad,
-            stress=stress,
         )
 
     @classmethod
@@ -1145,7 +1143,7 @@ class LoadCase(ParameterValue):
 
     @classmethod
     def null(cls, **kwargs) -> Self:
-        """A null load case."""
+        """A zero deformation load case"""
         return cls(steps=[LoadStep.null(**kwargs)])
 
     @classmethod
