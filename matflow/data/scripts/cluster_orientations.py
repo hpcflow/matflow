@@ -20,6 +20,9 @@ def cluster_orientations(
     volume_element = validate_volume_element(volume_element)
 
     quaternions = volume_element["orientations"]["quaternions"]
+    # Convert quaternion representation to DAMASK format
+    quaternions[:, 1:] *= -1
+
     material_index = volume_element["element_material_idx"]
     material_index_2d = material_index[:, :, 0]
     material_index_3d = np.stack(
@@ -60,6 +63,8 @@ def cluster_orientations(
         return_full=True,
     )
 
+    # Convert quaternions back to MTEX notation
+    orientations_shuffled_vol[:, 1:] *= -1
     # Replace quaternions in volume element
     volume_element["orientations"]["quaternions"] = np.array(
         [list(x) for x in orientations_shuffled_vol]
@@ -67,7 +72,7 @@ def cluster_orientations(
 
     plt.hist(misorientation)
     plt.hist(misorientation_init, color="r", alpha=0.5)
-    plt.legend(["Initial", "shuffled"], fontsize=5)
+    plt.legend(["Shuffled", "Initial"], fontsize=5)
     plt.xlabel("Misorientation")
     plt.ylabel("Number of grains")
     plt.savefig("misorientation.png")
