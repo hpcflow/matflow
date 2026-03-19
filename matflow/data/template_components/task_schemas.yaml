@@ -2228,6 +2228,7 @@
   - parameter: solution_parameters
   - parameter: orientation_gradient
   - parameter: random_seed
+    default_value: null
   - parameter: is_periodic
   - parameter: interface_binning
     default_value: null
