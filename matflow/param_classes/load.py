@@ -281,7 +281,7 @@ class LoadStep(ParameterValue):
         cls,
         total_time: float | int,
         num_increments: int,
-        ) -> Self:
+    ) -> Self:
         """A zero load case"""
 
         target_def_grad = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
@@ -297,9 +297,8 @@ class LoadStep(ParameterValue):
             total_time=total_time,
             num_increments=num_increments,
             target_def_grad=target_def_grad,
-            stress=stress
-            )
-
+            stress=stress,
+        )
 
     @classmethod
     def uniaxial(
