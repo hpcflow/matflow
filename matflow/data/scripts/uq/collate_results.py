@@ -79,6 +79,9 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
     num_chains = int(len(g) * p_0)
     num_states = int(num_samples / num_chains)
 
+    # store copy of unsorted, for construction of the indicator function matrix:
+    g_unsrt = g.copy()
+
     # sort responses
     srt_idx = np.argsort(g)[::-1]  # sort by closest-to-failure first
     g = g[srt_idx]
@@ -100,7 +103,7 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
     if all_g:
         # from multiple Markov chains:
         indicator = np.reshape(
-            g > np.minimum(threshold, 0), (num_chains, num_states)
+            g_unsrt > np.minimum(threshold, 0), (num_chains, num_states)
         ).astype(int)
         level_cov = estimate_cov(indicator, level_pf)
     else:
