@@ -1,5 +1,7 @@
 function sample_texture_CRC(inputs_JSON_path, outputs_HDF5_path)
 
+    rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
+
     all_args = jsondecode(fileread(inputs_JSON_path));
 
     CRCFilePath = all_args.CRC_file_path;

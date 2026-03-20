@@ -1,5 +1,7 @@
 function sample_texture_model_ODF(inputs_JSON_path, outputs_HDF5_path)
 
+    rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
+
     all_args = jsondecode(fileread(inputs_JSON_path));
 
     numOrientations = all_args.num_orientations;
