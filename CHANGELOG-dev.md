@@ -1,4 +1,16 @@
 
+<a name="v0.3.0a232"></a>
+## [v0.3.0a232](https://github.com/hpcflow/matflow/compare/v0.3.0a231...v0.3.0a232) - 2026.03.20
+
+### ✨ Features
+
+* set matlab RNG in MTEX scripts
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a231"></a>
 ## [v0.3.0a231](https://github.com/hpcflow/matflow/compare/v0.3.0a230...v0.3.0a231) - 2026.03.20
 
