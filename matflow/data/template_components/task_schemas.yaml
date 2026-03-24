@@ -1786,6 +1786,8 @@
     - parameter: all_accept
       group: all
       default_value: null
+    - parameter: level_cov
+      default_value: null      
     - parameter: p_0
   outputs:
     - parameter: chain_seeds
@@ -1798,10 +1800,12 @@
     - parameter: pf
     - parameter: is_finished
     - parameter: accept_rate
+    - parameter: cov
   actions:
     - script: <<script:uq/collate_results.py>>
       script_data_in:
         g: { format: direct, all_iterations: true }
+        level_cov: { format: direct, all_iterations: true }
         "*": direct
       script_data_out: direct
       script_exe: python_script
