@@ -33,7 +33,7 @@ def estimate_cov(indicator, p_i: float) -> float:
     return delta
 
 
-def collate_results(g, x, p_0, all_g, all_x, all_accept):
+def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     # all iterations of g are passed just to get the level index:
     # TODO: in future set and read loop_idx from environment variable?
@@ -47,44 +47,42 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
 
     if all_g:
         # from multiple Markov chains:
-        g = np.concatenate([i[:] for i in all_g])
+        g_2D = np.array([i[:] for i in all_g])  # (num_chains, num_states)
+        g_unsrt = np.concatenate(g_2D)
         accept = np.vstack([i[:] for i in all_accept])
         x = np.vstack([i[:] for i in all_x])
         accept_rate = np.mean(accept)
     else:
         # from initial direct Monte Carlo samples:
-        g = np.array(g)
+        g_unsrt = np.array(g)
         x = np.vstack([i[:] for i in x])
         accept_rate = None
 
-        # consider missing data in `g` by copying from non-missing data:
-        bad_bool = g == None
-        if np.any(bad_bool):
-            bad_idx = np.where(bad_bool)[0]
-            print(
-                f"Collate results: missing {len(bad_idx)} system performance "
-                f"evaluation(s) at indices: {bad_idx!r}."
-            )
-            good_idx = np.where(~bad_bool)[0]
-            replace_idx = good_idx[: len(bad_idx)]
-            replace_g = g[replace_idx]
-            replace_x = x[replace_idx]
-            x[bad_idx] = replace_x
-            g_corrected = np.empty(len(g))
-            g_corrected[good_idx] = g[good_idx]
-            g_corrected[bad_idx] = replace_g
-            g = g_corrected
+    # consider missing data in `g` by copying from non-missing data:
+    bad_bool = g_unsrt == None
+    if np.any(bad_bool):
+        bad_idx = np.where(bad_bool)[0]
+        print(
+            f"Collate results: missing {len(bad_idx)} system performance "
+            f"evaluation(s) at indices: {bad_idx!r}."
+        )
+        good_idx = np.where(~bad_bool)[0]
+        replace_idx = good_idx[: len(bad_idx)]
+        replace_g = g_unsrt[replace_idx]
+        replace_x = x[replace_idx]
+        x[bad_idx] = replace_x
+        g_corrected = np.empty(len(g_unsrt))
+        g_corrected[good_idx] = g_unsrt[good_idx]
+        g_corrected[bad_idx] = replace_g
+        g_unsrt = g_corrected
 
-    num_failed = int(np.sum(g > 0))
-    num_chains = int(len(g) * p_0)
+    num_failed = int(np.sum(g_unsrt > 0))
+    num_chains = int(len(g_unsrt) * p_0)
     num_states = int(num_samples / num_chains)
 
-    # store copy of unsorted, for construction of the indicator function matrix:
-    g_unsrt = g.copy()
-
     # sort responses
-    srt_idx = np.argsort(g)[::-1]  # sort by closest-to-failure first
-    g = g[srt_idx]
+    srt_idx = np.argsort(g_unsrt)[::-1]  # sort by closest-to-failure first
+    g = g_unsrt[srt_idx]
     x = x[srt_idx, :]
 
     threshold = (g[num_chains - 1] + g[num_chains]) / 2
@@ -100,15 +98,24 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
 
     pf = p_0**level_idx * num_failed / num_samples
 
+    # all previous level CoVs:
+    all_level_cov = []
+    del level_cov["iteration_0"]
+    for iter_dat in level_cov.values():
+        all_level_cov.append(iter_dat["value"])
+
     if all_g:
         # from multiple Markov chains:
         indicator = np.reshape(
-            g_unsrt > np.minimum(threshold, 0), (num_chains, num_states)
+            g_2D > np.minimum(threshold, 0), (num_chains, num_states)
         ).astype(int)
         level_cov = estimate_cov(indicator, level_pf)
     else:
         # from initial direct Monte Carlo samples:
         level_cov = np.sqrt((1 - level_pf) / (num_samples * level_pf))
+    all_level_cov.append(level_cov)
+
+    cov = np.sqrt(sum(np.pow(all_level_cov, 2))).item()
 
     return {
         "chain_seeds": chain_seeds,
@@ -121,4 +128,5 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept):
         "pf": pf,
         "is_finished": is_finished,
         "accept_rate": accept_rate,
+        "cov": cov,
     }
