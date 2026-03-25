@@ -1,4 +1,18 @@
 
+<a name="v0.3.0a235"></a>
+## [v0.3.0a235](https://github.com/hpcflow/matflow/compare/v0.3.0a234...v0.3.0a235) - 2026.03.25
+
+### 🐛 Bug Fixes
+
+* estimation of CoV in subset sim collate_results
+* **subset-sim:** missing modifications to `collate_results` task schema
+* **subset-sim:** maintain structure of g for indicator functon
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a234"></a>
 ## [v0.3.0a234](https://github.com/hpcflow/matflow/compare/v0.3.0a233...v0.3.0a234) - 2026.03.23
 
