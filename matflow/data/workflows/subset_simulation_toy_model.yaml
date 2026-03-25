@@ -39,7 +39,7 @@ tasks:
           step: 1
   - schema: generate_next_state # [inner loop]
     inputs:
-      prop_std: 0.5
+      prop_std: 1.0
   - schema: system_analysis_toy_model # [inner loop]
     inputs:
       dimension: 200
