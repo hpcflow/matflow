@@ -1,4 +1,20 @@
 
+<a name="v0.3.0a236"></a>
+## [v0.3.0a236](https://github.com/hpcflow/matflow/compare/v0.3.0a235...v0.3.0a236) - 2026.03.26
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* **subset-sim:** update toy model prop std to 1.0; works much better
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a235"></a>
 ## [v0.3.0a235](https://github.com/hpcflow/matflow/compare/v0.3.0a234...v0.3.0a235) - 2026.03.25
 
