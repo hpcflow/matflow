@@ -20,7 +20,7 @@ pytest = {version = "^9.0.2", optional = true}
 matplotlib = "^3.7"
 typing-extensions = "^4.12.2"
 skops = "^0.13.0"
-hpcflow = "0.2.0a306"
+hpcflow = "0.2.0a307"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.12.2"
