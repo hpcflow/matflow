@@ -25,7 +25,7 @@ tasks:
           type: quaternion
           quat_order: scalar_vector
 
-  - schema: modify_VE_spread_orientations # underscore to separate the levels of the task schema objective/method
+  - schema: modify_VE_spread_orientations
     inputs:
       phases: [Al]
       stddev_degrees: [0.01]
