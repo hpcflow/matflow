@@ -1867,8 +1867,12 @@
   inputs:
     - parameter: x
     - parameter: prop_std
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state.py>>
       script_data_in: direct

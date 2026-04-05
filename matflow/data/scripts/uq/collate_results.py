@@ -47,8 +47,7 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     if all_g:
         # from multiple Markov chains:
-        g_2D = np.array([i[:] for i in all_g])  # (num_chains, num_states)
-        g_unsrt = np.concatenate(g_2D)
+        g_unsrt = np.concatenate([i[:] for i in all_g])
         accept = np.vstack([i[:] for i in all_accept])
         x = np.vstack([i[:] for i in all_x])
         accept_rate = np.mean(accept)
@@ -87,14 +86,18 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     threshold = (g[num_chains - 1] + g[num_chains]) / 2
 
+    # indicator function:
+    g_2D = np.reshape(g_unsrt, (num_chains, num_states))
+    indicator = (g_2D > np.minimum(threshold, 0)).astype(int)
+
     # failure probability at this level:
-    fail_bool = g > 0
-    level_pf = np.mean(fail_bool) if threshold > 0 else p_0
+    level_pf = np.mean(indicator)
 
     chain_seeds = x[:num_chains]
     chain_g = g[:num_chains]
+    # print(f"{chain_g=!r}")
 
-    is_finished = (num_failed / num_samples) >= p_0
+    is_finished = (threshold > 0).item()
 
     pf = p_0**level_idx * num_failed / num_samples
 
@@ -106,9 +109,6 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     if all_g:
         # from multiple Markov chains:
-        indicator = np.reshape(
-            g_2D > np.minimum(threshold, 0), (num_chains, num_states)
-        ).astype(int)
         level_cov = estimate_cov(indicator, level_pf)
     else:
         # from initial direct Monte Carlo samples:
