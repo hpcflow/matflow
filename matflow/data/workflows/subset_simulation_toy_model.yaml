@@ -13,12 +13,15 @@ loops:
 resources:
   any:
     combine_scripts: true
+    random_seed: 1234
 
 tasks:
   - schema: sample_direct_MC
     inputs:
       dimension: 200
-    repeats: 100 # num_samples
+    repeats:
+      number: 100 # num_samples
+      generate_seed_sequence: false
     groups:
       - name: all
   - schema: system_analysis_toy_model
