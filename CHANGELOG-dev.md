@@ -1,4 +1,126 @@
 
+<a name="v0.3.0a237"></a>
+## [v0.3.0a237](https://github.com/hpcflow/matflow/compare/v0.3.0a236...v0.3.0a237) - 2026.03.26
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a236"></a>
+## [v0.3.0a236](https://github.com/hpcflow/matflow/compare/v0.3.0a235...v0.3.0a236) - 2026.03.26
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* **subset-sim:** update toy model prop std to 1.0; works much better
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a235"></a>
+## [v0.3.0a235](https://github.com/hpcflow/matflow/compare/v0.3.0a234...v0.3.0a235) - 2026.03.25
+
+### 🐛 Bug Fixes
+
+* estimation of CoV in subset sim collate_results
+* **subset-sim:** missing modifications to `collate_results` task schema
+* **subset-sim:** maintain structure of g for indicator functon
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a234"></a>
+## [v0.3.0a234](https://github.com/hpcflow/matflow/compare/v0.3.0a233...v0.3.0a234) - 2026.03.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a233"></a>
+## [v0.3.0a233](https://github.com/hpcflow/matflow/compare/v0.3.0a232...v0.3.0a233) - 2026.03.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a232"></a>
+## [v0.3.0a232](https://github.com/hpcflow/matflow/compare/v0.3.0a231...v0.3.0a232) - 2026.03.20
+
+### ✨ Features
+
+* set matlab RNG in MTEX scripts
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a231"></a>
+## [v0.3.0a231](https://github.com/hpcflow/matflow/compare/v0.3.0a230...v0.3.0a231) - 2026.03.20
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a230"></a>
+## [v0.3.0a230](https://github.com/hpcflow/matflow/compare/v0.3.0a229...v0.3.0a230) - 2026.03.19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a229"></a>
+## [v0.3.0a229](https://github.com/hpcflow/matflow/compare/v0.3.0a228...v0.3.0a229) - 2026.03.19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a228"></a>
+## [v0.3.0a228](https://github.com/hpcflow/matflow/compare/v0.3.0a227...v0.3.0a228) - 2026.03.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a227"></a>
+## [v0.3.0a227](https://github.com/hpcflow/matflow/compare/v0.3.0a226...v0.3.0a227) - 2026.03.02
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a226"></a>
 ## [v0.3.0a226](https://github.com/hpcflow/matflow/compare/v0.3.0a225...v0.3.0a226) - 2026.01.20
 

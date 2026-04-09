@@ -11,11 +11,11 @@
   .. code-block:: yaml
 
       resources:
-      any:
-        scheduler_args:
-          directives:
-            --time: 1:00:00
-            --partition: multicore
+        any:
+          scheduler_args:
+            directives:
+              --time: 1:00:00
+              --partition: multicore
 
   or at the task level
 

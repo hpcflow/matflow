@@ -121,7 +121,7 @@ class LoadStep(ParameterValue):
         #: Rotation matrix.
         self.rotation = rotation
 
-        # assigned if constructed via a helper class method:
+        # assigned if constructed via a class method:
         self._method_name: str | None = None
         self._method_args: dict[str, Any] | None = None
 
@@ -274,6 +274,52 @@ class LoadStep(ParameterValue):
             num_increments=incs,
             direction=direction,
             target_def_grad_rate=rate,
+        )
+
+    @classmethod
+    def zero_deformation(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+    ) -> Self:
+        """A zero deformation load step"""
+
+        target_def_grad = np.eye(3)
+
+        _method_name = "zero_deformation"
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+        }
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=target_def_grad,
+        )
+
+    @classmethod
+    def zero_normal_stress(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+    ) -> Self:
+        """A zero normal stress load step"""
+
+        target_def_grad = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
+        stress = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
+
+        _method_name = "zero_normal_stress"
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+        }
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=target_def_grad,
+            stress=stress,
         )
 
     @classmethod
@@ -1118,6 +1164,16 @@ class LoadCase(ParameterValue):
             dct["def_grad_rate"] = dct.pop("target_def_grad_rate", None)
             load_steps.append(dct)
         return load_steps
+
+    @classmethod
+    def zero_deformation(cls, **kwargs) -> Self:
+        """A zero deformation load case"""
+        return cls(steps=[LoadStep.zero_deformation(**kwargs)])
+
+    @classmethod
+    def zero_normal_stress(cls, **kwargs) -> Self:
+        """A zero normal stress load case"""
+        return cls(steps=[LoadStep.zero_normal_stress(**kwargs)])
 
     @classmethod
     def uniaxial(cls, **kwargs) -> Self:

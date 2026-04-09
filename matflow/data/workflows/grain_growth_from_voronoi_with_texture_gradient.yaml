@@ -1,0 +1,69 @@
+name: grain_growth_from_voronoi_with_texture_gradient
+
+tasks:  
+- schema: generate_phase_field_input_from_random_voronoi_with_orientations_gradient
+  inputs:
+    is_periodic: false
+    num_phases: 200
+    grid_size: [256, 256]
+    size: [256, 256]
+    materials:
+      - name: sub-grain-matrix
+        properties:
+          chemicalenergy: none
+          molarvolume: 1e-5
+          temperature0: 500.0
+    interfaces:
+      - materials: [sub-grain-matrix, sub-grain-matrix] 
+        properties:
+          width: 4.0
+          energy:
+            e0: 1.0e+8
+          mobility:
+            m0: 10.0e-11
+    components: [ti]
+    outputs: [phaseid, matid, interfaceid, 0_phi]
+    solution_parameters:
+      abstol: 0.0001
+      amrinterval: 25
+      initblocksize: [1, 1]
+      initcoarsen: 8
+      initrefine: 8
+      interpolation: cubic
+      maxnrefine: 8
+      minnrefine: 0
+      outfile: out
+      outputfreq: 100
+      petscoptions: -ts_adapt_monitor -ts_rk_type 2a
+      random_seed: 1579993586
+      reltol: 0.0001
+      time: 10_000
+    orientation_gradient:
+      max_misorientation_deg: 20
+      add_highly_misoriented_grain: true
+    interface_binning: # specify one or both of energy_range/mobility_range:
+      base_interface_name: sub-grain-matrix-sub-grain-matrix
+      theta_max: 35
+      bin_width: 1
+      energy_range: [0.1e+8, 1.0e+8]
+      # mobility_range: [1.0e-11, 10.0e-11]
+      # n: 1 # mobility parameter
+      # B: 5 # mobility parameter
+
+- schema: simulate_grain_growth
+  inputs:
+    VTU_files_time_interval: 1_000
+    derive_outputs:
+      - name: num_voxels_per_phase 
+    save_outputs:
+      - name: phaseid 
+        time_interval: 1_000
+      - name: matid
+        number: 4
+      - name: interfaceid
+        number: 4
+      - name: 0_phi
+        number: 4
+      - name: num_voxels_per_phase
+        time_interval: 1_000
+    delete_VTUs: true

@@ -1,5 +1,7 @@
 function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
 
+    rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
+
     allOpts = jsondecode(fileread(inputs_JSON_path));
     crystalSym = allOpts.crystal_symmetry;
     

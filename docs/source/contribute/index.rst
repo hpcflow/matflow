@@ -30,7 +30,7 @@ Checking out hpcflow
 ....................
 ::
 
-   git clone git@github.com:hpcflow/hpcflow-new.git
+   git clone git@github.com:hpcflow/hpcflow.git
 
 Checking out matflow
 ....................
@@ -93,18 +93,18 @@ link to local hpcflow
 To be able to work with hpcflow and immediately see the changes reflected in matflow you need to reconfigure the hpcflow dependency to point to your local copy of hpcflow.
 To do this, run::
 
-   poetry add --editable ${HOME}/hpcflow-new/
+   poetry add --editable ${HOME}/hpcflow/
 
-This will update the hpcflow-new dependency to point to your local copy.
+This will update the hpcflow dependency to point to your local copy.
 
 If this does not work, try doing it manually:
-First modify the ``matflow/pyproject.toml`` file replacing::
+First modify the ``matflow-new/pyproject.toml`` file replacing::
 
-   hpcflow-new2 = "^0.2.0a14"
+   hpcflow = "^0.2.0a14"
 
 with::
 
-   hpcflow-new2 = {path = "${HOME}/hpcflow-new", develop = true}
+   hpcflow = {path = "${HOME}/hpcflow", develop = true}
 
 Then, you need to update your poetry environment accordingly, by first removing the lock file::
 

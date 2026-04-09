@@ -206,7 +206,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -279,7 +279,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -352,7 +352,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: ODF_mat_file_path
     - parameter: num_orientations
@@ -423,7 +423,7 @@
     - parameter: specimen_symmetry
     - parameter: ODF_components
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
   outputs:
     - parameter: orientations
@@ -498,7 +498,7 @@
     - parameter: use_one_colourbar
       default_value: False
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
   actions:
     - requires_dir: true
@@ -571,7 +571,7 @@
       default_value: ["z"]
     - parameter: use_contours
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
   actions:
     - requires_dir: true
@@ -1512,7 +1512,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -1585,7 +1585,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -1658,7 +1658,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: specimen_symmetry
     - parameter: num_orientations
@@ -1786,6 +1786,8 @@
     - parameter: all_accept
       group: all
       default_value: null
+    - parameter: level_cov
+      default_value: null      
     - parameter: p_0
   outputs:
     - parameter: chain_seeds
@@ -1798,10 +1800,12 @@
     - parameter: pf
     - parameter: is_finished
     - parameter: accept_rate
+    - parameter: cov
   actions:
     - script: <<script:uq/collate_results.py>>
       script_data_in:
         g: { format: direct, all_iterations: true }
+        level_cov: { format: direct, all_iterations: true }
         "*": direct
       script_data_out: direct
       script_exe: python_script
@@ -2228,6 +2232,7 @@
   - parameter: solution_parameters
   - parameter: orientation_gradient
   - parameter: random_seed
+    default_value: null
   - parameter: is_periodic
   - parameter: interface_binning
     default_value: null
