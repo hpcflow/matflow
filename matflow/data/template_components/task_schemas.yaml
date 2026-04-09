@@ -142,6 +142,8 @@
     - parameter: VE_size
     - parameter: num_grains
     - parameter: phase_label
+    - parameter: random_seed
+      default_value: resource_value
   outputs:
     - parameter: microstructure_seeds
   actions:
