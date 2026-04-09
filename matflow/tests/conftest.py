@@ -174,8 +174,13 @@ def fig_dir(tmp_path_factory, pytestconfig):
 
 
 @pytest.fixture
-def nodeid_str(request):
+def nodeid_str(request) -> str:
     return sanitize_nodeid(request.node.nodeid)
+
+
+@pytest.fixture
+def nodename_str(request) -> str:
+    return sanitize_nodeid(request.node.name)
 
 
 @pytest.fixture
@@ -199,24 +204,57 @@ def save_fig(fig_output_dir, nodeid_str):
     return _save
 
 
-def reference_dir_for_test(request):
-    with get_file_context("matflow.tests.data.reference") as file_path:
-        return file_path / sanitize_nodeid(request.node.nodeid)
+@pytest.fixture
+def save_fig(fig_output_dir, reference_dir_for_test, pytestconfig):
+    """Save a matplotlib figure.
+
+    - If --save-reference: save into reference_dir
+    - Otherwise: save into fig_output_dir (temporary/artifact)
+    """
+    counter = itertools.count(1)
+    save = pytestconfig.getoption("--save-reference")
+    reference_dir_for_test.mkdir(parents=True, exist_ok=True)
+
+    def _handle(fig, name=None):
+        if name is None:
+            name = f"figure_{next(counter)}.png"
+
+        fig.suptitle(name, fontsize="small")
+
+        fig_path = fig_output_dir / name
+        fig_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(fig_path)
+
+        if save:
+            ref_path = reference_dir_for_test / name
+            ref_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(ref_path)
+
+    return _handle
 
 
 @pytest.fixture
-def reference_data(request, pytestconfig):
+def reference_dir_for_test(nodename_str):
+    with get_file_context("matflow.tests.data.reference") as file_path:
+        return file_path / nodename_str
+
+
+@pytest.fixture
+def reference_array_data(reference_dir_for_test, pytestconfig):
     save = pytestconfig.getoption("--save-reference")
-    ref_dir = reference_dir_for_test(request)
-    ref_dir.mkdir(parents=True, exist_ok=True)
+    reference_dir_for_test.mkdir(parents=True, exist_ok=True)
     recorded_any = False
 
-    def _handle(data: np.ndarray, *, name, rtol=1e-6, atol=1e-12):
+    def _handle(data, *, name, rtol=1e-6, atol=1e-12):
         nonlocal recorded_any
-        ref_path = ref_dir / name
+        ref_path = reference_dir_for_test / name
 
         if save:
-            np.save(ref_path, data)
+            if name.endswith(".npz"):
+                np.savez(ref_path, **data)
+            else:
+                np.save(ref_path, data)
+
             recorded_any = True
             return
 
@@ -227,7 +265,26 @@ def reference_data(request, pytestconfig):
             )
 
         ref = np.load(ref_path)
-        np.testing.assert_allclose(data, ref, rtol=rtol, atol=atol)
+        if name.endswith(".npz"):
+            for key, arr in data.items():
+                if key not in ref:
+                    pytest.fail(f"Missing key '{key}' in {ref_path}")
+
+                np.testing.assert_allclose(
+                    arr,
+                    ref[key],
+                    rtol=rtol,
+                    atol=atol,
+                    err_msg=f"{key} mismatch in {ref_path}",
+                )
+
+            # optional: check for unexpected keys
+            extra = set(ref.files) - set(data.keys())
+            if extra:
+                pytest.fail(f"Unexpected keys {extra} in {ref_path}")
+
+        else:
+            np.testing.assert_allclose(data, ref, rtol=rtol, atol=atol)
 
     yield _handle
 

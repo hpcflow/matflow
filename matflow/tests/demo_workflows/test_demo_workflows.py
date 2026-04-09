@@ -6,7 +6,7 @@ import matflow as mf
 
 
 @pytest.mark.demo_workflows
-def test_damask_input_files(tmp_path, save_fig, reference_data):
+def test_damask_input_files(tmp_path, save_fig, reference_array_data):
     """Test submission and check the stress-strain curve from a simple DAMASK workflow,
     with specific input files provided.
 
@@ -36,11 +36,14 @@ def test_damask_input_files(tmp_path, save_fig, reference_data):
     ax.plot(strain, stress)
     ax.set_xlabel(STRAIN_KEY)
     ax.set_ylabel(STRESS_KEY)
-    save_fig(fig)
 
-    # TODO: save reference figure and check it matches via matplotlib?
+    # save figure to the --fig-dir (if passed, otherwise within `--basetemp`); and if run
+    # with `--save-reference`, also save to the reference data folder:
+    save_fig(fig, name="stress_strain.png")
 
     # save reference data (if run with `--save-reference`) or check it matches existing:
-    # skip the first few increments, where relatively large differences are observed
-    reference_data(stress, name="stress.npy", rtol=1e-10)
-    reference_data(strain, name="strain.npy", rtol=1e-10)
+    reference_array_data(
+        {"stress": stress, "strain": strain},
+        name="stress_strain.npz",
+        rtol=1e-10,
+    )
