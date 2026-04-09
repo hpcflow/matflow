@@ -42,12 +42,21 @@ def generate_next_state(x, prop_std, rng, chain_index):
     ----------
     x
         Current state on which the candidate state will depend.
+    prop_std
+        Proposal distribution standard deviation.
+    rng
+        Random number generator to be used in this function.
+    chain_index
+        Index of the Markov chain within the subset simulation level loop.
 
     Returns
     -------
     dict:
         x:
             Generated candidate state.
+        rng:
+            Random number generator to be used in the next invocation of this function,
+            for this chain.
     """
 
     loop_idx = {

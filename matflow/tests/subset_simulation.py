@@ -1,24 +1,42 @@
 """Module containing functions to run a subset simulation on a simple toy model, used as a
 validation of the MatFlow implementation."""
 
+from datetime import datetime
+import pickle
+from pathlib import Path
+
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy.stats import norm, multivariate_normal
 from numpy.exceptions import AxisError
+from hpcflow.sdk.log import TimeIt
 
 
+@TimeIt.decorator
 def sample_direct_MC(
-    dimension, num_samples, seed: int = None, spawn_key: tuple[int] | None = None
+    dimension,
+    num_samples,
+    seed: int = None,
+    spawn_key: tuple[int] | None = None,
+    mimic_matflow: bool = False,
 ):
-    """This is convoluted to mimic the MatFlow implementation where individual samples
-    are separate elements, with distinct RNG spawn keys."""
-    samples = []
-    for sample_idx in range(num_samples):
-        seed_seq = np.random.SeedSequence(seed, spawn_key=tuple([*spawn_key, sample_idx]))
-        rng = np.random.default_rng(seed_seq)
+    if mimic_matflow:
+        # convoluted to mimic the MatFlow implementation where individual samples
+        # are separate elements, with distinct RNG spawn keys.
+        samples = []
+        for sample_idx in range(num_samples):
+            seed_seq = np.random.SeedSequence(
+                seed, spawn_key=tuple([*spawn_key, sample_idx])
+            )
+            rng = np.random.default_rng(seed_seq)
+            pi = multivariate_normal(mean=np.zeros(dimension), cov=None, seed=rng)
+            samples.append(np.atleast_1d(pi.rvs()))
+        return np.array(samples)
+    else:
+        # simpler and considerably faster!
+        rng = np.random.default_rng(seed)
         pi = multivariate_normal(mean=np.zeros(dimension), cov=None, seed=rng)
-        samples.append(np.atleast_1d(pi.rvs()))
-    return np.array(samples)
+        return pi.rvs(num_samples)
 
 
 def model(x):
@@ -57,8 +75,11 @@ def estimate_cov(indicator, p_i: float) -> float:
             r_k += r_k_i
         r[k] = (r_k / (N - (k + 1) * num_chains)) - p_i**2
 
-    r_0 = np.sum(indicator**2) / N - p_i**2  # autocovariance at lag zero (exact)
     r_0 = p_i * (1 - p_i)
+
+    if np.isclose(r_0, 0.0):
+        # i.e. p_i is 1.0
+        return 0.0
 
     rho = r / r_0
 
@@ -70,17 +91,56 @@ def estimate_cov(indicator, p_i: float) -> float:
     return delta
 
 
+def generate_next_state(x, prop_std, rng):
+
+    dim = len(x)
+    current_state = x
+    xi = np.empty(dim)
+
+    proposal = norm(loc=current_state, scale=prop_std)
+    xi_hat = np.atleast_1d(proposal.rvs(random_state=rng))
+
+    accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
+    # accept_ratios = np.exp(-0.5 * (xi_hat**2 - current_state**2))
+
+    accept_idx = rng.random(len(accept_ratios)) < np.minimum(1, accept_ratios)
+
+    xi[accept_idx] = xi_hat[accept_idx]
+    xi[~accept_idx] = current_state[~accept_idx]
+
+    return xi
+
+
+def generate_next_state_CS(x, prop_std, rng):
+    rho = np.sqrt(1 - prop_std**2)
+    return norm.rvs(loc=x * rho, scale=prop_std, random_state=rng)
+
+
+def generate_next_state_ACS(x, prop_std, lambda_, rng):
+    sigma = np.minimum(1, lambda_ * prop_std)
+    rho = np.sqrt(1 - sigma**2)
+    return norm.rvs(loc=x * rho, scale=sigma, random_state=rng)
+
+
 def subset_simulation(
     dimension=200,
     target_pf=1e-4,
     p_0=0.1,
     num_samples=100,
     num_levels=10,
-    prop_std=0.1,
     master_seed=None,
+    next_state=generate_next_state,
+    next_state_kwargs=None,
+    mimic_matflow: bool = False,
 ):
 
-    x = sample_direct_MC(dimension, num_samples, seed=master_seed, spawn_key=(0,))
+    x = sample_direct_MC(
+        dimension,
+        num_samples,
+        seed=master_seed,
+        spawn_key=(0,),  # spawn key to match the task ID in the matflow workflow
+        mimic_matflow=mimic_matflow,
+    )
     g = system_analysis_toy_model(x, dimension, target_pf=target_pf)
 
     level_covs = []
@@ -126,42 +186,26 @@ def subset_simulation(
             all_x[chain_index, 0] = chain_seeds[chain_index]
             all_g[chain_index, 0] = chain_g[chain_index]
 
-            rng_state = None
+            chain_rng = None
             for state_idx in range(1, num_states):
 
                 # RNG seed sequence for Markov chains:
-                # note: this could be moved out of the state loop, but in this position
-                # it matches the MatFlow implementation
-                spawn_key = (4, level_idx, chain_index)
-                chain_rng = np.random.default_rng(
-                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                )
-
-                if rng_state is not None:
-                    chain_rng.bit_generator.state = rng_state
+                if state_idx == 1:
+                    # spawn key to match the task ID in the matflow workflow
+                    spawn_key = (4, level_idx, chain_index)
+                    chain_rng = np.random.default_rng(
+                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                    )
 
                 x = all_x[chain_index, state_idx - 1]
                 g = all_g[chain_index, state_idx - 1]
 
-                dim = len(x)
-                current_state = x
-                xi = np.empty(dim)
-
-                proposal = norm(loc=current_state, scale=prop_std)
-                xi_hat = np.atleast_1d(proposal.rvs(random_state=chain_rng))
-
-                # accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
-                accept_ratios = np.exp(-0.5 * (xi_hat**2 - current_state**2))
-
-                accept_idx = chain_rng.random(len(accept_ratios)) < np.minimum(
-                    1, accept_ratios
-                )
-
-                xi[accept_idx] = xi_hat[accept_idx]
-                xi[~accept_idx] = current_state[~accept_idx]
-
-                trial_x = xi
-
+                next_state_kwargs_i = {
+                    "x": x,
+                    "rng": chain_rng,
+                    **(next_state_kwargs or {}),
+                }
+                trial_x = next_state(**next_state_kwargs_i)
                 trial_g = system_analysis_toy_model(
                     trial_x, dimension, target_pf=target_pf
                 )
@@ -175,8 +219,6 @@ def subset_simulation(
 
                 all_x[chain_index, state_idx] = new_x
                 all_g[chain_index, state_idx] = new_g
-
-                rng_state = chain_rng.bit_generator.state
 
         g = all_g.reshape((num_samples))
         x = all_x.reshape((num_samples, dimension))
@@ -199,7 +241,18 @@ def get_stats(all_pf, all_cov):
     }
 
 
-def run_repeats(num_samples, prop_std=1.0, num_repeats=100):
+def run_repeats(
+    num_samples,
+    next_state,
+    next_state_kwargs=None,
+    num_repeats=100,
+    dimension=200,
+    target_pf=1e-4,
+    p_0=0.1,
+    num_levels=10,
+    mimic_matflow=False,
+):
+    seeds = np.random.SeedSequence().generate_state(num_repeats)
     all_pf = []
     all_cov = []
     for repeat_idx in range(num_repeats):
@@ -209,17 +262,77 @@ def run_repeats(num_samples, prop_std=1.0, num_repeats=100):
                 f"\rrunning {num_repeats} repeats with N={num_samples}...{pc:3d}%", end=""
             )
         pf, cov = subset_simulation(
-            dimension=200,
-            target_pf=1e-4,
-            p_0=0.1,
+            dimension=dimension,
+            target_pf=target_pf,
+            p_0=p_0,
             num_samples=num_samples,
-            num_levels=10,
-            prop_std=prop_std,
+            num_levels=num_levels,
+            next_state=next_state,
+            next_state_kwargs=next_state_kwargs,
+            master_seed=seeds[repeat_idx],
+            mimic_matflow=mimic_matflow,
         )
         all_pf.append(pf)
         all_cov.append(cov)
     print()
     return get_stats(all_pf, all_cov)
+
+
+def run_convergence(
+    converge_label: str,
+    fixed_num: int,
+    series: list[int],
+    next_state,
+    next_state_kwargs: dict,
+    mimic_matflow: bool,
+):
+    """Run a convergence test on the toy model subset simulation, for either number of samples per level, N, or number of repeats, R.
+
+    Parameters
+    ----------
+    converge_label
+        Either "N" (num samples) or "R" (num repeats)
+    fixed_num
+        The size of the non-varying parameter (i.e. num_repeats if converge_label is "N")
+    series
+        List of integers corresponding to the `converge_label` quantity
+    next_state
+        The callable to use to generate the next state
+    next_state_kwargs
+        Keyword arguments to pass to the next state callable.
+    """
+
+    fixed_str = (
+        f"{'R' if converge_label == 'N' else 'N'}{fixed_num}"  # e.g. N200 or R100 etc
+    )
+    direct_results = {
+        "data": {},
+        "next_state": next_state.__name__,
+        "next_state_kwargs": next_state_kwargs,
+        "converge_label": converge_label,
+        "fixed_num": fixed_num,
+        "series": series,
+    }
+    for num in series:
+        run_kwargs_i = {
+            "next_state": next_state,
+            "next_state_kwargs": next_state_kwargs,
+            "mimic_matflow": mimic_matflow,
+        }
+        if converge_label == "N":
+            run_kwargs_i["num_samples"] = num
+            run_kwargs_i["num_repeats"] = fixed_num
+        elif converge_label == "R":
+            run_kwargs_i["num_repeats"] = num
+            run_kwargs_i["num_samples"] = fixed_num
+        direct_results["data"][num] = run_repeats(**run_kwargs_i)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{next_state.__name__}_std{next_state_kwargs['prop_std']:.2f}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
+    with Path(file_name).open("wb") as fh:
+        pickle.dump(direct_results, fh)
+
+    return direct_results
 
 
 def get_toy_model_results_from_matflow_workflows(root_path):
@@ -241,21 +354,20 @@ def get_toy_model_results_from_matflow_workflows(root_path):
     return get_stats(all_pf, all_cov)
 
 
-def plot_pf_num_samples(all_results, quantile_range, num_samples=None, num_repeats=None):
-    """
-    Specify exactly one of `num_samples` and `num_repeats`. The non-specified is taken to
-    be the varying key in `all_results`.
-    """
+def plot_pf_num_samples(all_results, quantile_range):
 
-    if sum(i is not None for i in (num_samples, num_repeats)) != 1:
-        raise ValueError("Specify num_samples or num_repeats")
+    converge_label = all_results["converge_label"]
+    fixed_num = all_results["fixed_num"]
+    title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+    xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
 
     all_x = []
     all_y = []
     all_lower = []
     all_upper = []
 
-    for N, data in all_results.items():
+    all_data = all_results["data"]
+    for N, data in all_data.items():
 
         pf_srt = sorted(data["pf"])
         _x0 = (1 - quantile_range) / 2
@@ -274,31 +386,30 @@ def plot_pf_num_samples(all_results, quantile_range, num_samples=None, num_repea
     )
     plt.scatter(x=all_x, y=all_y, marker="o", label="Mean")
     plt.hlines(
-        y=1e-4, xmin=min(all_results), xmax=max(all_results), color="gray", label="Target"
+        y=1e-4, xmin=min(all_data), xmax=max(all_data), color="gray", label="Target"
     )
     # plt.xscale("log")
-    plt.yscale("log")
-    plt.xlabel(f"{'Num samples, N' if num_repeats else 'Num repeats, R'}")
+    # plt.yscale("log")
+    plt.xlabel(xlabel)
     plt.ylabel("Prob. of failure, pf")
-    plt.title(f"{num_repeats=!r}" if num_repeats else f"{num_samples=!r}")
+    plt.title(title)
     plt.legend()
 
 
-def plot_cov_estimates(results, ylim=None, num_repeats=None, num_samples=None):
-    """
-    Specify exactly one of `num_samples` and `num_repeats`. The non-specified is taken to
-    be the varying key in `all_results`.
-    """
-    if sum(i is not None for i in (num_samples, num_repeats)) != 1:
-        raise ValueError("Specify num_samples or num_repeats")
+def plot_cov_estimates(all_results, ylim=None):
+
+    converge_label = all_results["converge_label"]
+    fixed_num = all_results["fixed_num"]
+    title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+    xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
 
     all_x = []
     cov_empirical = []
     cov_estimated = []
     cov_estimated_std = []
 
-    for N, data in results.items():
-
+    all_data = all_results["data"]
+    for N, data in all_data.items():
         all_x.append(N)
         cov_empirical.append(data["cov_empirical"])
         cov_estimated.append(data["cov_estimate"])
@@ -307,38 +418,51 @@ def plot_cov_estimates(results, ylim=None, num_repeats=None, num_samples=None):
     plt.figure(figsize=(5, 4))
     plt.plot(all_x, cov_empirical, label="empirical CoV")
     plt.errorbar(x=all_x, y=cov_estimated, yerr=cov_estimated_std, label="estimated CoV")
-    plt.xlabel(f"{'Num samples, N' if num_repeats else 'Num repeats, R'}")
+    plt.xlabel(xlabel)
     plt.ylabel("CoV")
-    plt.title(f"{num_repeats=!r}" if num_repeats else f"{num_samples=!r}")
+    plt.title(title)
     plt.legend()
     if ylim:
         plt.ylim(ylim)
 
 
-def plot_pf_dist(results, target_pf):
+def plot_pf_dist(all_results, target_pf):
+    all_data = all_results["data"]
+    converge_label = all_results["converge_label"]
+    fixed_num = all_results["fixed_num"]
+    title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+
     fig, axs = plt.subplots(
-        1, len(results), figsize=(len(results) * 2.5, 3), sharex=True, sharey=True
+        1, len(all_data), figsize=(len(all_data) * 2.5, 3), sharex=True, sharey=True
     )
-    for idx, (N, data) in enumerate(results.items()):
+    for idx, (N, data) in enumerate(all_data.items()):
+        ax_t = f"Num samples, N={N}" if converge_label == "N" else f"Num repeats, R={N}"
         axs[idx].hist(np.log10(data["pf"]))
-        axs[idx].set_title(f"Num. samples, N={N}")
+        axs[idx].set_title(ax_t)
         axs[idx].axvline(np.log10(target_pf), color="gray")
 
     # One label for the whole figure
     fig.supxlabel("log10(Prob. of failure)")
     fig.supylabel("Frequency")
+    plt.title(title)
     plt.tight_layout()
 
 
-def plot_cov_dist(results):
+def plot_cov_dist(all_results):
+    all_data = all_results["data"]
+    converge_label = all_results["converge_label"]
+    fixed_num = all_results["fixed_num"]
+    title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
     fig, axs = plt.subplots(
-        1, len(results), figsize=(len(results) * 2.5, 3), sharex=True, sharey=True
+        1, len(all_data), figsize=(len(all_data) * 2.5, 3), sharex=True, sharey=True
     )
-    for idx, (N, data) in enumerate(results.items()):
+    for idx, (N, data) in enumerate(all_data.items()):
+        ax_t = f"Num samples, N={N}" if converge_label == "N" else f"Num repeats, R={N}"
         axs[idx].hist(data["cov"])
-        axs[idx].set_title(f"Num. samples, N={N}")
+        axs[idx].set_title(ax_t)
 
     # One label for the whole figure
     fig.supxlabel("CoV")
     fig.supylabel("Frequency")
+    plt.title(title)
     plt.tight_layout()

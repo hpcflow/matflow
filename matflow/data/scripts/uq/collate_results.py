@@ -19,8 +19,11 @@ def estimate_cov(indicator, p_i: float) -> float:
             r_k += r_k_i
         r[k] = (r_k / (N - (k + 1) * num_chains)) - p_i**2
 
-    r_0 = np.sum(indicator**2) / N - p_i**2  # autocovariance at lag zero (exact)
     r_0 = p_i * (1 - p_i)
+
+    if np.isclose(r_0, 0.0):
+        # i.e. p_i is 1.0
+        return 0.0
 
     rho = r / r_0
 
@@ -95,7 +98,6 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     chain_seeds = x[:num_chains]
     chain_g = g[:num_chains]
-    # print(f"{chain_g=!r}")
 
     is_finished = (threshold > 0).item()
 
