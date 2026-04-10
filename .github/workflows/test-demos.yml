@@ -101,6 +101,10 @@ jobs:
         run: |
           poetry install --without dev,pyinstaller
 
+      - name: Install necessary pip packages
+        run: |
+          poetry run pip install damask-parse
+
       - name: Install necessary MatFlow environments
         id: configure_envs
         run: |
@@ -124,3 +128,10 @@ jobs:
           PYTHONUNBUFFERED: ok
         run: |
           poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-workflows
+
+      - name: Upload all pytest temp dirs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-temp
+          path: /tmp/pytest-of-*
