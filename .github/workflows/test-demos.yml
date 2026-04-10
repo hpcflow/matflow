@@ -106,7 +106,7 @@ jobs:
         run: |
           poetry run matflow env setup python-all --use-current
           poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2
-          result=$(poetry run matflow env info source_file -l python)
+          result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 
       # - name: Install cached app data
