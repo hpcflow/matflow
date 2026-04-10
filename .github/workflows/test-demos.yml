@@ -17,54 +17,13 @@ on:
         required: false
         type: string
         description: Version of Python.
-        default: "3.13"        
+        default: "3.13"
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main, develop]
+
 jobs:
-  # cache-app-data:
-  #   permissions:
-  #     # No write permission
-  #     contents: read
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6
-  #       with:
-  #         ref: ${{ inputs.ref }}
-
-  #     - name: Set up python
-  #       uses: actions/setup-python@v6
-  #       with:
-  #         python-version: "3.13"
-
-  #     - name: Set up poetry
-  #       uses: hpcflow/github-support/setup-poetry@main
-  #       timeout-minutes: ${{ inputs.install-poetry-timeout-minutes }}
-  #       with:
-  #         version: ${{ inputs.poetry-version }}
-
-  #     - name: Cache dependencies
-  #       uses: hpcflow/github-support/init-cache@main
-  #       with:
-  #         name: test
-  #         version: "3.13"
-
-  #     - name: Install dependencies
-  #       timeout-minutes: ${{ inputs.install-timeout-minutes }}
-  #       run: |
-  #         poetry install --without dev,pyinstaller
-
-  #     - name: Cache all app data and programs
-  #       run: |
-  #         poetry run python -m ${{ inputs.CLI_module }} manage cache-all
-
-  #     - name: Upload all cached app data/programs
-  #       id: upload-cached-app-data
-  #       uses: actions/upload-artifact@v6
-  #       with:
-  #         name: matflow-app-data-cache
-  #         path: ~/.cache/matflow
-
   test-demo-workflows:
-    # needs: [cache-app-data]
     permissions:
       # No write permission
       contents: read
@@ -79,12 +38,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ inputs.python-version }}
-
-      # - name: Download prepared cached app data
-      #   uses: actions/download-artifact@v7
-      #   with:
-      #     name: matflow-app-data-cache
-      #     path: matflow-app-data-cache
 
       - name: Set up poetry
         uses: hpcflow/github-support/setup-poetry@main
@@ -117,15 +70,6 @@ jobs:
           poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2 --option u ${{ env.UID }}:${{ env.GID }}
           result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
-
-      # - name: Install cached app data
-      #   env:
-      #     PYTHONUTF8: 1
-      #   run: |
-      #     poetry run matflow data install-cache matflow-app-data-cache/data
-      #     poetry run matflow data --list
-      #     poetry run matflow program install-cache matflow-app-data-cache/programs          
-      #     poetry run matflow program --list
 
       - name: Run demo workflows       
         env:
