@@ -1887,8 +1887,12 @@
   inputs:
     - parameter: x
     - parameter: prop_std
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state.py>>
       script_data_in: direct
@@ -1904,8 +1908,12 @@
   inputs:
     - parameter: x
     - parameter: prop_std
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null    
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state_CS.py>>
       script_data_in: direct
@@ -1922,8 +1930,12 @@
     - parameter: x
     - parameter: prop_std
     - parameter: lambda_
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null    
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state_ACS.py>>
       script_data_in: direct
