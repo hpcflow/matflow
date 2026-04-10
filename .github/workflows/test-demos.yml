@@ -2,7 +2,22 @@ name: Test demo workflows
 
 on:
   workflow_dispatch: # manual invocation
-
+    inputs:
+      pytest_args:
+        required: false
+        type: string
+        description: Extra arguments to pass to pytest.
+        default: ""
+      poetry-version:
+        required: false
+        type: string
+        description: Version of Poetry.
+        default: "2.1.3"
+      python-version:
+        required: false
+        type: string
+        description: Version of Python.
+        default: "3.13"        
 jobs:
   # cache-app-data:
   #   permissions:
@@ -45,8 +60,8 @@ jobs:
   #       id: upload-cached-app-data
   #       uses: actions/upload-artifact@v6
   #       with:
-  #         name: ${{ inputs.executable_name }}-app-data-cache
-  #         path: ~/.cache/${{ inputs.executable_name }}
+  #         name: matflow-app-data-cache
+  #         path: ~/.cache/matflow
 
   test-demo-workflows:
     # needs: [cache-app-data]
@@ -58,22 +73,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.ref }}
 
-      - name: Set up python ${{ matrix.python-version }}
+      - name: Set up python ${{ inputs.python-version }}
         uses: actions/setup-python@v6
         with:
-          python-version: 3.13
+          python-version: ${{ inputs.python-version }}
 
       # - name: Download prepared cached app data
       #   uses: actions/download-artifact@v7
       #   with:
-      #     name: ${{ inputs.executable_name }}-app-data-cache
-      #     path: ${{ inputs.executable_name }}-app-data-cache
+      #     name: matflow-app-data-cache
+      #     path: matflow-app-data-cache
 
       - name: Set up poetry
         uses: hpcflow/github-support/setup-poetry@main
-        timeout-minutes: ${{ inputs.install-poetry-timeout-minutes }}
         with:
           version: ${{ inputs.poetry-version }}
 
@@ -81,33 +95,32 @@ jobs:
         uses: hpcflow/github-support/init-cache@main
         with:
           name: test
-          version: ${{ matrix.python-version }}
+          version: ${{ inputs.python-version }}
 
       - name: Install dependencies
-        timeout-minutes: ${{ inputs.install-timeout-minutes }}
         run: |
           poetry install --without dev,pyinstaller
 
       - name: Install necessary MatFlow environments
         id: configure_envs
         run: |
-          poetry run ${{ inputs.executable_name }} env setup python-all --use-current
-          poetry run ${{ inputs.executable_name }} env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2
-          result=$(poetry run ${{ inputs.executable_name }} env info source_file -l python)
+          poetry run matflow env setup python-all --use-current
+          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2
+          result=$(poetry run matflow env info source_file -l python)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 
       # - name: Install cached app data
       #   env:
       #     PYTHONUTF8: 1
       #   run: |
-      #     poetry run ${{ inputs.executable_name }} data install-cache ${{ inputs.executable_name }}-app-data-cache/data
-      #     poetry run ${{ inputs.executable_name }} data --list
-      #     poetry run ${{ inputs.executable_name }} program install-cache ${{ inputs.executable_name }}-app-data-cache/programs          
-      #     poetry run ${{ inputs.executable_name }} program --list
+      #     poetry run matflow data install-cache matflow-app-data-cache/data
+      #     poetry run matflow data --list
+      #     poetry run matflow program install-cache matflow-app-data-cache/programs          
+      #     poetry run matflow program --list
 
       - name: Run demo workflows       
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: ok
         run: |
-          poetry run ${{ inputs.executable_name }} test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-workflows
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-workflows
