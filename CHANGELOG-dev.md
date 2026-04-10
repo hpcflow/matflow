@@ -1,4 +1,75 @@
 
+<a name="v0.3.0a242"></a>
+## [v0.3.0a242](https://github.com/hpcflow/matflow/compare/v0.3.0a241...v0.3.0a242) - 2026.04.10
+
+### ✨ Features
+
+* support random seed in `seeds_from_random`
+
+### 🐛 Bug Fixes
+
+* variables in test-demos for PR-triggered run
+* docker run command in damask env setup
+* pass permissions to damask docker image command in test-demos
+* missing pip dep
+* test-demos
+* test-demos
+* disable DAMASKs parallel VTK writing on Windows
+* respect config overrides in `isolated_app_config` fixture
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a241"></a>
+## [v0.3.0a241](https://github.com/hpcflow/matflow/compare/v0.3.0a240...v0.3.0a241) - 2026.04.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a240"></a>
+## [v0.3.0a240](https://github.com/hpcflow/matflow/compare/v0.3.0a239...v0.3.0a240) - 2026.04.09
+
+### 🐛 Bug Fixes
+
+* script `modify_VE_spread_orientations` so Zarr arrays are cast to numpy
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a239"></a>
+## [v0.3.0a239](https://github.com/hpcflow/matflow/compare/v0.3.0a238...v0.3.0a239) - 2026.04.09
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a238"></a>
+## [v0.3.0a238](https://github.com/hpcflow/matflow/compare/v0.3.0a237...v0.3.0a238) - 2026.04.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a237"></a>
 ## [v0.3.0a237](https://github.com/hpcflow/matflow/compare/v0.3.0a236...v0.3.0a237) - 2026.03.26
 

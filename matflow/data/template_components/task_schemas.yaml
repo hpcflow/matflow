@@ -142,6 +142,8 @@
     - parameter: VE_size
     - parameter: num_grains
     - parameter: phase_label
+    - parameter: random_seed
+      default_value: resource_value
   outputs:
     - parameter: microstructure_seeds
   actions:
@@ -1502,6 +1504,24 @@
             type: any
           environment: damask_parse_env
       script: <<script:damask/modify_VE_grid_size.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+
+- objective: modify_VE
+  method: spread_orientations
+  inputs:
+    - parameter: volume_element
+    - parameter: phases
+    - parameter: stddev_degrees
+  outputs:
+    - parameter: volume_element
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+      script: <<script:damask/modify_VE_spread_orientations.py>>
       script_data_in: direct
       script_data_out: direct
       script_exe: python_script

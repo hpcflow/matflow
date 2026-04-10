@@ -141,6 +141,19 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         default="singularity",
         help="Singularity executable file.",
     )
+    @click.option(
+        "--option",
+        "options",
+        nargs=2,
+        multiple=True,
+        help="Additional options to pass to the docker/singularity run command",
+    )
+    @click.option(
+        "--replace/--no-replace",
+        is_flag=True,
+        default=False,
+        help="If True, replace existing environment.",
+    )
     def damask(
         docker_image: str | None,
         docker_archive: str | Path | None,
@@ -148,6 +161,8 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         singularity_sif: str | Path | None,
         docker_exe: str | Path,
         singularity_exe: str | Path,
+        options: list[tuple[str, str]] | None,
+        replace: bool,
     ):
         """Configure the DAMASK environment.
 
@@ -162,8 +177,9 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
             singularity_archive=singularity_archive,
             singularity_sif=singularity_sif,
             singularity_exe=singularity_exe,
+            options={opt_key: opt_val for opt_key, opt_val in (options or [])} or None,
         )
-        app.save_env(env)
+        app.save_env(env, replace=replace)
 
     @click.command()
     @click.option(
