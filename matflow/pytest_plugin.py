@@ -15,12 +15,23 @@ import matflow as mf
 
 
 def pytest_addoption(parser: pytest.Parser):
-
+    parser.addoption(
+        "--unit",
+        action="store_true",
+        default=False,
+        help="run unit tests",
+    )
     parser.addoption(
         "--integration",
         action="store_true",
         default=False,
-        help="run integration-like workflow submission tests",
+        help="run integration tests",
+    )
+    parser.addoption(
+        "--demo-workflows",
+        action="store_true",
+        default=False,
+        help="run demo workflow tests",
     )
     parser.addoption(
         "--repeat",
@@ -47,11 +58,22 @@ def pytest_addoption(parser: pytest.Parser):
             "during testing."
         ),
     )
+    parser.addoption(
+        "--fig-dir",
+        action="store",
+        default=None,
+        help="Directory where matplotlib figures are saved",
+    )
+    parser.addoption(
+        "--save-reference",
+        action="store_true",
+        default=False,
+        help="Regenerate and overwrite reference data from demo workflows.",
+    )
 
 
 def pytest_configure(config: pytest.Config):
-    config.addinivalue_line(
-        "markers",
-        "integration: mark test as an integration-like workflow submission test to run",
-    )
+    config.addinivalue_line("markers", "unit: mark a unit test")
+    config.addinivalue_line("markers", "integration: mark an integration test")
+    config.addinivalue_line("markers", "demo_workflows: mark a demo workflow test")
     mf.run_time_info.in_pytest = True

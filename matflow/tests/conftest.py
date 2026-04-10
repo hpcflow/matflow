@@ -3,10 +3,15 @@ Configuration and standard fixtures for PyTest.
 """
 
 from __future__ import annotations
+import copy
+import itertools
 from pathlib import Path
+import re
 import numpy as np
 import pytest
 from click.testing import CliRunner
+from hpcflow.sdk.core.utils import get_file_context
+
 import matflow as mf
 from matflow.param_classes.load import LoadCase, LoadStep
 from matflow.param_classes.orientations import (
@@ -21,20 +26,38 @@ from matflow.param_classes.orientations import (
 from matflow.param_classes.seeds import MicrostructureSeeds
 
 
+def has_marker(item, name):
+    return any(m.name == name for m in item.iter_markers())
+
+
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
-    if config.getoption("--integration"):
-        # --integration in CLI: only run these tests
-        for item in items:
-            if "integration" not in item.keywords:
-                item.add_marker(
-                    pytest.mark.skip(reason="remove --integration option to run")
-                )
-    else:
-        for item in items:
-            if "integration" in item.keywords:
-                item.add_marker(
-                    pytest.mark.skip(reason="add --integration option to run")
-                )
+
+    all_markers = ("unit", "integration", "demo_workflows")
+
+    run_unit = config.getoption("--unit")
+    run_integration = config.getoption("--integration")
+    run_demo = config.getoption("--demo-workflows")
+
+    # if no flags are passed, default to unit tests:
+    if not (run_unit or run_integration or run_demo):
+        run_unit = True
+
+    for item in items:
+
+        # assign default marker if none
+        if not any(has_marker(item, marker) for marker in all_markers):
+            item.add_marker(pytest.mark.unit)
+
+        is_unit = has_marker(item, "unit")
+        is_integration = has_marker(item, "integration")
+        is_demo = has_marker(item, "demo_workflows")
+
+        if not (
+            (run_unit and is_unit)
+            or (run_integration and is_integration)
+            or (run_demo and is_demo)
+        ):
+            item.add_marker(pytest.mark.skip(reason="skipped by selected test groups"))
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -44,9 +67,13 @@ def isolated_app_config(tmp_path_factory, pytestconfig):
     mf.run_time_info.in_pytest = True
     original_config_dir = mf.config.config_directory
     original_config_key = mf.config.config_key
+
+    # honour config overrides provided via top-level CLI options `--with-config`:
+    overrides = copy.deepcopy(mf.config._overrides)
+
     mf.unload_config()
     new_config_dir = tmp_path_factory.mktemp("app_config")
-    mf.load_config(config_dir=new_config_dir)
+    mf.load_config(config_dir=new_config_dir, overrides=overrides)
 
     if pytestconfig.getoption("--configure-python-env"):
         # for setting up a Python env using the currently active virtual/conda env:
@@ -63,7 +90,11 @@ def isolated_app_config(tmp_path_factory, pytestconfig):
 
     yield
     mf.unload_config()
-    mf.load_config(config_dir=original_config_dir, config_key=original_config_key)
+    mf.load_config(
+        config_dir=original_config_dir,
+        config_key=original_config_key,
+        overrides=overrides,
+    )
     mf.run_time_info.in_pytest = False
 
 
@@ -121,6 +152,145 @@ def pytest_generate_tests(metafunc):
     if repeats_num > 1:
         metafunc.fixturenames.append("tmp_ct")
         metafunc.parametrize("tmp_ct", range(repeats_num))
+
+
+def sanitize_nodeid(nodeid: str) -> str:
+    """Return a sanitized pytest node ID that can be used as a legal file name on all
+    platforms."""
+    s = nodeid.replace("::", "__")
+    s = re.sub(r'[<>:"/\\|?*\[\]]+', "_", s)
+    s = re.sub(r"_+", "_", s)
+    return s.strip("_")
+
+
+@pytest.fixture(scope="session")
+def fig_dir(tmp_path_factory, pytestconfig):
+    fig_dir = pytestconfig.getoption("--fig-dir")
+    if fig_dir:
+        path = Path(fig_dir)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+    return tmp_path_factory.mktemp("figures")
+
+
+@pytest.fixture
+def nodeid_str(request) -> str:
+    return sanitize_nodeid(request.node.nodeid)
+
+
+@pytest.fixture
+def nodename_str(request) -> str:
+    return sanitize_nodeid(request.node.name)
+
+
+@pytest.fixture
+def fig_output_dir(fig_dir):
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    return fig_dir
+
+
+@pytest.fixture
+def save_fig(fig_output_dir, nodeid_str):
+    """Fixture to save a matplotlib figure to the figure output directory, optionally
+    with a custom file name."""
+    counter = itertools.count(1)
+
+    def _save(fig, name=None):
+        if name is None:
+            name = f"{nodeid_str}_figure_{next(counter)}.png"
+        fig.suptitle(name, fontsize="small")
+        fig.savefig(fig_output_dir / name)
+
+    return _save
+
+
+@pytest.fixture
+def save_fig(fig_output_dir, reference_dir_for_test, pytestconfig):
+    """Save a matplotlib figure.
+
+    - If --save-reference: save into reference_dir
+    - Otherwise: save into fig_output_dir (temporary/artifact)
+    """
+    counter = itertools.count(1)
+    save = pytestconfig.getoption("--save-reference")
+    reference_dir_for_test.mkdir(parents=True, exist_ok=True)
+
+    def _handle(fig, name=None):
+        if name is None:
+            name = f"figure_{next(counter)}.png"
+
+        fig.suptitle(name, fontsize="small")
+
+        fig_path = fig_output_dir / name
+        fig_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(fig_path)
+
+        if save:
+            ref_path = reference_dir_for_test / name
+            ref_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(ref_path)
+
+    return _handle
+
+
+@pytest.fixture
+def reference_dir_for_test(nodename_str):
+    with get_file_context("matflow.tests.data.reference") as file_path:
+        return file_path / nodename_str
+
+
+@pytest.fixture
+def reference_array_data(reference_dir_for_test, pytestconfig):
+    save = pytestconfig.getoption("--save-reference")
+    reference_dir_for_test.mkdir(parents=True, exist_ok=True)
+    recorded_any = False
+
+    def _handle(data, *, name, rtol=1e-6, atol=1e-12):
+        nonlocal recorded_any
+        ref_path = reference_dir_for_test / name
+
+        if save:
+            if name.endswith(".npz"):
+                np.savez(ref_path, **data)
+            else:
+                np.save(ref_path, data)
+
+            recorded_any = True
+            return
+
+        if not ref_path.exists():
+            pytest.fail(
+                f"Missing reference data: {ref_path}\n"
+                "Run with --save-reference to create it."
+            )
+
+        ref = np.load(ref_path)
+        if name.endswith(".npz"):
+            for key, arr in data.items():
+                if key not in ref:
+                    pytest.fail(f"Missing key '{key}' in {ref_path}")
+
+                np.testing.assert_allclose(
+                    arr,
+                    ref[key],
+                    rtol=rtol,
+                    atol=atol,
+                    err_msg=f"{key} mismatch in {ref_path}",
+                )
+
+            # optional: check for unexpected keys
+            extra = set(ref.files) - set(data.keys())
+            if extra:
+                pytest.fail(f"Unexpected keys {extra} in {ref_path}")
+
+        else:
+            np.testing.assert_allclose(data, ref, rtol=rtol, atol=atol)
+
+    yield _handle
+
+    # teardown
+    if save and recorded_any:
+        pytest.skip("reference data recorded")
 
 
 @pytest.fixture
