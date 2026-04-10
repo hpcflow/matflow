@@ -3,6 +3,7 @@ import pytest
 from hpcflow.sdk.core.enums import EARStatus
 
 import matflow as mf
+from matflow.tests.subset_simulation import generate_next_state, subset_simulation
 
 
 @pytest.mark.demo_workflows
@@ -47,3 +48,47 @@ def test_damask_input_files(tmp_path, save_fig, reference_array_data):
         name="stress_strain.npz",
         rtol=1e-10,
     )
+
+
+@pytest.mark.demo_workflows
+def test_subset_simulation_toy_model_prediction(tmp_path):
+    """Validate the MatFlow subset simulation implementation for a toy model.
+
+    Note this test must be run with a `--with-env-source /path/to/envs.yaml` option that
+    points to an environment file with definitions for:
+     - `damask_parse_env`
+
+    """
+
+    seed = 1234
+
+    # run via a MatFlow workflow:
+    wk = mf.make_and_submit_demo_workflow(
+        "subset_simulation_toy_model",
+        path=tmp_path,
+        status=False,
+        add_to_known=False,
+        wait=True,
+        resources={"random_seed": seed},
+    )
+    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
+    pf = final_iter.get("outputs.pf")
+    cov = final_iter.get("outputs.cov")
+
+    # run via single function implementation:
+    pf_sf, cov_sf = subset_simulation(
+        dimension=200,
+        target_pf=1e-4,
+        p_0=0.1,
+        num_samples=100,
+        num_levels=7,
+        next_state=generate_next_state,
+        next_state_kwargs={
+            "prop_std": 1.0,
+        },
+        master_seed=seed,
+        mimic_matflow=True,
+    )
+
+    assert pf == pf_sf
+    assert cov == cov_sf

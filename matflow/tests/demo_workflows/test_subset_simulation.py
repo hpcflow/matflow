@@ -1,6 +1,5 @@
 import pytest
 import matflow as mf
-from matflow.tests.subset_simulation import subset_simulation
 
 
 @pytest.mark.integration
@@ -395,35 +394,3 @@ def test_subset_sim_DAMASK_Mg_two_level_parameter_flow(
                 inc_chain_iters[l_idx].get_data_idx()["inputs.g"]
                 == iter_i.get_data_idx()["outputs.g"]
             )
-
-
-@pytest.mark.integration
-@pytest.mark.skip(reason="Needs changes in PR #526")
-def test_subset_simulation_toy_model_prediction(tmp_path):
-    """Validate the MatFlow subset simulation implementation for a toy"""
-
-    # run via a MatFlow workflow:
-    wk = mf.make_and_submit_demo_workflow(
-        "subset_simulation_toy_model",
-        path=tmp_path,
-        status=False,
-        add_to_known=False,
-        wait=True,
-    )
-    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
-    pf = final_iter.get("outputs.pf")
-    cov = final_iter.get("outputs.cov")
-
-    # run via single function implementation:
-    pf_sf, cov_sf = subset_simulation(
-        dimension=200,
-        target_pf=1e-4,
-        p_0=0.1,
-        num_samples=100,
-        num_levels=7,
-        prop_std=1.0,
-        master_seed=1234,  # match the master seed in the demo workflow
-    )
-
-    assert pf == pf_sf
-    assert cov == cov_sf
