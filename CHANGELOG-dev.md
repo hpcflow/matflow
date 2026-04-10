@@ -1,4 +1,27 @@
 
+<a name="v0.3.0a242"></a>
+## [v0.3.0a242](https://github.com/hpcflow/matflow/compare/v0.3.0a241...v0.3.0a242) - 2026.04.10
+
+### ✨ Features
+
+* support random seed in `seeds_from_random`
+
+### 🐛 Bug Fixes
+
+* variables in test-demos for PR-triggered run
+* docker run command in damask env setup
+* pass permissions to damask docker image command in test-demos
+* missing pip dep
+* test-demos
+* test-demos
+* disable DAMASKs parallel VTK writing on Windows
+* respect config overrides in `isolated_app_config` fixture
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a241"></a>
 ## [v0.3.0a241](https://github.com/hpcflow/matflow/compare/v0.3.0a240...v0.3.0a241) - 2026.04.10
 
