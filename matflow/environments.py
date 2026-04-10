@@ -340,14 +340,12 @@ def env_configure_damask(
         if use_docker:
             DAMASK_GRID_CMD = {
                 "bash": (
-                    f"{docker_exe} run --rm --interactive --volume $PWD:/wd --env "
-                    f"{opts_fmt}"
-                    f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
+                    f"{docker_exe} run --rm --interactive --volume $PWD:/wd {opts_fmt}"
+                    f"--env OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
                 ),
                 "powershell": (
-                    f"{docker_exe} run --rm --interactive --volume ${{PWD}}:/wd --env "
-                    f"{opts_fmt}"
-                    f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
+                    f"{docker_exe} run --rm --interactive --volume ${{PWD}}:/wd {opts_fmt}"
+                    f"--env OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
                 ),
             }
     elif use_singularity:
@@ -363,7 +361,7 @@ def env_configure_damask(
 
         DAMASK_GRID_CMD = {
             "bash": (
-                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} --env {opts_fmt}"
+                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} {opts_fmt}--env "
                 f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS"
             ),
         }
