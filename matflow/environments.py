@@ -283,6 +283,7 @@ def env_configure_damask(
     singularity_sif: str | Path | None = None,
     docker_exe: str = "docker",
     singularity_exe: str = "singularity",
+    options: dict[str, str] | None = None,
 ):
     """Configure the MatFlow DAMASK environment.
 
@@ -301,10 +302,21 @@ def env_configure_damask(
         sif file to use.
     singularity_sif
         File path to a Singularity sif file to use.
+    options
+        Additional options to use when running the docker/singularity image. Keys will be
+        prefixed with a single dash for single letter keys or a double dash for
+        multi-letter keys.
     """
 
     use_docker = bool(docker_image or docker_archive)
     use_singularity = bool(singularity_sif or singularity_archive)
+
+    opts_fmt = " ".join(
+        f"{'-' if len(opt_key) == 1 else '--'}{opt_key} {opt_val}"
+        for opt_key, opt_val in (options or {}).items()
+    )
+    if opts_fmt:
+        opts_fmt += " "
 
     if use_docker and use_singularity:
         raise ValueError("Cannot use both singularity and docker!")
@@ -329,10 +341,12 @@ def env_configure_damask(
             DAMASK_GRID_CMD = {
                 "bash": (
                     f"{docker_exe} run --rm --interactive --volume $PWD:/wd --env "
+                    f"{opts_fmt}"
                     f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
                 ),
                 "powershell": (
                     f"{docker_exe} run --rm --interactive --volume ${{PWD}}:/wd --env "
+                    f"{opts_fmt}"
                     f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS {docker_image}"
                 ),
             }
@@ -349,7 +363,7 @@ def env_configure_damask(
 
         DAMASK_GRID_CMD = {
             "bash": (
-                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} --env "
+                f"{singularity_exe} run -B $PWD:/wd {singularity_sif} --env {opts_fmt}"
                 f"OMP_NUM_THREADS=$MATFLOW_RUN_NUM_THREADS"
             ),
         }

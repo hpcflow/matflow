@@ -101,6 +101,11 @@ jobs:
         run: |
           poetry install --without dev,pyinstaller
 
+      - name: Store user and group IDs
+        run: |
+          echo "UID=$(id -u)" >> $GITHUB_ENV
+          echo "GID=$(id -g)" >> $GITHUB_ENV
+
       - name: Install necessary pip packages
         run: |
           poetry run pip install damask-parse
@@ -109,7 +114,7 @@ jobs:
         id: configure_envs
         run: |
           poetry run matflow env setup python-all --use-current
-          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2
+          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2 --option u ${{ env.UID }}:${{ env.GID }}
           result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 
