@@ -2,7 +2,7 @@ name: Documentation
 run-name: doc
 env:
   PYTHON_VERSION: "3.13"
-  POETRY_VERSION: "1.4"
+  POETRY_VERSION: "2.1.3"
 on: push
 jobs:
   sphinx:
@@ -10,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Init Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install and configure poetry ${{ env.POETRY_VERSION }}
-        uses: hpcflow/github-support/setup-poetry@0.1
+        uses: hpcflow/github-support/setup-poetry@main
         with:
           version: ${{ env.POETRY_VERSION }}
       - name: Cache Virtual Environment
-        uses: hpcflow/github-support/init-cache@0.1
+        uses: hpcflow/github-support/init-cache@main
         with:
           name: sphinx
           version: ${{ env.PYTHON_VERSION }}
@@ -36,7 +36,7 @@ jobs:
           poetry run make clean html
         working-directory: docs
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: matflow-documentation (${{ github.sha }})
           path: docs/build/html

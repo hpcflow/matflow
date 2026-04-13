@@ -8,7 +8,7 @@ on:
         default: '["3.12"]'
       num_elements:
         description: "How many elements to make in the workflow."
-        default: '[1, 10, 100, 1000, 10000]'
+        default: "[1, 10, 100, 1000, 10000]"
       platform:
         description: "Which OS to use."
         default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
