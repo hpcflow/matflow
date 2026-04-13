@@ -5,7 +5,7 @@ on:
     inputs:
       python:
         description: "Which Pythons to use."
-        default: '["3.13"]'
+        default: '["3.12"]'
       num_elements:
         description: "How many elements to make in the workflow."
         default: "[1, 10, 100, 1000, 10000]"

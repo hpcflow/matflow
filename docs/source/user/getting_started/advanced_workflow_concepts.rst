@@ -49,14 +49,13 @@
   .. code-block:: yaml
 
       actions:
-      - environments:
-      - scope:
-          type: processing
-          environment: damask_parse_env
-      - scope:
-          type: main
-          environment: damask_env
-
+        - environments:
+        - scope:
+            type: processing
+            environment: damask_parse_env
+        - scope:
+            type: main
+            environment: damask_env
 
   {{ app_name }} is then looking for a match within your environment definitions for the requested
   resources, and will run the command which matches those resources.
@@ -101,14 +100,14 @@
   .. code-block:: yaml
 
       tasks:
-      - schema: my_schema
-        sequences:
+        - schema: my_schema
+      sequences:
         - path: inputs.conductance_value
-          values:
-          - 0
-          - 100
-          - 200
-          nesting_order: 0
+      values:
+        - 0
+        - 100
+        - 200
+      nesting_order: 0
 
   Groups
   -------
@@ -119,7 +118,7 @@
 
     - objective: my_task_schema
       inputs:
-      - parameter: p2
+        - parameter: p2
           group: my_group
 
   combined with a ``groups`` entry in the task itself.
@@ -128,8 +127,7 @@
 
     - schema: my_task_schema
       groups:
-      - name: my_group
-
+        - name: my_group
 
   Then whichever parameters are linked with the group in the task schema will be received by the task as a list.
 
@@ -157,15 +155,15 @@
 
   .. code-block:: yaml
 
-      task_schemas:
+    task_schemas:
       - objective: my_task_schema
-      actions:
+    actions:
       - input_file_generators:
-        - input_file: my_command_file
-          from_inputs:
-          - my_input_1
-          - my_input_2
-          script: <<script:/full/path/to/generate_input_file.py>>
+          - input_file: my_command_file
+            from_inputs:
+              - my_input_1
+              - my_input_2
+            script: <<script:/full/path/to/generate_input_file.py>>
 
   Output file parsers
   ~~~~~~~~~~~~~~~~~~~
@@ -188,14 +186,14 @@
       output_file_parsers:
         return_parameter: # This should be listed as an output parameter for the task schema
           from_files:
-          - command_file1
-          - command_file2
+            - command_file1
+            - command_file2
           script: <<script:your_processing_script.py>>
           save_files:
-          - command_file_you_want_to_save
+            - command_file_you_want_to_save
           inputs:
-          - input1
-          - input2
+            - input1
+            - input2
 
   The output_file_parser script that is run as the action should return one variable,
   rather than a dictionary. This is different behaviour to

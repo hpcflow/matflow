@@ -13,7 +13,7 @@
     "bot_account_name": "hpcflow-actions",
     "bot_account_email": "hpcflow-actions@users.noreply.github.com",
     "token_name": "HPCFLOW_ACTIONS_TOKEN", // as defined within the `secrets` context: PAT of user who has permission to bypass branch protection
-    "pytest_args": "--verbose --exitfirst",
+    "pytest_args": "",
     "PYPI_token_name": "PYPI", // or "TEST_PYPI", as defined within the `secrets` context
     "PYPI_URL": "https://upload.pypi.org/legacy/", // "https://test.pypi.org/legacy/",
     "executable_name": "matflow",

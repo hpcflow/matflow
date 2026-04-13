@@ -15,3 +15,4 @@ This help snippets guide you through common quick tasks in |app_name|.
    Meta-tasks <meta_tasks>
    Loops <loops>
    Resources <resources>
+   Secrets <secrets>

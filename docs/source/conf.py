@@ -263,6 +263,7 @@ html_context = {
 jinja_contexts = {
     "first_ctx": {
         "app_name": app.name,
+        "app_caps": app.name.upper(),
         "app_version": app.version,
         "app_description": app.description,
         "app_package_name": app.package_name,

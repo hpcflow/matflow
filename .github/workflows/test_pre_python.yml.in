@@ -7,4 +7,4 @@ jobs:
     with:
       {% raw %}ref: ${{ github.ref }}
       head-ref: ${{ github.head_ref }}{% endraw %}
-      pytest-args: {{ pytest_args }}
+      pytest-args:{%- if pytest_args %} {{ pytest_args }}{%- else %} ""{%- endif %}
