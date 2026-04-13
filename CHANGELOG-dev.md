@@ -1,4 +1,14 @@
 
+<a name="v0.3.0a244"></a>
+## [v0.3.0a244](https://github.com/hpcflow/matflow/compare/v0.3.0a243...v0.3.0a244) - 2026.04.13
+
+### 👷 Build changes
+
+* sync updates from docs repo
+* sync updates from CI and docs repos
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a243"></a>
 ## [v0.3.0a243](https://github.com/hpcflow/matflow/compare/v0.3.0a242...v0.3.0a243) - 2026.04.10
 
