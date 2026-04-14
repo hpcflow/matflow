@@ -619,14 +619,14 @@ unicode-backport = ["unicodedata2"]
 
 [[package]]
 name = "click"
-version = "8.3.0"
+version = "8.3.2"
 description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev", "test"]
 files = [
-    {file = "click-8.3.0-py3-none-any.whl", hash = "sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc"},
-    {file = "click-8.3.0.tar.gz", hash = "sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4"},
+    {file = "click-8.3.2-py3-none-any.whl", hash = "sha256:1924d2c27c5653561cd2cae4548d1406039cb79b858b747cfea24924bbc1616d"},
+    {file = "click-8.3.2.tar.gz", hash = "sha256:14162b8b3b3550a7d479eafa77dfd3c38d9dc8951f6f69c78913a8f9a7540fd5"},
 ]
 
 [package.dependencies]
@@ -1546,19 +1546,19 @@ numpy = ">=1.21.2"
 
 [[package]]
 name = "hpcflow"
-version = "0.2.0a311"
+version = "0.2.0a312"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["main"]
 files = [
-    {file = "hpcflow-0.2.0a311-py3-none-any.whl", hash = "sha256:09f2b750c2e6f02617c0cc857e117e436b9e84ca8bf573b23d6055e0de9896b9"},
-    {file = "hpcflow-0.2.0a311.tar.gz", hash = "sha256:8657ebbe650f89f3fbe70b9c98f5d076434305b0b6b37edffe0b49f1006029b4"},
+    {file = "hpcflow-0.2.0a312-py3-none-any.whl", hash = "sha256:6b81ca9608ef58ee996550d5e4dbbb957ca3daa66ab7078fe3e5f0ac36f6ff85"},
+    {file = "hpcflow-0.2.0a312.tar.gz", hash = "sha256:415401a9936d0a4a9c3eb306cc9652809475103c73919539ac2c26232084989f"},
 ]
 
 [package.dependencies]
-aiohttp = ">=3.13.4,<4.0.0"
-click = ">=8.1.3,<9.0.0"
+aiohttp = ">=3.13.5,<4.0.0"
+click = ">=8.3.2,<9.0.0"
 colorama = ">=0.4.6,<0.5.0"
 fsspec = ">=2026.3.0,<2027.0.0"
 h5py = ">=3.16.0,<4.0.0"
@@ -1574,12 +1574,12 @@ numpy = [
     {version = ">=2.2.4,<3.0.0", markers = "python_version >= \"3.13\""},
 ]
 paramiko = ">=3.2,<5.0"
-platformdirs = ">=4.9.4,<5.0.0"
+platformdirs = ">=4.9.6,<5.0.0"
 psutil = ">=5.9.4,<8.0.0"
 pyzmq = ">=26.0.3,<28.0.0"
 requests = ">=2.33.1,<3.0.0"
 reretry = ">=0.11.8,<0.12.0"
-rich = ">=13.4.2,<15.0.0"
+rich = ">=15.0.0,<16.0.0"
 ruamel-yaml = ">=0.18.17,<0.19.0"
 scipy = {version = ">=1.15.2,<2.0.0", markers = "python_version >= \"3.10\""}
 termcolor = ">=1.1,<4.0"
@@ -1589,7 +1589,7 @@ watchdog = ">=6.0.0,<7.0.0"
 zarr = "2.17.2"
 
 [package.extras]
-test = ["pytest (>=7.2,<10.0)"]
+test = ["pytest (>=9.0.3,<10.0)"]
 
 [[package]]
 name = "identify"
@@ -3337,14 +3337,14 @@ xmp = ["defusedxml"]
 
 [[package]]
 name = "platformdirs"
-version = "4.9.4"
+version = "4.9.6"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev", "test"]
 files = [
-    {file = "platformdirs-4.9.4-py3-none-any.whl", hash = "sha256:68a9a4619a666ea6439f2ff250c12a853cd1cbd5158d258bd824a7df6be2f868"},
-    {file = "platformdirs-4.9.4.tar.gz", hash = "sha256:1ec356301b7dc906d83f371c8f487070e99d3ccf9e501686456394622a01a934"},
+    {file = "platformdirs-4.9.6-py3-none-any.whl", hash = "sha256:e61adb1d5e5cb3441b4b7710bea7e4c12250ca49439228cc1021c00dcfac0917"},
+    {file = "platformdirs-4.9.6.tar.gz", hash = "sha256:3bfa75b0ad0db84096ae777218481852c0ebc6c727b3168c1b9e0118e458cf0a"},
 ]
 
 [[package]]
@@ -4113,14 +4113,14 @@ files = [
 
 [[package]]
 name = "rich"
-version = "14.2.0"
+version = "15.0.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
-python-versions = ">=3.8.0"
+python-versions = ">=3.9.0"
 groups = ["main"]
 files = [
-    {file = "rich-14.2.0-py3-none-any.whl", hash = "sha256:76bc51fe2e57d2b1be1f96c524b890b816e334ab4c1e45888799bfaab0021edd"},
-    {file = "rich-14.2.0.tar.gz", hash = "sha256:73ff50c7c0c1c77c8243079283f4edb376f0f6442433aecb8ce7e6d0b92d1fe4"},
+    {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
+    {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
 ]
 
 [package.dependencies]
@@ -5593,4 +5593,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "0c166ea31a65226307b98a8640aac211099a55a90dae05eddcbf7db4f71f9291"
+content-hash = "217db3caa49a69ffd2c34a4390be07248fb662820dd4e28462808acc1dc56b48"
