@@ -111,6 +111,12 @@ jobs:
         with:
           release: R2024b
 
+      - name: Debug license env
+        run: env | grep MLM
+
+      - name: Check MATLAB licensing
+        run: matlab -batch "disp(getenv('MLM_LICENSE_FILE')); license('test','MATLAB')"
+
       - name: Download MTEX
         run: |
           curl -L -o mtex.zip https://github.com/mtex-toolbox/mtex/releases/download/mtex-${{ env.MTEX_VERSION }}/mtex-${{ env.MTEX_VERSION }}.zip
