@@ -111,11 +111,13 @@ jobs:
         with:
           release: R2024b
 
-      - name: Debug license env
-        run: env | grep MLM
+      - name: Get run-matlab-command
+        run: |
+          wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command
+          chmod +x /usr/local/bin/run-matlab-command
 
-      - name: Check MATLAB licensing
-        run: matlab -batch "disp(getenv('MLM_LICENSE_FILE')); license('test','MATLAB')"
+      - name: Run MATLAB Command
+        run: run-matlab-command "disp('hello world')"
 
       - name: Download MTEX
         run: |
