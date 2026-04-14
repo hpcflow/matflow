@@ -113,7 +113,7 @@ jobs:
 
       - name: Download MTEX
         run: |
-          curl -L -o mtex.zip https://github.com/mtex-toolbox/mtex/archive/refs/tags/v${{ env.MTEX_VERSION }}.zip
+          curl -L -o mtex.zip https://github.com/mtex-toolbox/mtex/releases/download/mtex-${{ env.MTEX_VERSION }}/mtex-${{ env.MTEX_VERSION }}.zip
           unzip mtex.zip
           mv mtex-${{ env.MTEX_VERSION }} ${{ github.workspace }}/mtex
 
