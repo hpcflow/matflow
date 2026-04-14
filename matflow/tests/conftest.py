@@ -32,7 +32,7 @@ def has_marker(item, name):
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
 
-    all_markers = ("unit", "integration", "demo_workflows")
+    all_markers = ("unit", "integration", "demo_damask_workflows", "demo_mtex_workflows")
 
     run_unit = config.getoption("--unit")
     run_integration = config.getoption("--integration")
