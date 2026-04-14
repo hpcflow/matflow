@@ -28,10 +28,16 @@ def pytest_addoption(parser: pytest.Parser):
         help="run integration tests",
     )
     parser.addoption(
-        "--demo-workflows",
+        "--demo-damask-workflows",
         action="store_true",
         default=False,
-        help="run demo workflow tests",
+        help="run demo workflow tests that require DAMASK",
+    )
+    parser.addoption(
+        "--demo-mtex-workflows",
+        action="store_true",
+        default=False,
+        help="run demo workflow tests that require MTEX",
     )
     parser.addoption(
         "--repeat",
@@ -75,5 +81,10 @@ def pytest_addoption(parser: pytest.Parser):
 def pytest_configure(config: pytest.Config):
     config.addinivalue_line("markers", "unit: mark a unit test")
     config.addinivalue_line("markers", "integration: mark an integration test")
-    config.addinivalue_line("markers", "demo_workflows: mark a demo workflow test")
+    config.addinivalue_line(
+        "markers", "demo_damask_workflows: mark a demo DAMASK workflow test"
+    )
+    config.addinivalue_line(
+        "markers", "demo_mtex_workflows: mark a demo MTEX workflow test"
+    )
     mf.run_time_info.in_pytest = True

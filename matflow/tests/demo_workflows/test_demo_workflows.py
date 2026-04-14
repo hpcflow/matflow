@@ -6,7 +6,7 @@ import matflow as mf
 from matflow.tests.subset_simulation import generate_next_state, subset_simulation
 
 
-@pytest.mark.demo_workflows
+@pytest.mark.demo_damask_workflows
 def test_damask_input_files(tmp_path, save_fig, reference_array_data):
     """Test submission and check the stress-strain curve from a simple DAMASK workflow,
     with specific input files provided.
@@ -50,7 +50,7 @@ def test_damask_input_files(tmp_path, save_fig, reference_array_data):
     )
 
 
-@pytest.mark.demo_workflows
+@pytest.mark.demo_damask_workflows
 def test_subset_simulation_toy_model_prediction(tmp_path):
     """Validate the MatFlow subset simulation implementation for a toy model.
 
@@ -92,3 +92,20 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
 
     assert pf == pf_sf
     assert cov == cov_sf
+
+
+@pytest.mark.demo_mtex_workflows
+def test_sample_orientations(tmp_path):
+    wk = mf.make_and_submit_demo_workflow(
+        "sample_orientations_CTF_file",
+        path=tmp_path,
+        status=False,
+        add_to_known=False,
+        wait=True,
+    )
+    runs = wk.get_all_EARs()
+    assert all(run.status is EARStatus.success for run in runs)
+
+    # TODO: maybe run all MTEX demos on linux only, and then a single dummy script on
+    # windows and mac, just to check matlab and mtex are configured correctly.
+    # could have an option to run the full MTEX demo suite on windows and mac if desired.

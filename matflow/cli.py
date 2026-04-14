@@ -87,9 +87,17 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
 
     @click.command()
     @click.option(
-        "--path",
+        "--exe",
+        help="Absolute path to the MATLAB binary, or just its name if on PATH.",
+    )
+    @click.option(
+        "--mcc",
+        help="Absolute path to the MCC binary, or just its name if on PATH.",
+    )
+    @click.option(
+        "--mtex-path",
         type=click.Path(exists=True, dir_okay=True),
-        help="Absolute path to the MATLAB installation directory.",
+        help="Absolute path to the MTEX installation directory.",
     )
     @click.option(
         "--runtime-path",
@@ -97,19 +105,21 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         help="Absolute path to the MATLAB runtime directory.",
     )
     @click.option(
-        "--mtex-path",
-        type=click.Path(exists=True, dir_okay=True),
-        help="Absolute path to the MTEX installation directory.",
+        "--replace/--no-replace",
+        is_flag=True,
+        default=False,
+        help="If True, replace existing environment.",
     )
-    def matlab(path: Path, runtime_path: Path, mtex_path: Path):
+    def matlab(exe: str, mcc: str, runtime_path: Path, mtex_path: Path, replace: bool):
         """Configure the MATLAB environment for running/compiling MTEX scripts."""
         env = env_configure_matlab(
             shell,
-            matlab_path=path,
+            matlab_exe=exe,
+            mcc_exe=mcc,
             matlab_runtime_path=runtime_path,
             mtex_path=mtex_path,
         )
-        app.save_env(env)
+        app.save_env(env, replace=replace)
 
     @click.command()
     @click.option(

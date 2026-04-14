@@ -4,6 +4,7 @@ env:
   PYTEST_ARGS: ""
   POETRY_VERSION: "2.1.3"
   PYTHON_VERSION: "3.13"
+  MTEX_VERSION: "6.1.1"
 
 on:
   workflow_dispatch: # manual invocation
@@ -12,7 +13,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  test-demo-workflows:
+  test-damask-workflows:
     permissions:
       # No write permission
       contents: read
@@ -36,7 +37,7 @@ jobs:
       - name: Cache dependencies
         uses: hpcflow/github-support/init-cache@main
         with:
-          name: test-demos
+          name: test-damask-demos
           version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
@@ -60,12 +61,76 @@ jobs:
           result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 
-      - name: Run demo workflows       
+      - name: Run demo DAMASK workflows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: ok
         run: |
-          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-workflows
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-damask-workflows
+
+      - name: Upload all pytest temp dirs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-temp
+          path: /tmp/pytest-of-*
+
+  test-mtex-workflows:
+    permissions:
+      # No write permission
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up poetry
+        uses: hpcflow/github-support/setup-poetry@main
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Cache dependencies
+        uses: hpcflow/github-support/init-cache@main
+        with:
+          name: test-mtex-demos
+          version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --without dev,pyinstaller
+
+      - name: Setup MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2024b
+
+      - name: Download MTEX
+        run: |
+          curl -L -o mtex.zip https://github.com/mtex-toolbox/mtex/archive/refs/tags/v${{ env.MTEX_VERSION }}.zip
+          unzip mtex.zip
+          mv mtex-${{ env.MTEX_VERSION }} ${{ github.workspace }}/mtex
+
+      - name: Install necessary MatFlow environments
+        id: configure_envs
+        run: |
+          poetry run matflow env setup python --use-current
+          poetry run matflow env setup matlab --exe matlab --mtex-path ${{ github.workspace }}/mtex
+          result=$(poetry run matflow env info source_file -n python_env)
+          echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
+
+      - name: Run demo MTEX workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUNBUFFERED: ok
+        run: |
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-mtex-workflows
 
       - name: Upload all pytest temp dirs
         if: always()

@@ -36,10 +36,11 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
     run_unit = config.getoption("--unit")
     run_integration = config.getoption("--integration")
-    run_demo = config.getoption("--demo-workflows")
+    run_damask = config.getoption("--demo-damask-workflows")
+    run_mtex = config.getoption("--demo-mtex-workflows")
 
     # if no flags are passed, default to unit tests:
-    if not (run_unit or run_integration or run_demo):
+    if not (run_unit or run_integration or run_damask or run_mtex):
         run_unit = True
 
     for item in items:
@@ -50,12 +51,14 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
         is_unit = has_marker(item, "unit")
         is_integration = has_marker(item, "integration")
-        is_demo = has_marker(item, "demo_workflows")
+        is_damask = has_marker(item, "demo_damask_workflows")
+        is_mtex = has_marker(item, "demo_mtex_workflows")
 
         if not (
             (run_unit and is_unit)
             or (run_integration and is_integration)
-            or (run_demo and is_demo)
+            or (run_damask and is_damask)
+            or (run_mtex and is_mtex)
         ):
             item.add_marker(pytest.mark.skip(reason="skipped by selected test groups"))
 
