@@ -125,6 +125,10 @@ jobs:
           unzip mtex.zip
           mv mtex-${{ env.MTEX_VERSION }} ${{ github.workspace }}/mtex
 
+      - name: Patch MTEX
+        run: |
+          sed -i 's/if ((l >= m) %& (l >= n))/if (l >= m)/' ${{ github.workspace }}/mtex/EBSDAnalysis/@EBSD3square/spatialProfile.m
+
       - name: Install necessary MatFlow environments
         id: configure_envs
         run: |
