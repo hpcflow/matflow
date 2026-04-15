@@ -153,3 +153,10 @@ jobs:
         with:
           name: pytest-temp-mtex
           path: /tmp/pytest-of-*
+
+      - name: Upload mtex
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: MTEX
+          path: ${{ github.workspace }}/mtex
