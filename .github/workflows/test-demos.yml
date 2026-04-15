@@ -129,6 +129,9 @@ jobs:
         run: |
           sed -i 's/if ((l >= m) %& (l >= n))/if (l >= m)/' ${{ github.workspace }}/mtex/EBSDAnalysis/@EBSD3square/spatialProfile.m
 
+      - name: Check we can startup mtex
+        run: run-matlab-command "run('${{ github.workspace }}/mtex/startup_mtex.m');"
+
       - name: Install necessary MatFlow environments
         id: configure_envs
         run: |
