@@ -174,7 +174,9 @@ jobs:
           chmod +x /usr/local/bin/run-matlab-command
 
       - name: Run MATLAB Command
-        run: run-matlab-command "disp('hello world')"
+        run: |
+          env | sort
+          run-matlab-command "disp('hello world')"
 
       - name: Download MTEX
         run: |
