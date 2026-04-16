@@ -121,7 +121,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: ok
         run: |
-          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-damask-workflows ${ env.PYTEST_ARGS }
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-damask-workflows ${{ env.PYTEST_ARGS }}
 
       - name: Upload all pytest temp dirs
         if: always()
