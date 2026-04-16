@@ -103,94 +103,36 @@ def env_configure_python_all(
 def env_configure_matlab(
     shell: Literal["bash", "powershell"],
     setup: str | list[str] | None = None,
-    matlab_path: str | None = None,
+    matlab_exe: str | None = None,
+    mcc_exe: str | None = None,
     matlab_runtime_path: str | None = None,
     mtex_path: str | None = None,
+    matlab_exe_batch_arg: str = "-batch",
 ) -> Environment:
     """Configure the MATLAB MatFlow environment.
 
     Different environment executables are configured depending on what arguments are
-    provided:
-
-    1. If `matlab_path` and `mtex_path` are specified, then the `run_mtex`
-       executable is configured.
-    2. If `mcc_path` and `mtex_path` are specified, then the `compile_mtex` and
-       `run_compiled_mtex` executables are configured.
-    3. If `matlab_runtime_path` is specified, the `run_precompiled_mtex` executable is
-       configured. Note that if `matlab_path` is specified, `matlab_runtime_path` will by
-       default be set to the value of `matlab_path`.
+    provided. If `matlab_exe` and `mtex_path` are provided, then the `run_mtex` executable
+    is configured. If `mcc_exe` and `mtex_path` are provided, then the `compile_mtex` and
+    `run_compiled_mtex` executables are configured. Finally, if `matlab_runtime_path` is
+    provided, then the `run_precompiled_mtex` executable is configured.
 
     """
 
-    matlab_exe = None
-    matlab_mcc = None
-
-    if matlab_path:
-        matlab_path_ = Path(matlab_path)
-
-        mcc_ext = ".bat" if shell == "powershell" else ""
-        exe_ext = ".exe" if shell == "powershell" else ""
-
-        matlab_exe = matlab_path_.joinpath("bin", f"matlab{exe_ext}")
-        matlab_mcc = matlab_path_.joinpath("bin", f"mcc{mcc_ext}")
-
-        matlab_runtime_path = matlab_runtime_path or matlab_path
-
-        if shell != "powershell":
-            matlab_exe = matlab_exe.as_posix()
-            matlab_mcc = matlab_mcc.as_posix()
-
-    run_mtex_cmd_nt = (
-        f"& '{matlab_exe}' -batch \"addpath('<<script_dir>>'); "
-        '<<script_name_no_ext>> <<args>>"'
-    )
-    run_mtex_cmd_posix = dedent(
-        f"""\
-        MTEX_DIR={mtex_path}
-        for dir in $(find ${{MTEX_DIR}} -type d | grep -v -e ".git" -e "@" -e "private"); do MATLABPATH="${{dir}};${{MATLABPATH}}"; done
-        export MATLABPATH=${{MATLABPATH}}
-        {matlab_exe} -softwareopengl -singleCompThread -batch "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>"
-        """
-    )
-    compile_mtex_cmd_nt = (
-        f"$mtex_path = '{mtex_path}'\n"
-        f'& \'{matlab_mcc}\' -R -singleCompThread -m "<<script_path>>" <<args>> -o matlab_exe -a "$mtex_path/data" -a "$mtex_path/plotting/plotting_tools/colors.mat"'
-    )
-
-    compile_mtex_cmd_posix = dedent(
-        f"""\
-        MTEX_DIR={mtex_path}
-        for dir in $(find ${{MTEX_DIR}} -type d | grep -v -e ".git" -e "@" -e "private" -e "data" -e "makeDoc" -e "templates" -e "nfft_openMP" -e "compatibility/")
-        do
-            MTEX_INCLUDE="-I ${{dir}} ${{MTEX_INCLUDE}}"
-        done
-        export MTEX_INCLUDE="${{MTEX_INCLUDE}} -a ${{MTEX_DIR}}/data -a ${{MTEX_DIR}}/plotting/plotting_tools/colors.mat"
-        {matlab_mcc} -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe ${{MTEX_INCLUDE}}
-        """
-    )
-
-    run_compiled_mtex_nt = R".\matlab_exe.exe <<args>>"
-    run_compiled_mtex_posix = dedent(
-        f"""\
-        export MATLAB_RUNTIME={matlab_runtime_path}
-        ./run_matlab_exe.sh ${{MATLAB_RUNTIME}} <<args>>
-        """
-    )
-
-    run_precompiled_mtex_nt = "& <<program_path>> <<args>>"
-    run_precompiled_mtex_posix = dedent(
-        f"""\
-        export MATLAB_RUNTIME={matlab_runtime_path}
-        <<program_path>> ${{MATLAB_RUNTIME}} <<args>>
-        """
-    )
+    if matlab_exe_batch_arg:
+        matlab_exe_batch_arg += " "  # ensure trailing space for formatting
 
     executables = []
 
-    if matlab_path and mtex_path:
-
-        mtex_path_ = Path(mtex_path)
-
+    if matlab_exe and mtex_path:
+        run_mtex_cmd_nt = (
+            f"& '{matlab_exe}' {matlab_exe_batch_arg}\"run('{mtex_path}\\startup_mtex.m'); "
+            "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>\""
+        )
+        run_mtex_cmd_posix = (
+            f"{matlab_exe} {matlab_exe_batch_arg}\"run('{mtex_path}/startup_mtex.m'); "
+            "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>\""
+        )
         executables.append(
             mf.Executable(
                 label="run_mtex",
@@ -208,46 +150,72 @@ def env_configure_matlab(
             )
         )
 
-        if matlab_mcc.is_file():
-            executables.extend(
-                [
-                    mf.Executable(
-                        label="compile_mtex",
-                        instances=[
-                            mf.ExecutableInstance(
-                                command=(
-                                    compile_mtex_cmd_nt
-                                    if shell == "powershell"
-                                    else compile_mtex_cmd_posix
-                                ),
-                                num_cores=1,
-                                parallel_mode=None,
+    if mcc_exe and mtex_path:
+        compile_mtex_cmd_nt = (
+            f"$mtex_path = '{mtex_path}'\n"
+            f"& '{mcc_exe}' -R -singleCompThread -m \"<<script_path>>\" <<args>> "
+            '-o matlab_exe -a "$mtex_path/data" '
+            '-a "$mtex_path/plotting/plotting_tools/colors.mat"'
+        )
+        compile_mtex_cmd_posix = dedent(
+            f"""\
+            MTEX_DIR={mtex_path}
+            for dir in $(find ${{MTEX_DIR}} -type d | grep -v -e ".git" -e "@" -e "private" -e "data" -e "makeDoc" -e "templates" -e "nfft_openMP" -e "compatibility/")
+            do
+                MTEX_INCLUDE="-I ${{dir}} ${{MTEX_INCLUDE}}"
+            done
+            export MTEX_INCLUDE="${{MTEX_INCLUDE}} -a ${{MTEX_DIR}}/data -a ${{MTEX_DIR}}/plotting/plotting_tools/colors.mat"
+            {mcc_exe} -R -singleCompThread -R -softwareopengl -m "<<script_path>>" <<args>> -o matlab_exe ${{MTEX_INCLUDE}}
+            """
+        )
+        run_compiled_mtex_nt = R".\matlab_exe.exe <<args>>"
+        run_compiled_mtex_posix = dedent(
+            f"""\
+            export MATLAB_RUNTIME={matlab_runtime_path}
+            ./run_matlab_exe.sh ${{MATLAB_RUNTIME}} <<args>>
+            """
+        )
+        executables.extend(
+            [
+                mf.Executable(
+                    label="compile_mtex",
+                    instances=[
+                        mf.ExecutableInstance(
+                            command=(
+                                compile_mtex_cmd_nt
+                                if shell == "powershell"
+                                else compile_mtex_cmd_posix
                             ),
-                        ],
-                    ),
-                    mf.Executable(
-                        label="run_compiled_mtex",
-                        instances=[
-                            mf.ExecutableInstance(
-                                command=(
-                                    run_compiled_mtex_nt
-                                    if shell == "powershell"
-                                    else run_compiled_mtex_posix
-                                ),
-                                num_cores=1,
-                                parallel_mode=None,
+                            num_cores=1,
+                            parallel_mode=None,
+                        ),
+                    ],
+                ),
+                mf.Executable(
+                    label="run_compiled_mtex",
+                    instances=[
+                        mf.ExecutableInstance(
+                            command=(
+                                run_compiled_mtex_nt
+                                if shell == "powershell"
+                                else run_compiled_mtex_posix
                             ),
-                        ],
-                    ),
-                ]
-            )
-        else:
-            print(
-                f"Not defining the `compile_mtex` executable because the MATLAB compiler "
-                f"was not found."
-            )
+                            num_cores=1,
+                            parallel_mode=None,
+                        ),
+                    ],
+                ),
+            ]
+        )
 
     if matlab_runtime_path:
+        run_precompiled_mtex_nt = "& <<program_path>> <<args>>"
+        run_precompiled_mtex_posix = dedent(
+            f"""\
+            export MATLAB_RUNTIME={matlab_runtime_path}
+            <<program_path>> ${{MATLAB_RUNTIME}} <<args>>
+            """
+        )
         executables.append(
             mf.Executable(
                 label="run_precompiled_mtex",
