@@ -102,6 +102,8 @@ def test_sample_orientations(tmp_path):
         status=False,
         add_to_known=False,
         wait=True,
+        config={"log_file_level": "debug"},
+        resources={"any": {"write_app_logs": True}},
     )
     runs = wk.get_all_EARs()
     assert all(run.status is EARStatus.success for run in runs)

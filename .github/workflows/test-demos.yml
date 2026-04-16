@@ -8,6 +8,21 @@ env:
 
 on:
   workflow_dispatch: # manual invocation
+    inputs:
+      tmate_debugging:
+        description: "Enable tmate debugging (https://github.com/marketplace/actions/debugging-with-tmate)"
+        required: true
+        default: false
+        type: boolean
+      demo_workflows:
+        description: "Which demo workflows to test?"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - damask
+          - mtex
   pull_request:
     types: [opened, synchronize]
     branches: [main, develop]
@@ -18,11 +33,18 @@ jobs:
       # No write permission
       contents: read
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.demo_workflows == 'all' || github.event.inputs.demo_workflows == 'damask' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
+
+      - name: Setup tmate session
+        if: inputs.tmate_debugging == 'true'
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
 
       - name: Set up python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
@@ -80,11 +102,18 @@ jobs:
       # No write permission
       contents: read
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.demo_workflows == 'all' || github.event.inputs.demo_workflows == 'mtex' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
+
+      - name: Setup tmate session
+        if: inputs.tmate_debugging == 'true'
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
 
       - name: Set up python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
