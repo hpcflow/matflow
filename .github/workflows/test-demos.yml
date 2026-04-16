@@ -1,12 +1,7 @@
 name: Test demo workflows
 
 env:
-  PYTEST_ARGS: ""
   POETRY_VERSION: "2.1.3"
-  PYTHON_VERSION: "3.13"
-  MTEX_VERSION: "6.1.1"
-  TMATE_DEBUGGING: false
-  DEMO_WORKFLOWS: "all"
 
 on:
   workflow_dispatch: # manual invocation
@@ -15,6 +10,10 @@ on:
         description: "Python version"
         required: false
         default: "3.13"
+      mtex_version:
+        description: "MTEX version (only relevant if testing MTEX workflows)"
+        required: false
+        default: "6.1.1"
       demo_workflows:
         description: "Which demo workflows to test?"
         required: true
@@ -29,6 +28,11 @@ on:
         required: true
         default: false
         type: boolean
+      pytest_args:
+        description: "CLI args to pass verbatim to pytest"
+        required: false
+        type: string
+        default: ""
   pull_request:
     types: [opened, synchronize]
     branches: [main, develop]
@@ -41,18 +45,23 @@ jobs:
     outputs:
       python_version: ${{ steps.resolve.outputs.python_version }}
       tmate_debugging: ${{ steps.resolve.outputs.tmate_debugging }}
+      mtex_version: ${{ steps.resolve.outputs.mtex_version }}
+      pytest_args: ${{ steps.resolve.outputs.pytest_args }}
     steps:
       - name: Resolve inputs
         id: resolve
         run: |
           echo "python_version=${{ inputs.python_version || '3.13' }}"    >> $GITHUB_OUTPUT
           echo "tmate_debugging=${{ inputs.tmate_debugging || 'false' }}" >> $GITHUB_OUTPUT
+          echo "mtex_version=${{ inputs.mtex_version || '6.1.1' }}" >> $GITHUB_OUTPUT
+          echo "pytest_args=${{ inputs.pytest_args || '' }}" >> $GITHUB_OUTPUT
 
   test-damask-workflows:
     needs: [config]
     env:
       PYTHON_VERSION: ${{ needs.config.outputs.python_version }}
       TMATE_DEBUGGING: ${{ needs.config.outputs.tmate_debugging }}
+      PYTEST_ARGS: ${{ needs.config.outputs.pytest_args }}
     permissions:
       # No write permission
       contents: read
@@ -112,7 +121,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: ok
         run: |
-          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-damask-workflows
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-damask-workflows ${ env.PYTEST_ARGS }
 
       - name: Upload all pytest temp dirs
         if: always()
@@ -126,6 +135,8 @@ jobs:
     env:
       PYTHON_VERSION: ${{ needs.config.outputs.python_version }}
       TMATE_DEBUGGING: ${{ needs.config.outputs.tmate_debugging }}
+      MTEX_VERSION: ${{ needs.config.outputs.mtex_version }}
+      PYTEST_ARGS: ${{ needs.config.outputs.pytest_args }}
     permissions:
       # No write permission
       contents: read
@@ -169,13 +180,19 @@ jobs:
           release: R2024b
 
       - name: Get run-matlab-command
+        # we must use the non-supported, unofficial `run-matlab-command`
+        # (see: https://github.com/matlab-actions/setup-matlab/issues/89#issuecomment-1924192934 and
+        # https://github.com/matlab-actions/run-command/issues/53#issuecomment-1960041880)
+        # because otherwise matlab commands (using the free CI license) must only be run
+        # via the matlab run-command action.
+        # To use this in our workflows, we set the matlab executable to `run-matlab-command`
+        # and remove the usual `-batch` argument (see below).
         run: |
           wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command
           chmod +x /usr/local/bin/run-matlab-command
 
-      - name: Run MATLAB Command
+      - name: Test `run-matlab-command`
         run: |
-          env | sort
           run-matlab-command "disp('hello world')"
 
       - name: Download MTEX
@@ -188,7 +205,7 @@ jobs:
         run: |
           sed -i 's/if ((l >= m) %& (l >= n))/if (l >= m)/' ${{ github.workspace }}/mtex/EBSDAnalysis/@EBSD3square/spatialProfile.m
 
-      - name: Check we can startup mtex
+      - name: Compile MTEX dependencies
         run: run-matlab-command "run('${{ github.workspace }}/mtex/startup_mtex.m'); mex_install('force');"
 
       - name: Install necessary MatFlow environments
@@ -204,7 +221,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: ok
         run: |
-          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-mtex-workflows
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-mtex-workflows ${{ env.PYTEST_ARGS }}
 
       - name: Upload all pytest temp dirs
         if: always()
@@ -212,10 +229,3 @@ jobs:
         with:
           name: pytest-temp-mtex
           path: /tmp/pytest-of-*
-
-      - name: Upload mtex
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: MTEX
-          path: ${{ github.workspace }}/mtex
