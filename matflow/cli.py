@@ -105,12 +105,24 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         help="Absolute path to the MATLAB runtime directory.",
     )
     @click.option(
+        "--matlab-exe-batch-arg",
+        default="-batch",
+        help="The argument to use for specifying the batch mode in the MATLAB executable.",
+    )
+    @click.option(
         "--replace/--no-replace",
         is_flag=True,
         default=False,
         help="If True, replace existing environment.",
     )
-    def matlab(exe: str, mcc: str, runtime_path: Path, mtex_path: Path, replace: bool):
+    def matlab(
+        exe: str,
+        mcc: str,
+        runtime_path: Path,
+        mtex_path: Path,
+        matlab_exe_batch_arg: str,
+        replace: bool,
+    ):
         """Configure the MATLAB environment for running/compiling MTEX scripts."""
         env = env_configure_matlab(
             shell,
@@ -118,6 +130,7 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
             mcc_exe=mcc,
             matlab_runtime_path=runtime_path,
             mtex_path=mtex_path,
+            matlab_exe_batch_arg=matlab_exe_batch_arg,
         )
         app.save_env(env, replace=replace)
 

@@ -195,7 +195,7 @@ jobs:
         id: configure_envs
         run: |
           poetry run matflow env setup python --use-current
-          poetry run matflow env setup matlab --exe run-matlab-command --mtex-path ${{ github.workspace }}/mtex
+          poetry run matflow env setup matlab --exe run-matlab-command --matlab-exe-batch-arg="" --mtex-path ${{ github.workspace }}/mtex
           result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 

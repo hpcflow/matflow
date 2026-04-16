@@ -107,6 +107,7 @@ def env_configure_matlab(
     mcc_exe: str | None = None,
     matlab_runtime_path: str | None = None,
     mtex_path: str | None = None,
+    matlab_exe_batch_arg: str = "-batch",
 ) -> Environment:
     """Configure the MATLAB MatFlow environment.
 
@@ -118,15 +119,18 @@ def env_configure_matlab(
 
     """
 
+    if matlab_exe_batch_arg:
+        matlab_exe_batch_arg += " "  # ensure trailing space for formatting
+
     executables = []
 
     if matlab_exe and mtex_path:
         run_mtex_cmd_nt = (
-            f"& '{matlab_exe}' -batch \"run('{mtex_path}\\startup_mtex.m'); "
+            f"& '{matlab_exe}' {matlab_exe_batch_arg}\"run('{mtex_path}\\startup_mtex.m'); "
             "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>\""
         )
         run_mtex_cmd_posix = (
-            f"{matlab_exe} -batch \"run('{mtex_path}/startup_mtex.m'); "
+            f"{matlab_exe} {matlab_exe_batch_arg}\"run('{mtex_path}/startup_mtex.m'); "
             "addpath('<<script_dir>>'); <<script_name_no_ext>> <<args>>\""
         )
         executables.append(
