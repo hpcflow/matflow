@@ -49,6 +49,7 @@ jobs:
           echo "tmate_debugging=${{ inputs.tmate_debugging || 'false' }}" >> $GITHUB_OUTPUT
 
   test-damask-workflows:
+    needs: [config]
     env:
       PYTHON_VERSION: ${{ needs.config.outputs.python_version }}
       TMATE_DEBUGGING: ${{ needs.config.outputs.tmate_debugging }}
@@ -121,6 +122,7 @@ jobs:
           path: /tmp/pytest-of-*
 
   test-mtex-workflows:
+    needs: [config]
     env:
       PYTHON_VERSION: ${{ needs.config.outputs.python_version }}
       TMATE_DEBUGGING: ${{ needs.config.outputs.tmate_debugging }}
