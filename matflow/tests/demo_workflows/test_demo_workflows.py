@@ -3,7 +3,7 @@ import pytest
 from hpcflow.sdk.core.enums import EARStatus
 
 import matflow as mf
-from matflow.tests.subset_simulation import generate_next_state, subset_simulation
+from matflow.tests.subset_simulation import subset_simulation, generate_next_level_samples
 
 
 @pytest.mark.demo_workflows
@@ -82,8 +82,8 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
         p_0=0.1,
         num_samples=100,
         num_levels=7,
-        next_state=generate_next_state,
-        next_state_kwargs={
+        sampling_method=generate_next_level_samples,
+        sampling_method_kwargs={
             "prop_std": 1.0,
         },
         master_seed=seed,

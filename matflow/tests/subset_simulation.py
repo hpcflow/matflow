@@ -116,10 +116,124 @@ def generate_next_state_CS(x, prop_std, rng):
     return norm.rvs(loc=x * rho, scale=prop_std, random_state=rng)
 
 
-def generate_next_state_ACS(x, prop_std, lambda_, rng):
+def generate_next_state_ACS(x, prop_std, lambda_, sims_per_update, rng):
+    """
+    Parameters
+    ----------
+    sims_per_update
+        The number of simulations that will run before lambda_ is updated. Known as `Na`
+        elsewhere.
+    """
+    a_star = 0.44
     sigma = np.minimum(1, lambda_ * prop_std)
     rho = np.sqrt(1 - sigma**2)
     return norm.rvs(loc=x * rho, scale=sigma, random_state=rng)
+
+
+def generate_next_level_samples(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    prop_std,
+):
+
+    for chain_index in range(num_chains):
+
+        # proceed this Markov chain until all states have been generated
+        all_x[chain_index, 0] = chain_seeds[chain_index]
+        all_g[chain_index, 0] = chain_g[chain_index]
+
+        chain_rng = None
+        for state_idx in range(1, num_states):
+
+            # RNG seed sequence for Markov chains:
+            if state_idx == 1:
+                # spawn key to match the task ID in the matflow workflow
+                spawn_key = (4, level_idx, chain_index)
+                chain_rng = np.random.default_rng(
+                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                )
+
+            x = all_x[chain_index, state_idx - 1]
+            g = all_g[chain_index, state_idx - 1]
+
+            trial_x = generate_next_state(
+                x=x,
+                prop_std=prop_std,
+                rng=chain_rng,
+            )
+            trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
+
+            current_x = x
+            current_g = g
+
+            is_accept = trial_g > threshold
+            new_x = trial_x if is_accept else current_x
+            new_g = trial_g if is_accept else current_g
+
+            all_x[chain_index, state_idx] = new_x
+            all_g[chain_index, state_idx] = new_g
+
+
+def generate_next_level_samples_CS(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    prop_std,
+):
+
+    for chain_index in range(num_chains):
+
+        # proceed this Markov chain until all states have been generated
+        all_x[chain_index, 0] = chain_seeds[chain_index]
+        all_g[chain_index, 0] = chain_g[chain_index]
+
+        chain_rng = None
+        for state_idx in range(1, num_states):
+
+            # RNG seed sequence for Markov chains:
+            if state_idx == 1:
+                # spawn key to match the task ID in the matflow workflow
+                spawn_key = (4, level_idx, chain_index)
+                chain_rng = np.random.default_rng(
+                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                )
+
+            x = all_x[chain_index, state_idx - 1]
+            g = all_g[chain_index, state_idx - 1]
+
+            trial_x = generate_next_state_CS(
+                x=x,
+                prop_std=prop_std,
+                rng=chain_rng,
+            )
+            trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
+
+            current_x = x
+            current_g = g
+
+            is_accept = trial_g > threshold
+            new_x = trial_x if is_accept else current_x
+            new_g = trial_g if is_accept else current_g
+
+            all_x[chain_index, state_idx] = new_x
+            all_g[chain_index, state_idx] = new_g
 
 
 def subset_simulation(
@@ -129,8 +243,8 @@ def subset_simulation(
     num_samples=100,
     num_levels=10,
     master_seed=None,
-    next_state=generate_next_state,
-    next_state_kwargs=None,
+    sampling_method=generate_next_level_samples,
+    sampling_method_kwargs=None,
     mimic_matflow: bool = False,
 ):
 
@@ -179,47 +293,20 @@ def subset_simulation(
 
         all_x = np.ones((num_chains, num_states, dimension)) * np.nan
         all_g = np.ones((num_chains, num_states)) * np.nan
-
-        for chain_index in range(num_chains):
-
-            # proceed this Markov chain until all states have been generated
-            all_x[chain_index, 0] = chain_seeds[chain_index]
-            all_g[chain_index, 0] = chain_g[chain_index]
-
-            chain_rng = None
-            for state_idx in range(1, num_states):
-
-                # RNG seed sequence for Markov chains:
-                if state_idx == 1:
-                    # spawn key to match the task ID in the matflow workflow
-                    spawn_key = (4, level_idx, chain_index)
-                    chain_rng = np.random.default_rng(
-                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                    )
-
-                x = all_x[chain_index, state_idx - 1]
-                g = all_g[chain_index, state_idx - 1]
-
-                next_state_kwargs_i = {
-                    "x": x,
-                    "rng": chain_rng,
-                    **(next_state_kwargs or {}),
-                }
-                trial_x = next_state(**next_state_kwargs_i)
-                trial_g = system_analysis_toy_model(
-                    trial_x, dimension, target_pf=target_pf
-                )
-
-                current_x = x
-                current_g = g
-
-                is_accept = trial_g > threshold
-                new_x = trial_x if is_accept else current_x
-                new_g = trial_g if is_accept else current_g
-
-                all_x[chain_index, state_idx] = new_x
-                all_g[chain_index, state_idx] = new_g
-
+        sampling_method(
+            num_chains=num_chains,
+            num_states=num_states,
+            dimension=dimension,
+            chain_seeds=chain_seeds,
+            chain_g=chain_g,
+            all_x=all_x,
+            all_g=all_g,
+            level_idx=level_idx,
+            master_seed=master_seed,
+            target_pf=target_pf,
+            threshold=threshold,
+            **sampling_method_kwargs,
+        )
         g = all_g.reshape((num_samples))
         x = all_x.reshape((num_samples, dimension))
 
@@ -267,8 +354,8 @@ def run_repeats(
             p_0=p_0,
             num_samples=num_samples,
             num_levels=num_levels,
-            next_state=next_state,
-            next_state_kwargs=next_state_kwargs,
+            sampling_method=next_state,
+            sampling_method_kwargs=next_state_kwargs,
             master_seed=seeds[repeat_idx],
             mimic_matflow=mimic_matflow,
         )
