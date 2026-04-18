@@ -70,12 +70,8 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
         path=tmp_path,
         status=False,
         add_to_known=False,
-        wait=True,
         resources={"random_seed": seed},
     )
-    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
-    pf = final_iter.get("outputs.pf")
-    cov = final_iter.get("outputs.cov")
 
     # run via single function implementation:
     pf_sf, cov_sf = subset_simulation(
@@ -91,6 +87,14 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
         master_seed=seed,
         mimic_matflow=True,
     )
+
+    wk.wait()
+    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
+    pf = final_iter.get("outputs.pf")
+    cov = final_iter.get("outputs.cov")
+
+    # TODO: also verify same result with `subset_simulation_toy_model_external`, once
+    # that can be submitted without a ridiculous number of processes.
 
     assert pf == pf_sf
     assert cov == cov_sf
