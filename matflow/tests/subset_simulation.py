@@ -7,9 +7,11 @@ from pathlib import Path
 
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats import norm, multivariate_normal
+from scipy.stats import norm, multivariate_normal, uniform
 from numpy.exceptions import AxisError
 from hpcflow.sdk.log import TimeIt
+
+import matflow as mf
 
 
 @TimeIt.decorator
@@ -91,17 +93,17 @@ def estimate_cov(indicator, p_i: float) -> float:
     return delta
 
 
-def generate_next_state(x, prop_std, rng):
+def generate_next_state(x, proposal, rng):
+    """
+    Proposal must be a symmetric distribution centred on zero.
+    """
 
     dim = len(x)
     current_state = x
     xi = np.empty(dim)
 
-    proposal = norm(loc=current_state, scale=prop_std)
-    xi_hat = np.atleast_1d(proposal.rvs(random_state=rng))
-
+    xi_hat = np.atleast_1d(current_state + proposal.rvs(size=dim, random_state=rng))
     accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
-    # accept_ratios = np.exp(-0.5 * (xi_hat**2 - current_state**2))
 
     accept_idx = rng.random(len(accept_ratios)) < np.minimum(1, accept_ratios)
 
@@ -142,7 +144,7 @@ def generate_next_level_samples(
     master_seed,
     target_pf,
     threshold,
-    prop_std,
+    proposal,
 ):
 
     for chain_index in range(num_chains):
@@ -167,7 +169,7 @@ def generate_next_level_samples(
 
             trial_x = generate_next_state(
                 x=x,
-                prop_std=prop_std,
+                proposal=proposal,
                 rng=chain_rng,
             )
             trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
@@ -330,8 +332,8 @@ def get_stats(all_pf, all_cov):
 
 def run_repeats(
     num_samples,
-    next_state,
-    next_state_kwargs=None,
+    sampling_method,
+    sampling_method_kwargs=None,
     num_repeats=100,
     dimension=200,
     target_pf=1e-4,
@@ -354,8 +356,8 @@ def run_repeats(
             p_0=p_0,
             num_samples=num_samples,
             num_levels=num_levels,
-            sampling_method=next_state,
-            sampling_method_kwargs=next_state_kwargs,
+            sampling_method=sampling_method,
+            sampling_method_kwargs=sampling_method_kwargs,
             master_seed=seeds[repeat_idx],
             mimic_matflow=mimic_matflow,
         )
@@ -365,12 +367,20 @@ def run_repeats(
     return get_stats(all_pf, all_cov)
 
 
+def dist_to_str(dist):
+    """Return a string representation of a distribution."""
+    args = ",".join(
+        [str(i) for i in dist.args] + [f"{k}={v}" for k, v in dist.kwds.items()]
+    )
+    return f"{dist.dist.name}({args})"
+
+
 def run_convergence(
     converge_label: str,
     fixed_num: int,
     series: list[int],
-    next_state,
-    next_state_kwargs: dict,
+    sampling_method: callable,
+    sampling_method_kwargs: dict,
     mimic_matflow: bool,
 ):
     """Run a convergence test on the toy model subset simulation, for either number of samples per level, N, or number of repeats, R.
@@ -394,16 +404,16 @@ def run_convergence(
     )
     direct_results = {
         "data": {},
-        "next_state": next_state.__name__,
-        "next_state_kwargs": next_state_kwargs,
+        "sampling_method": sampling_method.__name__,
+        "sampling_method_kwargs": sampling_method_kwargs,
         "converge_label": converge_label,
         "fixed_num": fixed_num,
         "series": series,
     }
     for num in series:
         run_kwargs_i = {
-            "next_state": next_state,
-            "next_state_kwargs": next_state_kwargs,
+            "sampling_method": sampling_method,
+            "sampling_method_kwargs": sampling_method_kwargs,
             "mimic_matflow": mimic_matflow,
         }
         if converge_label == "N":
@@ -414,8 +424,13 @@ def run_convergence(
             run_kwargs_i["num_samples"] = fixed_num
         direct_results["data"][num] = run_repeats(**run_kwargs_i)
 
+    if "proposal" in sampling_method_kwargs:
+        prop_str = dist_to_str(sampling_method_kwargs["proposal"])
+    else:
+        prop_str = f"{sampling_method_kwargs['prop_std']:.2f}"
+
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{next_state.__name__}_std{next_state_kwargs['prop_std']:.2f}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
+    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{sampling_method.__name__}_std{prop_str}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
     with Path(file_name).open("wb") as fh:
         pickle.dump(direct_results, fh)
 
@@ -441,7 +456,101 @@ def get_toy_model_results_from_matflow_workflows(root_path):
     return get_stats(all_pf, all_cov)
 
 
-def plot_pf_num_samples(all_results, quantile_range):
+def plot_many_pf_num_samples_from_files(pkls, quantile_range=0.95, yscale="log"):
+    results = {}
+    for label, pkl in pkls.items():
+        with Path(pkl).open("rb") as fh:
+            results[label] = pickle.load(fh)
+    plot_many_pf_num_samples(results, quantile_range=quantile_range, yscale=yscale)
+
+
+def plot_many_pf_num_samples(
+    all_results_dct,
+    quantile_range,
+    xlim=None,
+    xscale="linear",
+    ylim=None,
+    yscale="linear",
+    target_pf=1e-4,
+):
+
+    plt.figure(figsize=(5, 4))
+
+    all_x = {k: [] for k in all_results_dct.keys()}
+    all_y = {k: [] for k in all_results_dct.keys()}
+    all_lower = {k: [] for k in all_results_dct.keys()}
+    all_upper = {k: [] for k in all_results_dct.keys()}
+
+    polys = []
+
+    for idx, (label, all_results) in enumerate(all_results_dct.items()):
+
+        if idx == 0:
+            converge_label = all_results["converge_label"]
+            fixed_num = all_results["fixed_num"]
+            title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+            xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
+        else:
+            assert all_results["converge_label"] == converge_label
+            assert all_results["fixed_num"] == fixed_num
+
+        all_data = all_results["data"]
+        for N, data in all_data.items():
+            pf_srt = sorted(data["pf"])
+            _x0 = (1 - quantile_range) / 2
+            _x1 = _x0 + quantile_range
+            lower = np.quantile(pf_srt, _x0)
+            upper = np.quantile(pf_srt, _x1)
+
+            all_x[label].append(N)
+            all_y[label].append(data["pf_mean"])
+            all_lower[label].append(lower)
+            all_upper[label].append(upper)
+
+        polys.append(
+            plt.fill_between(
+                x=all_x[label],
+                y1=all_lower[label],
+                y2=all_upper[label],
+                alpha=0.5,
+                label=label,
+            )
+        )
+
+    for idx, (label, all_results) in enumerate(all_results_dct.items()):
+        all_data = all_results["data"]
+        plt.scatter(
+            x=all_x[label],
+            y=all_y[label],
+            marker="o",
+            color=polys[idx].get_facecolor()[0],
+            edgecolor="black",
+            linewidth=0.8,
+            zorder=3,
+        )
+
+    plt.hlines(
+        y=target_pf,
+        xmin=min(all_data),
+        xmax=max(all_data),
+        color="gray",
+        label="Target",
+    )
+    plt.xlabel(xlabel)
+    plt.ylabel("Prob. of failure, pf")
+    plt.title(title)
+    plt.legend()
+    if ylim:
+        plt.ylim(ylim)
+    if xlim:
+        plt.xlim(xlim)
+    plt.yscale(yscale)
+    plt.xscale(xscale)
+
+
+def plot_pf_num_samples(
+    all_results, quantile_range, xlim=None, xscale="linear", ylim=None, yscale="linear"
+):
 
     converge_label = all_results["converge_label"]
     fixed_num = all_results["fixed_num"]
@@ -475,15 +584,19 @@ def plot_pf_num_samples(all_results, quantile_range):
     plt.hlines(
         y=1e-4, xmin=min(all_data), xmax=max(all_data), color="gray", label="Target"
     )
-    # plt.xscale("log")
-    # plt.yscale("log")
     plt.xlabel(xlabel)
     plt.ylabel("Prob. of failure, pf")
     plt.title(title)
     plt.legend()
+    if ylim:
+        plt.ylim(ylim)
+    if xlim:
+        plt.xlim(xlim)
+    plt.yscale(yscale)
+    plt.xscale(xscale)
 
 
-def plot_cov_estimates(all_results, ylim=None):
+def plot_cov_estimates(all_results, ylim=None, yscale="linear"):
 
     converge_label = all_results["converge_label"]
     fixed_num = all_results["fixed_num"]
@@ -511,6 +624,7 @@ def plot_cov_estimates(all_results, ylim=None):
     plt.legend()
     if ylim:
         plt.ylim(ylim)
+    plt.yscale(yscale)
 
 
 def plot_pf_dist(all_results, target_pf):

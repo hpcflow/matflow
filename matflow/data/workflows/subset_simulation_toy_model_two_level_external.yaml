@@ -59,7 +59,9 @@ tasks:
 
   - schema: generate_next_state # [inner MC loop; outer MC loop] # 6
     inputs:
-      prop_std: 1.0
+      proposal:
+        type: norm
+        scale: 1.0
   - schema: system_analysis # [inner MC loop; outer MC loop] # 7,8,9
   - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does # 10
 

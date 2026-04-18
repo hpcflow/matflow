@@ -53,7 +53,9 @@ tasks:
           step: 1
   - schema: generate_next_state # [inner loop]
     inputs:
-      prop_std: 0.5
+      proposal:
+        type: norm
+        scale: 0.5
   - schema: system_analysis # [inner loop]
   - schema: increment_chain # [inner loop]
     groups:

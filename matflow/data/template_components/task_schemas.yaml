@@ -1886,7 +1886,7 @@
 - objective: generate_next_state
   inputs:
     - parameter: x
-    - parameter: prop_std
+    - parameter: proposal
     - parameter: chain_index
     - parameter: rng
       default_value: null

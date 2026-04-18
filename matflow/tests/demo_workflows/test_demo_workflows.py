@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 import pytest
+
+from scipy.stats import norm
 from hpcflow.sdk.core.enums import EARStatus
 
 import matflow as mf
@@ -84,7 +86,7 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
         num_levels=7,
         sampling_method=generate_next_level_samples,
         sampling_method_kwargs={
-            "prop_std": 1.0,
+            "proposal": norm(scale=1.0),
         },
         master_seed=seed,
         mimic_matflow=True,

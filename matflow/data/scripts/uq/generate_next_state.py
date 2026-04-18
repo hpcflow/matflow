@@ -2,8 +2,7 @@ import logging
 import os
 
 import numpy as np
-from numpy.typing import NDArray
-from scipy.stats import norm
+import scipy.stats
 
 
 def set_up_logger():
@@ -35,15 +34,16 @@ def _init_rng(chain_index, loop_idx):
     return rng
 
 
-def generate_next_state(x, prop_std, rng, chain_index):
+def generate_next_state(x, proposal, rng, chain_index):
     """Generate the next candidate state in a modified Metropolis algorithm.
 
     Parameters
     ----------
     x
         Current state on which the candidate state will depend.
-    prop_std
-        Proposal distribution standard deviation.
+    proposal
+        Type and arguments to a Scipy distribution that should be used as the proposal.
+        The proposal must be a symmetrical distribution, centred on zero.
     rng
         Random number generator to be used in this function.
     chain_index
@@ -58,6 +58,9 @@ def generate_next_state(x, prop_std, rng, chain_index):
             Random number generator to be used in the next invocation of this function,
             for this chain.
     """
+
+    dist_type = proposal.pop("type")
+    prop_dist = getattr(scipy.stats, dist_type)(**proposal)
 
     loop_idx = {
         loop_name: int(loop_idx)
@@ -76,9 +79,8 @@ def generate_next_state(x, prop_std, rng, chain_index):
     current_state = x
     xi = np.empty(dim)
 
-    proposal = norm(loc=current_state, scale=prop_std)
-    xi_hat = np.atleast_1d(proposal.rvs(random_state=rng))
-    accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
+    xi_hat = np.atleast_1d(current_state + prop_dist.rvs(size=dim, random_state=rng))
+    accept_ratios = np.divide(*scipy.stats.norm.pdf([xi_hat, current_state]))
     accept_idx = rng.random(len(accept_ratios)) < np.minimum(1, accept_ratios)
 
     xi[accept_idx] = xi_hat[accept_idx]
