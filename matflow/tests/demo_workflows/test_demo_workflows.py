@@ -1,9 +1,12 @@
 from matplotlib import pyplot as plt
 import pytest
+
+from scipy.stats import norm
 from hpcflow.sdk.core.enums import EARStatus
+import numpy as np
 
 import matflow as mf
-from matflow.tests.subset_simulation import generate_next_state, subset_simulation
+from matflow.tests.subset_simulation import subset_simulation, generate_next_level_samples
 
 
 @pytest.mark.demo_workflows
@@ -68,27 +71,34 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
         path=tmp_path,
         status=False,
         add_to_known=False,
-        wait=True,
         resources={"random_seed": seed},
     )
-    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
-    pf = final_iter.get("outputs.pf")
-    cov = final_iter.get("outputs.cov")
 
     # run via single function implementation:
-    pf_sf, cov_sf = subset_simulation(
+    pf_sf, cov_sf, sus_acc_sf, mcmc_acc_sf = subset_simulation(
         dimension=200,
         target_pf=1e-4,
         p_0=0.1,
         num_samples=100,
         num_levels=7,
-        next_state=generate_next_state,
-        next_state_kwargs={
-            "prop_std": 1.0,
+        sampling_method=generate_next_level_samples,
+        sampling_method_kwargs={
+            "proposal": norm(scale=1.0),
         },
         master_seed=seed,
         mimic_matflow=True,
     )
 
+    wk.wait()
+    final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
+    pf = final_iter.get("outputs.pf")
+    cov = final_iter.get("outputs.cov")
+    sus_acc = final_iter.get("outputs.accept_rate")[:]
+
+    # TODO: also verify same result with `subset_simulation_toy_model_external`, once
+    # that can be submitted without a ridiculous number of processes.
+
     assert pf == pf_sf
     assert cov == cov_sf
+    assert np.allclose(sus_acc, sus_acc_sf)
+    # TODO: store and check mcmc_accept

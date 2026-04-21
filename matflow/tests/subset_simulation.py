@@ -1,15 +1,18 @@
 """Module containing functions to run a subset simulation on a simple toy model, used as a
 validation of the MatFlow implementation."""
 
+import copy
 from datetime import datetime
 import pickle
 from pathlib import Path
 
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats import norm, multivariate_normal
+from scipy.stats import norm, multivariate_normal, uniform
 from numpy.exceptions import AxisError
 from hpcflow.sdk.log import TimeIt
+
+import matflow as mf
 
 
 @TimeIt.decorator
@@ -91,24 +94,25 @@ def estimate_cov(indicator, p_i: float) -> float:
     return delta
 
 
-def generate_next_state(x, prop_std, rng):
+def generate_next_state(x, proposal, rng):
+    """
+    Proposal must be a symmetric distribution centred on zero.
+    """
 
     dim = len(x)
     current_state = x
     xi = np.empty(dim)
 
-    proposal = norm(loc=current_state, scale=prop_std)
-    xi_hat = np.atleast_1d(proposal.rvs(random_state=rng))
-
+    xi_hat = np.atleast_1d(current_state + proposal.rvs(size=dim, random_state=rng))
     accept_ratios = np.divide(*norm.pdf([xi_hat, current_state]))
-    # accept_ratios = np.exp(-0.5 * (xi_hat**2 - current_state**2))
 
     accept_idx = rng.random(len(accept_ratios)) < np.minimum(1, accept_ratios)
 
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
+    mcmc_accept_rate = np.mean(accept_idx)
 
-    return xi
+    return xi, mcmc_accept_rate
 
 
 def generate_next_state_CS(x, prop_std, rng):
@@ -117,9 +121,228 @@ def generate_next_state_CS(x, prop_std, rng):
 
 
 def generate_next_state_ACS(x, prop_std, lambda_, rng):
+    a_star = 0.44
     sigma = np.minimum(1, lambda_ * prop_std)
     rho = np.sqrt(1 - sigma**2)
     return norm.rvs(loc=x * rho, scale=sigma, random_state=rng)
+
+
+def generate_next_level_samples(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    proposal,
+):
+
+    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
+    mcmc_accept_arr = np.zeros((num_chains, num_states - 1))
+
+    for chain_index in range(num_chains):
+
+        # proceed this Markov chain until all states have been generated
+        all_x[chain_index, 0] = chain_seeds[chain_index]
+        all_g[chain_index, 0] = chain_g[chain_index]
+
+        chain_rng = None
+        for state_idx in range(1, num_states):
+
+            # RNG seed sequence for Markov chains:
+            if state_idx == 1:
+                # spawn key to match the task ID in the matflow workflow
+                spawn_key = (4, level_idx, chain_index)
+                chain_rng = np.random.default_rng(
+                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                )
+
+            x = all_x[chain_index, state_idx - 1]
+            g = all_g[chain_index, state_idx - 1]
+
+            trial_x, mcmc_accept_rate = generate_next_state(
+                x=x,
+                proposal=proposal,
+                rng=chain_rng,
+            )
+            mcmc_accept_arr[chain_index, state_idx - 1] = mcmc_accept_rate
+            trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
+
+            current_x = x
+            current_g = g
+            is_ss_accept = trial_g > threshold
+            subset_accept_arr[chain_index, state_idx - 1] = is_ss_accept
+            new_x = trial_x if is_ss_accept else current_x
+            new_g = trial_g if is_ss_accept else current_g
+
+            all_x[chain_index, state_idx] = new_x
+            all_g[chain_index, state_idx] = new_g
+
+    subset_accept = np.mean(subset_accept_arr).item()
+    mcmc_accept = np.mean(mcmc_accept_arr).item()
+    return {"subset_accept": subset_accept, "mcmc_accept": mcmc_accept}
+
+
+def generate_next_level_samples_CS(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    prop_std,
+):
+    """Conditional sampling algorithm for generating states in the subset simulation level
+    (aka subset infinity).
+
+    """
+    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
+    for chain_index in range(num_chains):
+
+        # proceed this Markov chain until all states have been generated
+        all_x[chain_index, 0] = chain_seeds[chain_index]
+        all_g[chain_index, 0] = chain_g[chain_index]
+
+        chain_rng = None
+        for state_idx in range(1, num_states):
+
+            # RNG seed sequence for Markov chains:
+            if state_idx == 1:
+                # spawn key to match the task ID in the matflow workflow
+                spawn_key = (4, level_idx, chain_index)
+                chain_rng = np.random.default_rng(
+                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                )
+
+            x = all_x[chain_index, state_idx - 1]
+            g = all_g[chain_index, state_idx - 1]
+
+            trial_x = generate_next_state_CS(
+                x=x,
+                prop_std=prop_std,
+                rng=chain_rng,
+            )
+            trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
+
+            current_x = x
+            current_g = g
+
+            is_accept = trial_g > threshold
+            subset_accept_arr[chain_index, state_idx - 1] = is_accept
+            new_x = trial_x if is_accept else current_x
+            new_g = trial_g if is_accept else current_g
+
+            all_x[chain_index, state_idx] = new_x
+            all_g[chain_index, state_idx] = new_g
+
+    subset_accept = np.mean(subset_accept_arr).item()
+    return {"subset_accept": subset_accept}
+
+
+def generate_next_level_samples_ACS(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    chains_per_update,
+    prop_std=1.0,
+    lambda_=1.0,
+):
+    """Adaptive conditional sampling algorithm for generating states in the subset
+    simulation level (aka adaptive subset infinity).
+
+    Parameters
+    ----------
+    chains_per_update
+        The number of Markov chains (as a fraction of the number of samples per level)
+        that will run before lambda_ is updated. As an integer number, known as `Na`
+        elsewhere.
+    prop_std
+        Initial variance of the proposal distribution.
+    lambda_
+        Initial scaling parameter.
+
+    """
+
+    A_STAR = 0.44
+
+    num_chains_per_update = int(chains_per_update * num_chains)
+    assert float(num_chains_per_update) == chains_per_update * num_chains
+
+    num_batches = int(num_chains / num_chains_per_update)
+    batch_avgs = []  # mean acceptance for each batch
+
+    for batch_idx in range(num_batches):
+
+        sigma = np.minimum(1, lambda_ * prop_std)
+        rho = np.sqrt(1 - sigma**2)
+
+        is_accept_arr = np.zeros((num_chains_per_update, num_states - 1)).astype(bool)
+        for batch_chain_idx in range(num_chains_per_update):
+
+            chain_index = batch_chain_idx + (batch_idx * num_chains_per_update)
+
+            # proceed this Markov chain until all states have been generated
+            all_x[chain_index, 0] = chain_seeds[chain_index]
+            all_g[chain_index, 0] = chain_g[chain_index]
+
+            chain_rng = None
+            for state_idx in range(1, num_states):
+
+                # RNG seed sequence for Markov chains:
+                if state_idx == 1:
+                    # spawn key to match the task ID in the matflow workflow
+                    spawn_key = (4, level_idx, chain_index)
+                    chain_rng = np.random.default_rng(
+                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                    )
+
+                x = all_x[chain_index, state_idx - 1]
+                g = all_g[chain_index, state_idx - 1]
+
+                trial_x = norm.rvs(loc=x * rho, scale=sigma, random_state=chain_rng)
+
+                trial_g = system_analysis_toy_model(
+                    trial_x, dimension, target_pf=target_pf
+                )
+
+                current_x = x
+                current_g = g
+
+                is_accept = trial_g > threshold
+                is_accept_arr[batch_chain_idx, state_idx - 1] = is_accept
+
+                new_x = trial_x if is_accept else current_x
+                new_g = trial_g if is_accept else current_g
+
+                all_x[chain_index, state_idx] = new_x
+                all_g[chain_index, state_idx] = new_g
+
+        accept_batch_avg = np.mean(is_accept_arr)
+        batch_avgs.append(accept_batch_avg)
+
+        zeta = 1 / np.sqrt(batch_idx + 1)
+        lambda_ *= np.exp(zeta * (accept_batch_avg - A_STAR))
+
+    subset_accept = np.mean(batch_avgs).item()
+    return {"lambda_": lambda_, "subset_accept": subset_accept}
 
 
 def subset_simulation(
@@ -129,8 +352,8 @@ def subset_simulation(
     num_samples=100,
     num_levels=10,
     master_seed=None,
-    next_state=generate_next_state,
-    next_state_kwargs=None,
+    sampling_method=generate_next_level_samples,
+    sampling_method_kwargs=None,
     mimic_matflow: bool = False,
 ):
 
@@ -142,8 +365,12 @@ def subset_simulation(
         mimic_matflow=mimic_matflow,
     )
     g = system_analysis_toy_model(x, dimension, target_pf=target_pf)
+    sampling_method_kwargs = copy.deepcopy(sampling_method_kwargs)
 
     level_covs = []
+    subset_accepts = []
+    mcmc_accepts = []
+    ret = None
     for level_idx in range(num_levels):
         num_failed = int(np.sum(g > 0))
         num_chains = int(len(g) * p_0)
@@ -175,53 +402,36 @@ def subset_simulation(
 
         if is_finished := threshold > 0:
             cov = np.sqrt(sum(np.pow(level_covs, 2))).item()
-            return pf, cov
+            return pf, cov, subset_accepts, mcmc_accepts
 
         all_x = np.ones((num_chains, num_states, dimension)) * np.nan
         all_g = np.ones((num_chains, num_states)) * np.nan
+        ret = sampling_method(
+            num_chains=num_chains,
+            num_states=num_states,
+            dimension=dimension,
+            chain_seeds=chain_seeds,
+            chain_g=chain_g,
+            all_x=all_x,
+            all_g=all_g,
+            level_idx=level_idx,
+            master_seed=master_seed,
+            target_pf=target_pf,
+            threshold=threshold,
+            **sampling_method_kwargs,
+        )
+        subset_accepts.append(ret["subset_accept"])
 
-        for chain_index in range(num_chains):
+        if "mcmc_accept" in (ret or {}):
+            mcmc_accepts.append(ret["mcmc_accept"])
 
-            # proceed this Markov chain until all states have been generated
-            all_x[chain_index, 0] = chain_seeds[chain_index]
-            all_g[chain_index, 0] = chain_g[chain_index]
-
-            chain_rng = None
-            for state_idx in range(1, num_states):
-
-                # RNG seed sequence for Markov chains:
-                if state_idx == 1:
-                    # spawn key to match the task ID in the matflow workflow
-                    spawn_key = (4, level_idx, chain_index)
-                    chain_rng = np.random.default_rng(
-                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                    )
-
-                x = all_x[chain_index, state_idx - 1]
-                g = all_g[chain_index, state_idx - 1]
-
-                next_state_kwargs_i = {
-                    "x": x,
-                    "rng": chain_rng,
-                    **(next_state_kwargs or {}),
-                }
-                trial_x = next_state(**next_state_kwargs_i)
-                trial_g = system_analysis_toy_model(
-                    trial_x, dimension, target_pf=target_pf
-                )
-
-                current_x = x
-                current_g = g
-
-                is_accept = trial_g > threshold
-                new_x = trial_x if is_accept else current_x
-                new_g = trial_g if is_accept else current_g
-
-                all_x[chain_index, state_idx] = new_x
-                all_g[chain_index, state_idx] = new_g
+        if "lambda_" in (ret or {}):
+            sampling_method_kwargs["lambda_"] = ret["lambda_"]
 
         g = all_g.reshape((num_samples))
         x = all_x.reshape((num_samples, dimension))
+
+    raise RuntimeError(f"Failed to estimate in {num_levels} levels. Try increasing.")
 
 
 def get_stats(all_pf, all_cov):
@@ -243,8 +453,8 @@ def get_stats(all_pf, all_cov):
 
 def run_repeats(
     num_samples,
-    next_state,
-    next_state_kwargs=None,
+    sampling_method,
+    sampling_method_kwargs=None,
     num_repeats=100,
     dimension=200,
     target_pf=1e-4,
@@ -267,8 +477,8 @@ def run_repeats(
             p_0=p_0,
             num_samples=num_samples,
             num_levels=num_levels,
-            next_state=next_state,
-            next_state_kwargs=next_state_kwargs,
+            sampling_method=sampling_method,
+            sampling_method_kwargs=sampling_method_kwargs,
             master_seed=seeds[repeat_idx],
             mimic_matflow=mimic_matflow,
         )
@@ -278,12 +488,20 @@ def run_repeats(
     return get_stats(all_pf, all_cov)
 
 
+def dist_to_str(dist):
+    """Return a string representation of a distribution."""
+    args = ",".join(
+        [str(i) for i in dist.args] + [f"{k}={v}" for k, v in dist.kwds.items()]
+    )
+    return f"{dist.dist.name}({args})"
+
+
 def run_convergence(
     converge_label: str,
     fixed_num: int,
     series: list[int],
-    next_state,
-    next_state_kwargs: dict,
+    sampling_method: callable,
+    sampling_method_kwargs: dict,
     mimic_matflow: bool,
 ):
     """Run a convergence test on the toy model subset simulation, for either number of samples per level, N, or number of repeats, R.
@@ -307,16 +525,16 @@ def run_convergence(
     )
     direct_results = {
         "data": {},
-        "next_state": next_state.__name__,
-        "next_state_kwargs": next_state_kwargs,
+        "sampling_method": sampling_method.__name__,
+        "sampling_method_kwargs": sampling_method_kwargs,
         "converge_label": converge_label,
         "fixed_num": fixed_num,
         "series": series,
     }
     for num in series:
         run_kwargs_i = {
-            "next_state": next_state,
-            "next_state_kwargs": next_state_kwargs,
+            "sampling_method": sampling_method,
+            "sampling_method_kwargs": sampling_method_kwargs,
             "mimic_matflow": mimic_matflow,
         }
         if converge_label == "N":
@@ -327,12 +545,23 @@ def run_convergence(
             run_kwargs_i["num_samples"] = fixed_num
         direct_results["data"][num] = run_repeats(**run_kwargs_i)
 
+    if "proposal" in sampling_method_kwargs:
+        kwargs_str = dist_to_str(sampling_method_kwargs["proposal"])
+    else:
+        kwargs_str = f"{sampling_method_kwargs['prop_std']:.2f}"
+
+    if "chains_per_update" in sampling_method_kwargs:
+        kwargs_str += f"_NaFrac{sampling_method_kwargs['chains_per_update']:.1f}"
+
+    if "lambda_" in sampling_method_kwargs:
+        kwargs_str += f"_lambda{sampling_method_kwargs['lambda_']:.2f}"
+
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{next_state.__name__}_std{next_state_kwargs['prop_std']:.2f}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
+    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{sampling_method.__name__}_std{kwargs_str}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
     with Path(file_name).open("wb") as fh:
         pickle.dump(direct_results, fh)
 
-    return direct_results
+    return file_name
 
 
 def get_toy_model_results_from_matflow_workflows(root_path):
@@ -354,7 +583,101 @@ def get_toy_model_results_from_matflow_workflows(root_path):
     return get_stats(all_pf, all_cov)
 
 
-def plot_pf_num_samples(all_results, quantile_range):
+def plot_many_pf_num_samples_from_files(pkls, quantile_range=0.95, yscale="log"):
+    results = {}
+    for label, pkl in pkls.items():
+        with Path(pkl).open("rb") as fh:
+            results[label] = pickle.load(fh)
+    plot_many_pf_num_samples(results, quantile_range=quantile_range, yscale=yscale)
+
+
+def plot_many_pf_num_samples(
+    all_results_dct,
+    quantile_range,
+    xlim=None,
+    xscale="linear",
+    ylim=None,
+    yscale="linear",
+    target_pf=1e-4,
+):
+
+    plt.figure(figsize=(5, 4))
+
+    all_x = {k: [] for k in all_results_dct.keys()}
+    all_y = {k: [] for k in all_results_dct.keys()}
+    all_lower = {k: [] for k in all_results_dct.keys()}
+    all_upper = {k: [] for k in all_results_dct.keys()}
+
+    polys = []
+
+    for idx, (label, all_results) in enumerate(all_results_dct.items()):
+
+        if idx == 0:
+            converge_label = all_results["converge_label"]
+            fixed_num = all_results["fixed_num"]
+            title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+            xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
+        else:
+            assert all_results["converge_label"] == converge_label
+            assert all_results["fixed_num"] == fixed_num
+
+        all_data = all_results["data"]
+        for N, data in all_data.items():
+            pf_srt = sorted(data["pf"])
+            _x0 = (1 - quantile_range) / 2
+            _x1 = _x0 + quantile_range
+            lower = np.quantile(pf_srt, _x0)
+            upper = np.quantile(pf_srt, _x1)
+
+            all_x[label].append(N)
+            all_y[label].append(data["pf_mean"])
+            all_lower[label].append(lower)
+            all_upper[label].append(upper)
+
+        polys.append(
+            plt.fill_between(
+                x=all_x[label],
+                y1=all_lower[label],
+                y2=all_upper[label],
+                alpha=0.5,
+                label=label,
+            )
+        )
+
+    for idx, (label, all_results) in enumerate(all_results_dct.items()):
+        all_data = all_results["data"]
+        plt.scatter(
+            x=all_x[label],
+            y=all_y[label],
+            marker="o",
+            color=polys[idx].get_facecolor()[0],
+            edgecolor="black",
+            linewidth=0.8,
+            zorder=3,
+        )
+
+    plt.hlines(
+        y=target_pf,
+        xmin=min(all_data),
+        xmax=max(all_data),
+        color="gray",
+        label="Target",
+    )
+    plt.xlabel(xlabel)
+    plt.ylabel("Prob. of failure, pf")
+    plt.title(title)
+    plt.legend()
+    if ylim:
+        plt.ylim(ylim)
+    if xlim:
+        plt.xlim(xlim)
+    plt.yscale(yscale)
+    plt.xscale(xscale)
+
+
+def plot_pf_num_samples(
+    all_results, quantile_range, xlim=None, xscale="linear", ylim=None, yscale="linear"
+):
 
     converge_label = all_results["converge_label"]
     fixed_num = all_results["fixed_num"]
@@ -388,15 +711,19 @@ def plot_pf_num_samples(all_results, quantile_range):
     plt.hlines(
         y=1e-4, xmin=min(all_data), xmax=max(all_data), color="gray", label="Target"
     )
-    # plt.xscale("log")
-    # plt.yscale("log")
     plt.xlabel(xlabel)
     plt.ylabel("Prob. of failure, pf")
     plt.title(title)
     plt.legend()
+    if ylim:
+        plt.ylim(ylim)
+    if xlim:
+        plt.xlim(xlim)
+    plt.yscale(yscale)
+    plt.xscale(xscale)
 
 
-def plot_cov_estimates(all_results, ylim=None):
+def plot_cov_estimates(all_results, ylim=None, yscale="linear"):
 
     converge_label = all_results["converge_label"]
     fixed_num = all_results["fixed_num"]
@@ -424,6 +751,7 @@ def plot_cov_estimates(all_results, ylim=None):
     plt.legend()
     if ylim:
         plt.ylim(ylim)
+    plt.yscale(yscale)
 
 
 def plot_pf_dist(all_results, target_pf):
