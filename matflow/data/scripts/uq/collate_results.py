@@ -51,9 +51,12 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
     if all_g:
         # from multiple Markov chains:
         g_unsrt = np.concatenate([i[:] for i in all_g])
-        accept = np.vstack([i[:] for i in all_accept])
+        all_all_accept = []
+        for iter_dat in all_accept.values():
+            if iter_dat["value"]:
+                all_all_accept.append(np.vstack([i[:] for i in iter_dat["value"]]))
+        accept_rate = np.mean(all_all_accept, axis=(1, 2))
         x = np.vstack([i[:] for i in all_x])
-        accept_rate = np.mean(accept)
     else:
         # from initial direct Monte Carlo samples:
         g_unsrt = np.array(g)

@@ -1807,7 +1807,7 @@
       group: all
       default_value: null
     - parameter: level_cov
-      default_value: null      
+      default_value: null
     - parameter: p_0
   outputs:
     - parameter: chain_seeds
@@ -1826,6 +1826,7 @@
       script_data_in:
         g: { format: direct, all_iterations: true }
         level_cov: { format: direct, all_iterations: true }
+        all_accept: { format: direct, all_iterations: true }
         "*": direct
       script_data_out: direct
       script_exe: python_script
@@ -1892,6 +1893,7 @@
       default_value: null
   outputs:
     - parameter: x
+    - parameter: mcmc_accept_rate
     - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state.py>>
@@ -1910,7 +1912,7 @@
     - parameter: prop_std
     - parameter: chain_index
     - parameter: rng
-      default_value: null    
+      default_value: null
   outputs:
     - parameter: x
     - parameter: rng
@@ -1932,7 +1934,7 @@
     - parameter: lambda_
     - parameter: chain_index
     - parameter: rng
-      default_value: null    
+      default_value: null
   outputs:
     - parameter: x
     - parameter: rng

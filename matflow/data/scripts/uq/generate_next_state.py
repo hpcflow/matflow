@@ -86,4 +86,6 @@ def generate_next_state(x, proposal, rng, chain_index):
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
 
-    return {"x": xi, "rng": rng}
+    mcmc_accept_rate = np.mean(accept_idx)
+
+    return {"x": xi, "mcmc_accept_rate": mcmc_accept_rate, "rng": rng}

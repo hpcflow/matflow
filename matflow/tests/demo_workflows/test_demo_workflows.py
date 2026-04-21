@@ -3,6 +3,7 @@ import pytest
 
 from scipy.stats import norm
 from hpcflow.sdk.core.enums import EARStatus
+import numpy as np
 
 import matflow as mf
 from matflow.tests.subset_simulation import subset_simulation, generate_next_level_samples
@@ -74,7 +75,7 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
     )
 
     # run via single function implementation:
-    pf_sf, cov_sf = subset_simulation(
+    pf_sf, cov_sf, sus_acc_sf, mcmc_acc_sf = subset_simulation(
         dimension=200,
         target_pf=1e-4,
         p_0=0.1,
@@ -92,9 +93,12 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
     final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
     pf = final_iter.get("outputs.pf")
     cov = final_iter.get("outputs.cov")
+    sus_acc = final_iter.get("outputs.accept_rate")[:]
 
     # TODO: also verify same result with `subset_simulation_toy_model_external`, once
     # that can be submitted without a ridiculous number of processes.
 
     assert pf == pf_sf
     assert cov == cov_sf
+    assert np.allclose(sus_acc, sus_acc_sf)
+    # TODO: store and check mcmc_accept

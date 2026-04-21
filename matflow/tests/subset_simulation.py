@@ -1,6 +1,7 @@
 """Module containing functions to run a subset simulation on a simple toy model, used as a
 validation of the MatFlow implementation."""
 
+import copy
 from datetime import datetime
 import pickle
 from pathlib import Path
@@ -109,8 +110,9 @@ def generate_next_state(x, proposal, rng):
 
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
+    mcmc_accept_rate = np.mean(accept_idx)
 
-    return xi
+    return xi, mcmc_accept_rate
 
 
 def generate_next_state_CS(x, prop_std, rng):
@@ -118,14 +120,7 @@ def generate_next_state_CS(x, prop_std, rng):
     return norm.rvs(loc=x * rho, scale=prop_std, random_state=rng)
 
 
-def generate_next_state_ACS(x, prop_std, lambda_, sims_per_update, rng):
-    """
-    Parameters
-    ----------
-    sims_per_update
-        The number of simulations that will run before lambda_ is updated. Known as `Na`
-        elsewhere.
-    """
+def generate_next_state_ACS(x, prop_std, lambda_, rng):
     a_star = 0.44
     sigma = np.minimum(1, lambda_ * prop_std)
     rho = np.sqrt(1 - sigma**2)
@@ -147,6 +142,9 @@ def generate_next_level_samples(
     proposal,
 ):
 
+    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
+    mcmc_accept_arr = np.zeros((num_chains, num_states - 1))
+
     for chain_index in range(num_chains):
 
         # proceed this Markov chain until all states have been generated
@@ -167,22 +165,27 @@ def generate_next_level_samples(
             x = all_x[chain_index, state_idx - 1]
             g = all_g[chain_index, state_idx - 1]
 
-            trial_x = generate_next_state(
+            trial_x, mcmc_accept_rate = generate_next_state(
                 x=x,
                 proposal=proposal,
                 rng=chain_rng,
             )
+            mcmc_accept_arr[chain_index, state_idx - 1] = mcmc_accept_rate
             trial_g = system_analysis_toy_model(trial_x, dimension, target_pf=target_pf)
 
             current_x = x
             current_g = g
-
-            is_accept = trial_g > threshold
-            new_x = trial_x if is_accept else current_x
-            new_g = trial_g if is_accept else current_g
+            is_ss_accept = trial_g > threshold
+            subset_accept_arr[chain_index, state_idx - 1] = is_ss_accept
+            new_x = trial_x if is_ss_accept else current_x
+            new_g = trial_g if is_ss_accept else current_g
 
             all_x[chain_index, state_idx] = new_x
             all_g[chain_index, state_idx] = new_g
+
+    subset_accept = np.mean(subset_accept_arr).item()
+    mcmc_accept = np.mean(mcmc_accept_arr).item()
+    return {"subset_accept": subset_accept, "mcmc_accept": mcmc_accept}
 
 
 def generate_next_level_samples_CS(
@@ -199,7 +202,11 @@ def generate_next_level_samples_CS(
     threshold,
     prop_std,
 ):
+    """Conditional sampling algorithm for generating states in the subset simulation level
+    (aka subset infinity).
 
+    """
+    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
     for chain_index in range(num_chains):
 
         # proceed this Markov chain until all states have been generated
@@ -231,11 +238,111 @@ def generate_next_level_samples_CS(
             current_g = g
 
             is_accept = trial_g > threshold
+            subset_accept_arr[chain_index, state_idx - 1] = is_accept
             new_x = trial_x if is_accept else current_x
             new_g = trial_g if is_accept else current_g
 
             all_x[chain_index, state_idx] = new_x
             all_g[chain_index, state_idx] = new_g
+
+    subset_accept = np.mean(subset_accept_arr).item()
+    return {"subset_accept": subset_accept}
+
+
+def generate_next_level_samples_ACS(
+    num_chains,
+    num_states,
+    dimension,
+    chain_seeds,
+    chain_g,
+    all_x,
+    all_g,
+    level_idx,
+    master_seed,
+    target_pf,
+    threshold,
+    chains_per_update,
+    prop_std=1.0,
+    lambda_=1.0,
+):
+    """Adaptive conditional sampling algorithm for generating states in the subset
+    simulation level (aka adaptive subset infinity).
+
+    Parameters
+    ----------
+    chains_per_update
+        The number of Markov chains (as a fraction of the number of samples per level)
+        that will run before lambda_ is updated. As an integer number, known as `Na`
+        elsewhere.
+    prop_std
+        Initial variance of the proposal distribution.
+    lambda_
+        Initial scaling parameter.
+
+    """
+
+    A_STAR = 0.44
+
+    num_chains_per_update = int(chains_per_update * num_chains)
+    assert float(num_chains_per_update) == chains_per_update * num_chains
+
+    num_batches = int(num_chains / num_chains_per_update)
+    batch_avgs = []  # mean acceptance for each batch
+
+    for batch_idx in range(num_batches):
+
+        sigma = np.minimum(1, lambda_ * prop_std)
+        rho = np.sqrt(1 - sigma**2)
+
+        is_accept_arr = np.zeros((num_chains_per_update, num_states - 1)).astype(bool)
+        for batch_chain_idx in range(num_chains_per_update):
+
+            chain_index = batch_chain_idx + (batch_idx * num_chains_per_update)
+
+            # proceed this Markov chain until all states have been generated
+            all_x[chain_index, 0] = chain_seeds[chain_index]
+            all_g[chain_index, 0] = chain_g[chain_index]
+
+            chain_rng = None
+            for state_idx in range(1, num_states):
+
+                # RNG seed sequence for Markov chains:
+                if state_idx == 1:
+                    # spawn key to match the task ID in the matflow workflow
+                    spawn_key = (4, level_idx, chain_index)
+                    chain_rng = np.random.default_rng(
+                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+                    )
+
+                x = all_x[chain_index, state_idx - 1]
+                g = all_g[chain_index, state_idx - 1]
+
+                trial_x = norm.rvs(loc=x * rho, scale=sigma, random_state=chain_rng)
+
+                trial_g = system_analysis_toy_model(
+                    trial_x, dimension, target_pf=target_pf
+                )
+
+                current_x = x
+                current_g = g
+
+                is_accept = trial_g > threshold
+                is_accept_arr[batch_chain_idx, state_idx - 1] = is_accept
+
+                new_x = trial_x if is_accept else current_x
+                new_g = trial_g if is_accept else current_g
+
+                all_x[chain_index, state_idx] = new_x
+                all_g[chain_index, state_idx] = new_g
+
+        accept_batch_avg = np.mean(is_accept_arr)
+        batch_avgs.append(accept_batch_avg)
+
+        zeta = 1 / np.sqrt(batch_idx + 1)
+        lambda_ *= np.exp(zeta * (accept_batch_avg - A_STAR))
+
+    subset_accept = np.mean(batch_avgs).item()
+    return {"lambda_": lambda_, "subset_accept": subset_accept}
 
 
 def subset_simulation(
@@ -258,8 +365,12 @@ def subset_simulation(
         mimic_matflow=mimic_matflow,
     )
     g = system_analysis_toy_model(x, dimension, target_pf=target_pf)
+    sampling_method_kwargs = copy.deepcopy(sampling_method_kwargs)
 
     level_covs = []
+    subset_accepts = []
+    mcmc_accepts = []
+    ret = None
     for level_idx in range(num_levels):
         num_failed = int(np.sum(g > 0))
         num_chains = int(len(g) * p_0)
@@ -291,11 +402,11 @@ def subset_simulation(
 
         if is_finished := threshold > 0:
             cov = np.sqrt(sum(np.pow(level_covs, 2))).item()
-            return pf, cov
+            return pf, cov, subset_accepts, mcmc_accepts
 
         all_x = np.ones((num_chains, num_states, dimension)) * np.nan
         all_g = np.ones((num_chains, num_states)) * np.nan
-        sampling_method(
+        ret = sampling_method(
             num_chains=num_chains,
             num_states=num_states,
             dimension=dimension,
@@ -309,8 +420,18 @@ def subset_simulation(
             threshold=threshold,
             **sampling_method_kwargs,
         )
+        subset_accepts.append(ret["subset_accept"])
+
+        if "mcmc_accept" in (ret or {}):
+            mcmc_accepts.append(ret["mcmc_accept"])
+
+        if "lambda_" in (ret or {}):
+            sampling_method_kwargs["lambda_"] = ret["lambda_"]
+
         g = all_g.reshape((num_samples))
         x = all_x.reshape((num_samples, dimension))
+
+    raise RuntimeError(f"Failed to estimate in {num_levels} levels. Try increasing.")
 
 
 def get_stats(all_pf, all_cov):
@@ -425,16 +546,22 @@ def run_convergence(
         direct_results["data"][num] = run_repeats(**run_kwargs_i)
 
     if "proposal" in sampling_method_kwargs:
-        prop_str = dist_to_str(sampling_method_kwargs["proposal"])
+        kwargs_str = dist_to_str(sampling_method_kwargs["proposal"])
     else:
-        prop_str = f"{sampling_method_kwargs['prop_std']:.2f}"
+        kwargs_str = f"{sampling_method_kwargs['prop_std']:.2f}"
+
+    if "chains_per_update" in sampling_method_kwargs:
+        kwargs_str += f"_NaFrac{sampling_method_kwargs['chains_per_update']:.1f}"
+
+    if "lambda_" in sampling_method_kwargs:
+        kwargs_str += f"_lambda{sampling_method_kwargs['lambda_']:.2f}"
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{sampling_method.__name__}_std{prop_str}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
+    file_name = f"toy_model_runs_{converge_label}_converge_{fixed_str}_{sampling_method.__name__}_std{kwargs_str}_mimic{str(int(mimic_matflow))}_{timestamp}.pkl"
     with Path(file_name).open("wb") as fh:
         pickle.dump(direct_results, fh)
 
-    return direct_results
+    return file_name
 
 
 def get_toy_model_results_from_matflow_workflows(root_path):
