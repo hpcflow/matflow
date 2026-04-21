@@ -1,4 +1,23 @@
 
+<a name="v0.3.0a245"></a>
+## [v0.3.0a245](https://github.com/hpcflow/matflow/compare/v0.3.0a244...v0.3.0a245) - 2026.04.21
+
+### ♻ Code Refactoring
+
+* toy model sus
+
+### ✨ Features
+
+* record SuS acceptance rate for each level
+* support arbitrary proposal distributions in `generate_next_state`
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a244"></a>
 ## [v0.3.0a244](https://github.com/hpcflow/matflow/compare/v0.3.0a243...v0.3.0a244) - 2026.04.13
 
