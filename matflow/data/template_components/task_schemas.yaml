@@ -202,6 +202,75 @@
             type: any
           environment: damask_parse_env
 
+- objective: visualise_VE
+  method: pole_figure
+  implementation: mtex
+  inputs:
+    - parameter: volume_element
+    - parameter: crystal_symmetry
+    - parameter: pole_figure_directions
+    - parameter: use_contours
+      default_value: true
+    - parameter: IPF_reference_direction
+      default_value: z
+    - parameter: colourbar_limits
+      default_value: null
+    - parameter: use_one_colourbar
+      default_value: False
+    - parameter: compile
+      default_value: false
+  actions:
+    - script: <<script:mtex/plot_pole_figures.m>>
+      script_exe: compile_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      rules:
+        - path: inputs.compile
+          condition:
+            value.equal_to: true
+
+    - script: plot_pole_figures
+      script_data_in:
+        volume_element.orientations: hdf5
+        crystal_symmetry: json
+        pole_figure_directions: json
+        use_contours: json
+        IPF_reference_direction: json
+        colourbar_limits: json
+        use_one_colourbar: json
+      script_exe: run_compiled_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_pole_figures, mtex_IPF_figure]
+      rules:
+        - path: inputs.compile
+          condition:
+            value.equal_to: true
+
+    - script: <<script:mtex/plot_pole_figures.m>>
+      script_data_in:
+        volume_element.orientations: hdf5
+        crystal_symmetry: json
+        pole_figure_directions: json
+        use_contours: json
+        IPF_reference_direction: json
+        colourbar_limits: json
+        use_one_colourbar: json
+      script_exe: run_mtex
+      environments:
+        - scope:
+            type: any
+          environment: matlab_env
+      save_files: [mtex_pole_figures, mtex_IPF_figure]
+      rules:
+        - path: inputs.compile
+          condition:
+            value.equal_to: false
+
 - objective: sample_texture
   doc: Extract the crystal orientations from a CTF file.
   method: from_CTF_file

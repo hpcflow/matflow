@@ -1,0 +1,24 @@
+doc:
+  - A workflow to demonstrate tasks for visualising a volume element.
+
+tasks:
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [64, 64, 64]
+      microstructure_seeds::from_random:
+        num_seeds: 2000
+        box_size: [1, 1, 1]
+        phase_label: Al
+
+  - schema: visualise_VE_VTK
+
+  - schema: visualise_VE_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false
+      compile: false
