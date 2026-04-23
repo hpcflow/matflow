@@ -1422,6 +1422,29 @@
       script_data_out: direct
       script_exe: python_script
 
+- objective: generate_volume_element
+  method: APD
+  inputs:
+    - parameter: num_grains
+    - parameter: VE_grid_size
+    - parameter: VE_size
+    - parameter: phase_label
+    - parameter: homog_label
+      default_value: SX
+    - parameter: orientations
+      default_value: null
+  outputs:
+    - parameter: volume_element
+  actions:
+    - script: <<script:pyapd/generate_VE_PyAPD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
 - objective: load_microstructure
   doc: Get a 2D microstructure model from a differential interference contrast microscopy image.
   method: EBSD_DIC
