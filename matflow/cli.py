@@ -20,6 +20,7 @@ from matflow.environments import (
     env_configure_dream3d,
     env_configure_matlab,
     env_configure_damask,
+    env_configure_digilab,
 )
 
 
@@ -231,11 +232,40 @@ def add_to_env_setup_CLI(app: BaseApp) -> click.Group:
         )
         app.save_env(env)
 
+    @click.command()
+    @click.option("-u", "--username", help="Uncertainty engine username.")
+    @click.option("-p", "--password", help="Uncertainty engine password.")
+    @click.option(
+        "--use-current/--no-use-current",
+        is_flag=True,
+        default=True,
+        help=(
+            "Use the currently active conda-like or Python virtual environment to add a "
+            "`python_script` executable to the environment."
+        ),
+    )
+    @click.option(
+        "--replace/--no-replace",
+        is_flag=True,
+        default=False,
+        help="If True, replace existing environments.",
+    )
+    def digilab(username: str, password: str, use_current: bool, replace: bool):
+        """Configure the digiLab SDK environment."""
+        env = env_configure_digilab(
+            shell,
+            ue_username=username,
+            ue_password=password,
+            use_current=use_current,
+        )
+        app.save_env(env, replace=replace)
+
     app.env_setup_CLI.add_command(dream3d)
     app.env_setup_CLI.add_command(python_all)
     app.env_setup_CLI.add_command(matlab)
     app.env_setup_CLI.add_command(damask)
     app.env_setup_CLI.add_command(moose)
+    app.env_setup_CLI.add_command(digilab)
 
 
 add_to_env_setup_CLI(mf)
