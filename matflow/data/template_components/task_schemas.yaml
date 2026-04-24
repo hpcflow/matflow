@@ -1443,10 +1443,12 @@
       environments:
         - scope:
             type: any
-          environment: damask_parse_env
+          environment: pytorch_env
 
 - objective: load_microstructure
-  doc: Get a 2D microstructure model from a differential interference contrast microscopy image.
+  doc: |
+    Get a 2D microstructure model from a combination of electron backscatter diffraction 
+    (EBSD) and digital image correlation (DIC) data.
   method: EBSD_DIC
   inputs:
     - parameter: DIC
