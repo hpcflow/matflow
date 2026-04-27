@@ -1,4 +1,12 @@
 
+<a name="v0.3.0a246"></a>
+## [v0.3.0a246](https://github.com/hpcflow/matflow/compare/v0.3.0a245...v0.3.0a246) - 2026.04.27
+
+### 🐛 Bug Fixes
+
+* import error
+
+
 <a name="v0.3.0a245"></a>
 ## [v0.3.0a245](https://github.com/hpcflow/matflow/compare/v0.3.0a244...v0.3.0a245) - 2026.04.21
 
