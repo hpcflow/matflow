@@ -619,14 +619,14 @@ unicode-backport = ["unicodedata2"]
 
 [[package]]
 name = "click"
-version = "8.3.2"
+version = "8.3.3"
 description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev", "test"]
 files = [
-    {file = "click-8.3.2-py3-none-any.whl", hash = "sha256:1924d2c27c5653561cd2cae4548d1406039cb79b858b747cfea24924bbc1616d"},
-    {file = "click-8.3.2.tar.gz", hash = "sha256:14162b8b3b3550a7d479eafa77dfd3c38d9dc8951f6f69c78913a8f9a7540fd5"},
+    {file = "click-8.3.3-py3-none-any.whl", hash = "sha256:a2bf429bb3033c89fa4936ffb35d5cb471e3719e1f3c8a7c3fff0b8314305613"},
+    {file = "click-8.3.3.tar.gz", hash = "sha256:398329ad4837b2ff7cbe1dd166a4c0f8900c3ca3a218de04466f38f6497f18a2"},
 ]
 
 [package.dependencies]
@@ -1364,14 +1364,14 @@ markers = {test = "python_version == \"3.12\""}
 
 [[package]]
 name = "fsspec"
-version = "2026.3.0"
+version = "2026.4.0"
 description = "File-system specification"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "fsspec-2026.3.0-py3-none-any.whl", hash = "sha256:d2ceafaad1b3457968ed14efa28798162f1638dbb5d2a6868a2db002a5ee39a4"},
-    {file = "fsspec-2026.3.0.tar.gz", hash = "sha256:1ee6a0e28677557f8c2f994e3eea77db6392b4de9cd1f5d7a9e87a0ae9d01b41"},
+    {file = "fsspec-2026.4.0-py3-none-any.whl", hash = "sha256:11ef7bb35dab8a394fde6e608221d5cf3e8499401c249bebaeaad760a1a8dec2"},
+    {file = "fsspec-2026.4.0.tar.gz", hash = "sha256:301d8ac70ae90ef3ad05dcf94d6c3754a097f9b5fe4667d2787aa359ec7df7e4"},
 ]
 
 [package.extras]
@@ -1546,21 +1546,21 @@ numpy = ">=1.21.2"
 
 [[package]]
 name = "hpcflow"
-version = "0.2.0a312"
+version = "0.2.0a317"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["main"]
 files = [
-    {file = "hpcflow-0.2.0a312-py3-none-any.whl", hash = "sha256:6b81ca9608ef58ee996550d5e4dbbb957ca3daa66ab7078fe3e5f0ac36f6ff85"},
-    {file = "hpcflow-0.2.0a312.tar.gz", hash = "sha256:415401a9936d0a4a9c3eb306cc9652809475103c73919539ac2c26232084989f"},
+    {file = "hpcflow-0.2.0a317-py3-none-any.whl", hash = "sha256:192a12c0a65fc4ffc0d303b9269d9fb782d1c8a1f5f2768b77a939719d1c199f"},
+    {file = "hpcflow-0.2.0a317.tar.gz", hash = "sha256:595908d4431697661807f056b4579ce007fa0521d6c209a009af8908c7efb60f"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.13.5,<4.0.0"
-click = ">=8.3.2,<9.0.0"
+click = ">=8.3.3,<9.0.0"
 colorama = ">=0.4.6,<0.5.0"
-fsspec = ">=2026.3.0,<2027.0.0"
+fsspec = ">=2026.4.0,<2027.0.0"
 h5py = ">=3.16.0,<4.0.0"
 ipywidgets = ">=8.1.8,<9.0.0"
 jinja2 = ">=3.1.6,<4.0.0"
@@ -5593,4 +5593,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "217db3caa49a69ffd2c34a4390be07248fb662820dd4e28462808acc1dc56b48"
+content-hash = "267ef13ffb4ea659051fbace0de3b8ef39dc88cc5ddeadb43f74babf6d176aa8"
