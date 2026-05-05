@@ -1,91 +1,65 @@
-name: test
-concurrency:
-  | # e.g. don't run simultaneously on the same branch (since we may commit to that branch)
-  {% raw %}ci-${{ format('{0}github.head_ref', 'refs/heads') || github.ref }}{% endraw %}
-
-env:
-  PYTHON_VERSION_PRE_COMMIT: 3.9
+name: Test
 
 on:
   workflow_dispatch: # manual invocation
-  push:
-    branches-ignore: [main, develop] # have to manually change these
+    inputs:
+      pre_commit:
+        description: "Run pre-commit?"
+        required: true
+        type: boolean
+        default: true
+      unit_tests:
+        description: "Run unit tests?"
+        required: true
+        type: boolean
+        default: true
+      invocation_tests:
+        description: "Run invocation tests?"
+        required: true
+        type: boolean
+        default: true
+      integration_tests:
+        description: "Run integration-like workflow submission tests?"
+        required: true
+        type: boolean
+        default: true
+      unit_test_args:
+        description: "CLI args to pass verbatim to pytest (unit tests)."
+        required: false
+        type: string
+        default: ""
+      integration_test_args:
+        description: "CLI args to pass verbatim to pytest (integration tests)."
+        required: false
+        type: string
+        default: ""
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, synchronize]
     branches: [main, develop] # have to manually change these
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          # PAT of user who has permission to bypass branch
-          # protection || or standard GITHUB_TOKEN if running on an external fork (won't
-          # be able to commit fixes):
-          token: {{ '${{' }} secrets.{{ token_name }} {{ '|| secrets.GITHUB_TOKEN }}' }}
-          # checkout PR source branch (head_ref) if event is pull_request:
-          ref: {% raw %}${{ github.head_ref || github.ref }}{% endraw %}
-
-      - run: |
-          git config user.name {{ bot_account_name }}
-          git config user.email {{ bot_account_email }}
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: {% raw %}${{ env.PYTHON_VERSION_PRE_COMMIT }}{% endraw %}
-
-      - name: pre-commit
-        # avoid exit code 1 (which halts GH actions) from pre-commit run command by
-        # running twice:
-        run: |
-          pip install pre-commit
-          pre-commit install
-          export SKIP=no-commit-to-branch
-          pre-commit run --all-files || pre-commit run --all-files
-
-      - name: pre-commit push changes
-        run: |
-          if git diff --quiet; then
-            echo "No pre-commit changes"
-          else
-            git commit -am "pre-commit fixes [skip ci]"
-            git push
-          fi
-
   test:
-    needs: pre-commit
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10"]
-        os: [ubuntu-18.04]
-
-    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: {% raw %}${{ github.ref }}{% endraw %}
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
-
-      - name: Install and configure poetry
-        run: |
-          python -m pip install poetry
-          poetry config virtualenvs.in-project true
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v2
-        with:
-          path: ./.venv
-          key: {% raw %}${{ runner.os }}-${{ matrix.python-version }}-venv-${{ hashFiles('**/poetry.lock') }}{% endraw %}
-
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      - name: Run tests
-        run: |
-          poetry run python -m pytest {{ pytest_args }}
+    uses: hpcflow/github-support/.github/workflows/test-impl.yml@main
+    with:
+      {% raw %}pre_commit: ${{ github.event_name == 'pull_request' || github.event.inputs.pre_commit == 'true' }}
+      unit_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.unit_tests == 'true' }}
+      integration_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.integration_tests == 'true' }}
+      invocation_tests: ${{ github.event_name == 'pull_request' || github.event.inputs.invocation_tests == 'true' }}
+      unit_test_args: ${{ github.event.inputs.unit_test_args }}
+      integration_test_args: ${{ github.event.inputs.integration_test_args }}
+      ref: ${{ github.ref }}
+      head-ref: ${{ github.head_ref }}
+      full-repo-name: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
+      app_package: {{ app_package }}
+      CLI_module: {{ CLI_module }}
+      CLI_path: {{ CLI_path }}
+      CLI_path_win: {{ CLI_path_win }}
+      executable_name: {{ executable_name }}
+      pytest_args:{%- if pytest_args %} {{ pytest_args }}{%- else %} ""{%- endif %}
+      python-versions: |
+        ["3.10", "3.11", "3.12", "3.13"]
+    secrets:
+      pre-commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '|| secrets.GITHUB_TOKEN }}' }}
+    permissions:
+      id-token: write
+      contents: write

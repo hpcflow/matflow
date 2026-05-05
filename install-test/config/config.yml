@@ -1,0 +1,17 @@
+configs:
+  default:
+    invocation:
+      environment_setup:
+      match: {}
+    config:
+      machine: Adam-Desktop
+      telemetry: true
+      log_file_path: logs/app.log
+      environment_files:
+        - environments.yaml
+      task_schema_files:
+        - task_schemas.yaml
+      file_files:
+        - files.yaml
+      parameter_files:
+        - parameters.yaml

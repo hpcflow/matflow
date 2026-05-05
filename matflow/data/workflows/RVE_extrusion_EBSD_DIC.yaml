@@ -1,0 +1,190 @@
+doc:
+  - >
+    A workflow to generate a volume element from EBSD and DIC data that is extruded in the
+    z-direction. The volume element is modified to include a buffer zone, and uniaxial
+    tension is simulated using DAMASK.
+  - "Note: this is a work-in-progress, and material parameters may need to be updated."
+
+tasks:
+  - schema: load_microstructure_EBSD_DIC
+    inputs:
+      transform_type: affine
+      root_path: <<demo_data_file:defdap_small_dataset>>
+      scaling_factor: 0.5
+      DIC:
+        filename: dic_data.txt
+        crop: [15, 28, 30, 15] # optional
+        scale: 1.328e-2 # microns per pixel, optional
+        min_grain_size: 20 # optional
+        homog_points:
+          - [452, 322]
+          - [200, 417]
+          - [159, 144]
+          - [352, 269]
+          - [102, 33]
+          - [500, 48]
+          - [295, 245]
+          - [176, 437]
+          - [61, 382]
+          - [391, 398]
+          - [240, 208]
+      EBSD:
+        filename: ebsd_data
+        flip_vert: true # optional
+        boundary_tol: 8 # optional
+        min_grain_size: 10 # optional
+        homog_points:
+          - [780, 606]
+          - [374, 816]
+          - [285, 385]
+          - [612, 543]
+          - [186, 218]
+          - [839, 149]
+          - [516, 519]
+          - [335, 856]
+          - [145, 794]
+          - [686, 743]
+          - [424, 470]
+
+  - schema: generate_volume_element_extrusion
+    inputs:
+      depth: 8
+      image_axes: ["y", "x"]
+      homog_label: SX
+      phase_label: Ti
+
+  - schema: visualise_VE_VTK
+
+  - schema: modify_VE_add_buffer_zones
+    inputs:
+      buffer_sizes: [4, 4, 4, 4, 2, 2] # size of buffer on each face [-x, +x, -y, +y, -z, +z]
+      phase_ids: [1, 1, 1, 1, 2, 2] # phase of each buffer. Relative, so 1 is the first new phase and so on
+      phase_labels: ["Ti_iso", "Air"] # labels of the new phases
+      homog_label: SX
+      order: ["z", "y", "x"] # order to add the zones, default [x, y, z]
+
+  - schema: visualise_VE_VTK
+
+  - schema: simulate_VE_loading_damask
+    inputs:
+      load_case::uniaxial:
+        total_time: 30
+        num_increments: 30
+        target_def_grad_rate: 1.0e-4
+        direction: x
+      homogenization:
+        SX:
+          mechanical:
+            type: pass
+          N_constituents: 1
+      damask_phases:
+        Ti:
+          lattice: hP
+          c/a: 1.587
+          mechanical:
+            output: [F, F_p, P, O]
+            elastic:
+              type: Hooke
+              C_11: 160.0e9
+              C_12: 90.0e9
+              C_13: 66.0e9
+              C_33: 181.7e9
+              C_44: 46.5e9
+            plastic:
+              type: phenopowerlaw
+              output: [gamma_sl]
+              N_sl: [3, 3, 0, 12]  # basal, prism, -, 1. pyr<c+a>
+              n_sl: 20
+              a_sl: 2
+              dot_gamma_0_sl: 0.001
+              xi_0_sl:   [349.e+6, 150.e+6, 0.0, 1107.e+6] # C. Zambaldi et al.
+              xi_inf_sl: [568.e+6, 150.e+7, 0.0, 3420.e+6] # C. Zambaldi et al.              
+              h_0_sl-sl: 15.e6
+              h_sl-sl: [+1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0, -1.0,
+                        -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,
+                        +1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
+                        +1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
+                        +1.0,  1.0,  1.0,  1.0,  1.0,  1.0] # unused entries are indicated by -1.0
+        Ti_iso:
+          lattice: cF
+          mechanical:
+            output: [F, P]
+            elastic:
+              type: Hooke
+              C_11: 175.5e9
+              C_12: 90.4e9
+              C_44: 42.55e9 # isotropic value: 0.5*(C_11-C_12)
+            plastic:
+              type: none
+        Air:
+          lattice: cF
+          mechanical:
+            output: [F, P]
+            elastic:
+              type: Hooke
+              C_11: 1e8
+              C_12: 1e6
+              C_44: 49.5e6 # isotropic value: 0.5*(C_11-C_12)
+            plastic:
+              type: isotropic
+              output: [xi, gamma]
+              xi_0: 0.3e6
+              xi_inf: 0.6e6
+              dot_gamma_0: 0.001
+              n: 5
+              M: 3
+              h_0: 1e6
+              a: 2
+              dilatation: true
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+          opts: {}
+        - name: add_strain
+          args: { F: F, t: U, m: 2 }
+          opts: {}
+      VE_response_data:
+        # Use for average quantities in a single phase, say average stress/strain at each step of sim
+        phase_data:
+          - field_name: sigma
+            phase_name: Ti
+            out_name: vol_avg_stress
+            transforms: [mean_along_axes: 1]
+          - field_name: epsilon_U^2(F)
+            phase_name: Ti
+            out_name: vol_avg_strain
+            transforms: [mean_along_axes: 1]
+        # Use to extract spatial data from (probably a subset of increments)
+        field_data:
+          - field_name: epsilon_U^2(F)
+            increments:
+              - values: [10, 20, 30]
+          - field_name: sigma
+            increments:
+              - start: 10
+                stop: 30
+                step: 10
+          - field_name: O
+            increments:
+              - values: [10, 20, 30]
+          - field_name: u_n
+            increments:
+              - values: [10, 20, 30]
+          - field_name: grain # Grain mapping
+          - field_name: phase # Phase mapping
+        # Use to extract grain averaged data
+        grain_data:
+          - field_name: epsilon_U^2(F)
+            increments:
+              - values: [10, 20, 30]
+          - field_name: sigma
+            increments:
+              - values: [10, 20, 30]
+          - field_name: O
+            increments:
+              - values: [10, 20, 30]
+      damask_numerics:
+        grid:
+          itmin: 2
+          itmax: 100
+          derivative: FWBW_difference

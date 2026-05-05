@@ -1,0 +1,32 @@
+doc:
+  - >
+    Demonstration of a task to sample texture from a model orientation distribution
+    function (ODF) using MTEX, and produce pole figures of the sampled orientations.
+
+tasks:
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
+      crystal_symmetry: hexagonal
+      specimen_symmetry: orthorhombic
+      num_orientations: 1000
+      ODF_components:
+        - type: unimodal
+          component_fraction: 0.4 # component fractions must sum to 1!
+          modal_orientation_HKL: [0, 0, 1]
+          modal_orientation_UVW: [1, 0, 0]
+          halfwidth: 15
+        - type: unimodal
+          component_fraction: 0.3 # component fractions must sum to 1!
+          modal_orientation_euler: [0, 0, 10] # in Bunge/degrees/MTEX hex alignment (y//b)
+          halfwidth: 5
+        - type: uniform
+          component_fraction: 0.3 # component fractions must sum to 1!
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: hexagonal
+      pole_figure_directions:
+        - [0, 0, 0, 1]
+        - [1, 0, -1, 0]
+        - [1, 1, -2, 0]
+      use_contours: true

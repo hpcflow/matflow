@@ -1,9 +1,213 @@
 table.binary-downloads-table td {
     border: 1px solid silver;
 }
+
 table.binary-downloads-table td {
     padding: 0.3rem 0.6rem;
 }
+
 table.binary-downloads-table td:first-child {
     text-align: center;
+}
+
+.valida-tree.node {
+    margin-left: 0.5rem;
+    border-left: 1px solid silver;
+    padding-left: 0.7rem;
+}
+
+.valida-tree.node.top-level-node {
+    margin-left: unset;
+    border-left: unset;
+    padding-left: unset;
+}
+
+.valida-tree.node-child {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.valida-tree.node-metadata {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.valida-tree.null-condition-path-elem {
+    font-style: italic;
+    color: gray;
+}
+
+.valida-tree.condition {
+    display: none;
+}
+
+.valida-tree.node h2,
+.valida-tree.node h3,
+.valida-tree.node h4,
+.valida-tree.node h5,
+.valida-tree.node h6 {
+    font-size: 1.3rem;
+    color: unset;
+    margin-bottom: 0.6rem;
+}
+
+.valida-tree.doc-example-name {
+    font-style: italic;
+    color: #888;
+    font-weight: 500;
+}
+
+div.admonition.code-dropdown div.code {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+
+}
+
+div.admonition.code-dropdown div.code pre {
+    border: none
+}
+
+div.admonition.code-dropdown>.admonition-title:after {
+    content: "\f15b";
+    /* fa-regular fa-file */
+}
+
+table.schema-inputs-table,
+table.schema-outputs-table,
+table.action-table,
+table.actions-commands-table,
+table.script-data-format-table {
+    margin-left: initial;
+    margin-right: initial;
+}
+
+
+table.action-table td.action-table-bottom-spacer-cell {
+    border-bottom: 1px solid gray;
+}
+
+table.action-table {
+    border: 1px solid gray;
+}
+
+table.action-table.hidden {
+    display: none;
+}
+
+table.action-table td {
+    text-align: left;
+    vertical-align: top;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+table.action-table td.act-idx-cell {
+    padding-left: 0.8rem;
+    padding-right: 0.3rem;
+}
+
+
+
+table.action-table pre {
+    margin: 0;
+}
+
+table.schema-inputs-table th,
+table.schema-outputs-table th {
+    font-weight: normal;
+    font-style: italic;
+    color: var(--pst-color-text-muted);
+}
+
+table.schema-inputs-table td,
+table.schema-inputs-table th,
+table.schema-outputs-table td,
+table.schema-outputs-table th {
+    border: 1px solid gray;
+    padding: 0.2rem 0.7rem;
+}
+
+table.schema-inputs-table td,
+table.schema-outputs-table td {
+    border-top: none;
+    border-bottom: none;
+}
+
+table.schema-inputs-table,
+table.schema-outputs-table {
+    border-bottom: 1px solid gray;
+}
+
+td.action-table-bottom-spacer-cell {
+    height: 1rem;
+}
+
+td.action-table-top-spacer-cell {
+    height: 0.8rem;
+}
+
+
+td.commands-table-top-spacer-cell,
+td.commands-table-bottom-spacer-cell {
+    height: 0.5rem;
+}
+
+table.actions-commands-table td.commands-table-bottom-spacer-cell {
+    border-bottom: 1px dotted gray;
+}
+
+span.schema-note-no-actions,
+span.schema-note-no-inputs,
+span.schema-note-no-outputs {
+    font-style: italic;
+}
+
+
+td.action-header-cell,
+td.command-header-cell {
+    font-style: italic;
+    color: var(--pst-color-text-muted);
+
+}
+
+table.actions-commands-table td.command-header-cell {
+    text-align: right;
+}
+
+span.act-idx-numeral {
+    border: 1px solid gray;
+    color: gray;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2rem;
+}
+
+span.cmd-idx-numeral {
+    border: 1px solid gray;
+    color: gray;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.2rem;
+}
+
+span.actions-show-hide-toggle {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--pst-color-text-muted);
+    padding-left: 1rem;
+}
+
+.actions-heading:hover,
+span.actions-show-hide-toggle:hover,
+.actions-heading:hover span.actions-show-hide-toggle {
+    color: gray;
+    cursor: pointer;
+    user-select: none;
+}
+
+
+span.action-hide-text.hidden,
+span.action-show-text.hidden {
+    display: none;
 }

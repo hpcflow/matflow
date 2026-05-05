@@ -1,0 +1,56 @@
+name: myworkflow
+tasks:
+  - schemas: [dummy_task_1]
+
+    resources:
+      scratch: CSF3
+      scheduler: SGE
+
+    inputs:
+      p1:
+        a: A
+        b: B
+      p2.b: C
+      p5: 501
+
+    sequences:
+      - path: [inputs, p2, a]
+        values: [201, 202]
+        nesting_order: 1
+
+      # - path: [inputs, p1, b]
+      #   values: [B1, B2]
+      #   nesting_order: 2
+
+      # - path: [resources, scratch]
+      #   values: [local, CSF]
+      #   nesting_order: 2
+
+    # input_sources:
+    #   p1: local
+    #   p2: local
+    #   p5: local
+
+    nesting_order:
+      inputs.p1: 0
+      inputs.p2: 0
+      inputs.p5: 0
+
+    # p2: local
+    #   p2: tasks.dummy_task_0.inputs
+    #   p0: local
+    #   p3: task.0.outputs
+    #   p1:
+    #     where: null # element filter (e.g to exclude some elements)
+    #     type: task
+    #     task_ref: dummy_task_1
+    #     task_source_type: inputs
+
+  - schemas: [dummy_task_2]
+    inputs:
+      p3: 30003
+      orientations:
+        data: [[1, 2, 3, 4], [5, 6, 7, 8]]
+        ori_format: "quaternion"
+    input_sources:
+      p3: task.dummy_task_1.output

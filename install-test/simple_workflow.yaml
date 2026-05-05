@@ -1,0 +1,12 @@
+name: simple_workflow
+
+tasks:
+  - schemas: [demo_task_1]
+    elements:
+      - inputs:
+          p2: 201
+          p5: 501
+        sequences:
+          - path: inputs.p1
+            nesting_order: 0
+            values: [101, 102]

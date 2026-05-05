@@ -1,0 +1,24 @@
+doc:
+  - >
+    Workflow to generate a volume element, then increase the grid size,
+    and visualise the original and modified volume elements.
+
+tasks:
+  - schema: generate_microstructure_seeds_from_random
+    inputs:
+      VE_size: [1, 1, 1]
+      num_grains: 4
+      phase_label: Al
+
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [8, 8, 8]
+  
+  - schema: visualise_VE_VTK
+
+  - schema: modify_VE_grid_size
+    inputs:
+      new_grid_size: [16, 16, 16]
+  
+  - schema: visualise_VE_VTK

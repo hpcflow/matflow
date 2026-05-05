@@ -1,0 +1,146 @@
+doc:
+  - >
+    A simple crystal plasticity simulation using DAMASK. A volume element generated from a
+    random voronoi tessellation is loaded uniaxially, using titanium (Ti) material
+    parameters.
+tasks:
+  - schema: generate_microstructure_seeds_from_random
+    inputs:
+      VE_size: [1, 1, 1]
+      num_grains: 4
+      phase_label: Ti
+
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [8, 8, 8]
+
+  - schema: simulate_VE_loading_damask
+    inputs:
+      load_case::uniaxial:
+        total_time: 100
+        num_increments: 1000
+        direction: x
+        target_def_grad_rate: 1.0e-3
+        dump_frequency: 5
+      homogenization:
+        SX:
+          mechanical: { type: "pass" }
+          N_constituents: 1
+      damask_phases:
+        Ti:
+          lattice: hP
+          c/a: 1.62350 # from Tromans 2011, Elastic Anisotropy of HCP Metal Crystals and Polycrystals
+          rho: 1740.0
+          mechanical:
+            output: [F, P, F_e, F_p, L_p, O]
+            elastic:
+              type: Hooke
+              C_11: 59.3e9
+              C_12: 25.7e9
+              C_13: 21.4e9
+              C_33: 61.5e9
+              C_44: 16.4e9
+            plastic:
+              type: phenopowerlaw
+              references:
+                - C. Zambaldi et al.,
+                  Journal of Materials Research 27(1):356-367, 2021,
+                  https://doi.org/10.1557/jmr.2011.334
+                - L. Wang et al.,
+                  Acta Materialia 132:598-610, 2017,
+                  https://doi.org/10.1016/j.actamat.2017.05.015
+              output: [gamma_sl]
+              N_sl: [3, 3, 0, 12] # basal, prism, -, 1. pyr<c+a>
+              n_sl: 20
+              a_sl: 2.0
+              dot_gamma_0_sl: 0.001
+              h_0_sl-sl: 200.e+6
+              xi_0_sl: [349.e+6, 150.e+6, 0.0, 1107.e+6] # C. Zambaldi et al.
+              xi_inf_sl: [568.e+6, 150.e+7, 0.0, 3420.e+6] # C. Zambaldi et al.
+              # xi_0_sl:   [127.e+6, 96.e+6, 0.0, 240.e+6] # L. Wang et al.
+              h_sl-sl: [
+                  +1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  -1.0,
+                  1.0,
+                  +1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  +1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  +1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0,
+                ] # unused entries are indicated by -1.0
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+          opts: { add_Mises: true }
+        - name: add_strain
+          args: { F: F, t: V, m: 0 }
+          opts: { add_Mises: true }
+        - name: add_strain
+          args: { F: F_p, t: V, m: 0 }
+          opts: { add_Mises: true }
+        - name: add_IPF_color
+          args: { l: [0, 0, 1] }
+      VE_response_data:
+        phase_data:
+          - field_name: sigma_vM
+            phase_name: Ti
+            out_name: vol_avg_equivalent_stress
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_V^0(F)_vM
+            phase_name: Ti
+            out_name: vol_avg_equivalent_strain
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_V^0(F_p)_vM
+            phase_name: Ti
+            out_name: vol_avg_equivalent_plastic_strain
+            transforms: [{ mean_along_axes: 1 }]
+        field_data:
+          - field_name: phase
+          - field_name: O
+        grain_data:
+          - field_name: O
+            increments: [{ values: [0, -1] }]
+      damask_viz:
+        fields:
+          [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
+        increments:
+          - step: 100

@@ -1,46 +1,84 @@
 [tool.poetry]
 name = "matflow"
-version = "0.2.25"
+version = "0.3.0a248"
 description = "Computational workflows for materials science"
 authors = ["aplowman <adam.plowman@manchester.ac.uk>"]
 license = "MIT"
 readme = "README.md"
-include = [
-    "matflow/data/task_schemas.yaml",
-    "matflow/data/environments.yaml"
+packages = [
+    { include = "matflow" }
 ]
+exclude = ["matflow/data/demo_data"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.11"
-pyinstaller = { version = "^4.10", optional = true}
-hpcflow-new = "0.81.0a0"
+python = ">=3.10,<3.14"
+numpy = [ # copied from hpcflow, shouldn't really be needed?
+    {version = "^1.26.4", python = "<3.13"},
+    {version = "^2.2.4", python = ">=3.13"},
+]
+pytest = {version = "^9.0.2", optional = true}
+matplotlib = "^3.7"
+typing-extensions = "^4.12.2"
+skops = "^0.13.0"
+hpcflow = "0.2.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pylint = "^2.12.2"
 ipykernel = "^6.6.1"
-pytest = "^6.2.5"
+pytest = "^9.0.2"
 commitizen = "^2.20.3"
 pre-commit = "^2.16.0"
-black = "^21.12b0"
-Sphinx = "^4.4.0"
-pydata-sphinx-theme = "^0.8.0"
+black = "^22.3.0"
+sphinx = ">=4,<7"
+sphinx-click = "^4.4.0"
 sphinx-jinja = "^2.0.1"
 sphinx-copybutton = "^0.5.0"
+sphinx-design = "^0.4.1"
+sphinx-togglebutton = "^0.3.2"
+pydata-sphinx-theme = "^0.13.3"
+myst-nb = [
+    {version = "0.17.2", python = "<3.9"},
+    {version = "1.1.1", python = ">=3.9"}
+]
+
+[tool.poetry.group.test.dependencies]
+pytest = "^9.0.2"
+pexpect = "^4.8.0"
+papermill = "^2.5.0"
+ipykernel = "^6.25.1"
+
+[tool.poetry.group.pyinstaller.dependencies]
+pyinstaller = "^6.12.0"
+
+[tool.poetry.group.typecheck]
+optional = true
+[tool.poetry.group.typecheck.dependencies]
+mypy = "^1.10.1"
 
 [tool.poetry.extras]
-pyinstaller = ["pyinstaller"]
+test = ["pytest"]
 
 [tool.poetry.scripts]
 matflow = 'matflow.cli:cli'
 
+[tool.poetry.plugins.pyinstaller40]
+hook-dirs = "matflow.__pyinstaller:get_hook_dirs"
+
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.2.25"
+version = "0.3.0a248"
 tag_format = "v$version"
 version_files = [ 
     "pyproject.toml:version",
     "matflow/_version.py"
 ]
+bump_message = "bump: $current_version → $new_version [skip ci]"
+
+[tool.black]
+line-length = 90
+
+[tool.mypy]
+incremental = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

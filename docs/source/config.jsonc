@@ -1,0 +1,17 @@
+{
+    "project": "MatFlow",
+    "package": "matflow", // must have an importable "app" module (we do `from <<package>> import app`)
+    "copyright": "2023, MatFlow developers",
+    "author": "MatFlow developers",
+    "github_user": "hpcflow",
+    "github_repo": "matflow",
+    "PyPI_project": "matflow",
+    "switcher_JSON_URL": "https://docs.matflow.io/switcher.json",
+    "html_logo": "_static/images/logo-50dpi.png",
+    "additional_intersphinx": {
+        "hpcflow": [
+            "https://hpcflow.github.io/docs/stable",
+            null
+        ]
+    }
+}

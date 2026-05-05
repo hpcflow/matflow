@@ -1,0 +1,75 @@
+name: Test demo workflows
+
+env:
+  PYTEST_ARGS: ""
+  POETRY_VERSION: "2.1.3"
+  PYTHON_VERSION: "3.13"
+
+on:
+  workflow_dispatch: # manual invocation
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main, develop]
+
+jobs:
+  test-demo-workflows:
+    permissions:
+      # No write permission
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up poetry
+        uses: hpcflow/github-support/setup-poetry@main
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Cache dependencies
+        uses: hpcflow/github-support/init-cache@main
+        with:
+          name: test-demos
+          version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --without dev,pyinstaller
+
+      - name: Store user and group IDs
+        run: |
+          echo "UID=$(id -u)" >> $GITHUB_ENV
+          echo "GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Install necessary pip packages
+        run: |
+          poetry run pip install damask-parse
+
+      - name: Install necessary MatFlow environments
+        id: configure_envs
+        run: |
+          poetry run matflow env setup python-all --use-current
+          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2 --option u ${{ env.UID }}:${{ env.GID }}
+          result=$(poetry run matflow env info source_file -n python_env)
+          echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
+
+      - name: Run demo workflows       
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUNBUFFERED: ok
+        run: |
+          poetry run matflow test --with-env-source ${{ steps.configure_envs.outputs.env_source_file }} --demo-workflows
+
+      - name: Upload all pytest temp dirs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-temp
+          path: /tmp/pytest-of-*

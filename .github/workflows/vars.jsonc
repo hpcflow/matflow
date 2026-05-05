@@ -1,17 +1,24 @@
 {
     "org": "hpcflow",
-    "repo": "matflow-new",
+    "repo": "matflow",
+    "app_name": "MatFlow",
+    "app_package": "matflow",
+    "docs_url_prefix": "",
     "version_file": "matflow/_version.py",
     "release_branch": "main",
+    "CLI_path": "matflow/cli.py",
+    "CLI_path_win": "matflow\\cli.py",
+    "CLI_module": "matflow.cli",
     "pre_release_branch": "develop",
     "bot_account_name": "hpcflow-actions",
     "bot_account_email": "hpcflow-actions@users.noreply.github.com",
     "token_name": "HPCFLOW_ACTIONS_TOKEN", // as defined within the `secrets` context: PAT of user who has permission to bypass branch protection
-    "pytest_args": "--verbose --exitfirst -k \"not task_schema and not task_template and not resolve_elements and not input_value and not action\"", // # disable failing tests while we set up CI
-    "PYPI_token_name": "TEST_PYPI", // as defined within the `secrets` context
-    "PYPI_URL": "https://test.pypi.org/legacy/",
+    "pytest_args": "",
+    "PYPI_token_name": "PYPI", // or "TEST_PYPI", as defined within the `secrets` context
+    "PYPI_URL": "https://upload.pypi.org/legacy/", // "https://test.pypi.org/legacy/",
     "executable_name": "matflow",
-    "pyinstaller_package": "matflow/cli.py",
+    "pyinstaller_dir": "pyinstaller", // directory containing hooks and make.sh and make.ps1 scripts to invoke
+    "benchmark_make_workflow": "./matflow/data/workflows/tension_DAMASK_Al_N_repeats.yaml", // used to benchmark the workflow make command
     "website_source_org": "hpcflow",
     "website_source_repo": "docs.matflow.io",
     "website_source_token_name": "HPCFLOW_ACTIONS_TOKEN" // as defined within the `secrets` context: PAT of user who has push access and permission to bypass branch protection

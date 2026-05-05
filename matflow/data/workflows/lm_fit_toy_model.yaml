@@ -1,0 +1,37 @@
+resources:
+  any:
+    combine_scripts: true
+
+loops:
+  - name: lm_opt
+    tasks:
+      - perturb_parameters
+      - system_analysis_toy_model_2
+      - lm_fit
+    num_iterations: 100
+    termination:
+      path: outputs.is_converged
+      condition: { value.equal_to: true }
+
+tasks:
+  - schema: get_reference_data_toy_model
+    inputs:
+      p_true: [2.5, -1.3, 0.5e9]
+
+  - schema: perturb_parameters
+    inputs:
+      p_0: [1.0, -0.5, 1.0e9]
+
+  - schema: system_analysis_toy_model_2
+    groups:
+      - name: jac_approx
+    sequences:
+      - path: inputs.index
+        values::from_range:
+          start: 0
+          step: 1
+          stop: 4
+
+  - schema: lm_fit
+    inputs:
+      stop_tol: 1e-10

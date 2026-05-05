@@ -1,0 +1,19 @@
+doc:
+  - >
+    Demonstration of a task to sample texture from an MTEX ODF object stored in a binary
+    .mat file, and produce pole figures of the sampled orientations.
+
+tasks:
+  - schema: sample_texture_from_ODF_mat_file_mtex
+    inputs:
+      ODF_mat_file_path: <<demo_data_file:ODF.mat>>
+      num_orientations: 1000
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false

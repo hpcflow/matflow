@@ -1,0 +1,20 @@
+doc:
+  - >
+    Demonstration of a task to sample texture randomly using MTEX, and produce
+    pole figures of the sampled orientations.
+
+tasks:
+  - schema: sample_texture_random_mtex
+    inputs:
+      specimen_symmetry: cubic
+      num_orientations: 1000
+      crystal_symmetry: cubic
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false

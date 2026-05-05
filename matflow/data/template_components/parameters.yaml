@@ -1,0 +1,665 @@
+- type: VE_size
+  _validation:
+    - path: []
+      doc:
+        description: Size of the simulation box in each of the x, y(, z) directions.
+        examples:
+          - >
+            For a simulation box that is twice as long (i.e. elongated) in the y-direction
+            as in the x- and z-directions, use: `[1.0, 2.0, 1.0]`.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: VE_grid_size
+  _validation:
+    - path: []
+      doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: origin
+  _validation:
+    - path: []
+      doc: Location of the origin of the grid.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: size
+  _validation:
+    - path: []
+      doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: grid_size
+  _validation:
+    - path: []
+      doc: Number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: periodic
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: precipitates
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: new_grid_size
+  _validation:
+    - path: []
+      doc: New number of simulation pixels (voxels) in each of the x, y(, z) directions.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.in: [2, 3]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: phase_statistics
+  _validation:
+    - path: []
+      doc: >
+        A list of dictionaries giving the statistics for the various phases.
+
+        Each dictionary must have the keys `type`, `name`, `crystal_structure`, and
+        `volume_fraction`.
+
+        Dictionaries of `type: primary` must also have a `size_distribution` key.
+
+        Dictionaries of `type: precipitate` must also have the keys `size_distribution`,
+        `radial_distribution_function`, and `number_fraction_on_boundary`.
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in:
+              - "type"
+              - "name"
+              - "crystal_structure"
+              - "volume_fraction"
+              - "size_distribution"
+              - "radial_distribution_function"
+              - "number_fraction_on_boundary"
+              - "preset_statistics_model"
+              - "ODF"
+              - "axis_ODF"
+    - path: [{ "type": "list_value" }, "type"]
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["matrix", "primary", "precipitate"]
+- type: phase_label
+  _validation:
+    - path: []
+      doc: The string phase label to associated with e.g. the microstructure seed points.
+      condition: { value.is_instance: [str] }
+- type: num_grains
+  _validation:
+    - path: []
+      doc: The integer number of grains to include.
+      condition: { value.is_instance: [int] }
+- type: volume_element
+  _validation:
+    - path: []
+      doc: Voxelated volume element
+      condition: { value.is_instance: [dict] }
+- type: CTF_file_path
+  _validation:
+    - path: []
+      doc: Path to CTF (HKL single orientation) file.
+      condition: { value.is_instance: [str, path] }
+- type: ODF_mat_file_path
+  _validation:
+    - path: []
+      doc: Path to ODF material file.
+      condition: { value.is_instance: [str, path] }
+- type: specimen_symmetry
+  _validation:
+    - path: []
+      doc:
+        description: >
+          The symmetry of the specimen to sample, as understood by MTEX `specimenSymmetry`.
+        examples:
+          - >
+            `cubic`
+          - >
+            `orthorhombic`
+      condition: { value.is_instance: [str] }
+- type: DIC
+  _validation:
+    - path: []
+      doc: Digital image correlation data descriptor.
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in:
+              ["filename", "crop", "scale", "homog_points", "min_grain_size"]
+- type: EBSD
+  _validation:
+    - path: []
+      doc: Electron backscatter diffraction data descriptor.
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in:
+              ["filename", "boundary_tol", "min_grain_size", "homog_points"]
+- type: EBSD_phase
+  _validation:
+    - path: []
+      doc: Electron backscatter diffraction phase.
+      condition: { value.is_instance: [str] }
+- type: EBSD_reference_frame_transformation
+  _validation:
+    - path: []
+      doc: Electron backscatter diffraction referemce frame transformation.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in:
+              - euler_to_spatial
+              - spatial_to_euler
+              # https://mtex-toolbox.github.io/EBSDReferenceFrame.html
+              - convertEuler2SpatialReferenceFrame
+              - convertSpatial2EulerReferenceFrame
+- type: EBSD_rotation
+  _validation:
+    - path: []
+      doc: >
+        Description of the rotation in the electron backscatter diffraction model.
+        A dict with keys "euler_angles_deg" (list, optional) "keep_XY" (bool), or "keep_euler" (bool).
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: ["euler_angles_deg", "keep_XY", "keep_euler"]
+- type: num_orientations
+  _validation:
+    - path: []
+      doc: Number of orientations.
+      condition: { value.is_instance: [int] }
+- type: homog_label
+  _validation:
+    - path: []
+      doc:
+        description: >
+          This parameter associates a string label with each grain that determines which
+          homogenization scheme should be used. The homogenization schemes to be employed
+          by the crystal plasticity simulation are then defined according to these labels.
+        examples:
+          - >
+            For a full-field simulation, where there is no mechanical homogenization we
+            typically use the label '`SX`'.
+      condition: { value.is_instance: [str] }
+- type: VE_response
+  _validation:
+    - path: []
+      doc: Volume element response.
+      condition: { value.is_instance: [dict] }
+- type: VE_response_data
+  # Volume element ?
+  _validation:
+    - path: []
+      doc: >
+        This parameter is a dictionary of values that are the optional arguments to
+        `damask_parse.read_HDF5_file` (which should be consulted for details).
+        Keys should be one of
+        `"geom_path"`, `"volume_data"`, `"phase_data"`, `"field_data"`, `"grain_data"`,
+        or `"incremental_data"` (now deprecated).
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in:
+              - "geom_path"
+              - "incremental_data"
+              - "volume_data"
+              - "phase_data"
+              - "field_data"
+              - "grain_data"
+- type: homogenization
+  _validation:
+    - path: []
+      doc: >
+        Dictionary whose keys are homogenization scheme labels and whose values are
+        dictionaries that specify the homogenization parameters for that scheme.
+      condition: { value.is_instance: [dict] }
+- type: damask_phases
+  _validation:
+    - path: []
+      # Needs a lot more conditions on validity!
+      condition: { value.is_instance: [dict] }
+- type: damask_log
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: damask_numerics
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: damask_post_processing
+  _validation:
+    - path: []
+      doc: List of post-processing operations to apply to the DAMASK output.
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: ["name", "args", "opts"]
+    - path: [{ "type": "list_value" }, "name"]
+      doc: See `damask.Result` for what the operations do.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in:
+              # I think these are the relevant operations
+              - "add_absolute"
+              - "add_calculation"
+              - "add_stress_Cauchy"
+              - "add_determinant"
+              - "add_deviator"
+              - "add_eigenvalue"
+              - "add_eigenvector"
+              - "add_IPF_color"
+              - "add_maximum_shear"
+              - "add_equivalent_Mises"
+              - "add_norm"
+              - "add_stress_second_Piola_Kirchhoff"
+              - "add_pole"
+              - "add_rotation"
+              - "add_spherical"
+              - "add_strain"
+              - "add_stretch_tensor"
+              - "add_curl"
+              - "add_divergence"
+              - "add_gradient"
+- type: damask_viz
+  _validation:
+    - path: []
+      doc: >
+        Dictionary or list of dictionaries describing particular visualizations.
+        Keys should be `increments`, `phases`, `homogenizations`, or `fields`; all are
+        optional.
+      condition:
+        or:
+          - and:
+              - value.is_instance: [dict]
+              - key.in: ["increments", "phases", "homogenizations", "fields"]
+          - value.is_instance: [list]
+- type: damask_solver
+  _validation:
+    - path: []
+      doc:
+        description: >
+          A dictionary that specifies which solver to use, for each considered physical
+          phenomenon (`mechanical`, `thermal`, or `damage`).
+        examples:
+          - >
+            To use the `spectral_polarization` mechanical solver instead of the default
+            `spectral_basic` solver, set to: `{"mechanical": "spectral_polarization"}`
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: ["mechanical", "thermal", "damage"]
+    - path: [{ "type": "map_value" }]
+      condition: { value.is_instance: [str] }
+- type: compile
+  _validation:
+    - path: []
+      doc: Whether to compile.
+      condition: { value.is_instance: [bool] }
+- type: dump_path
+  _validation:
+    - path: []
+      doc: Where to write dump data.
+      condition: { value.is_instance: [str, path] }
+- type: yield_point # vol-avg equivalent plastic strain
+  _validation:
+    - path: []
+      condition: { value.is_instance: [float] }
+- type: yield_function_name
+  _validation:
+    - path: []
+      doc:
+        description: The name of the yield function to fit to the data.
+        examples:
+          - "`VonMises` - von Mises yield criteron"
+          - "`Tresca` - Tresca ductile failure criterion"
+          - "`Hosford` - Hosford yield criterion"
+          - "`Barlat_Yld91` - Barlat anisotropic yield model"
+          - "`Barlat_Yld2000_2D` - Barlat planar stress yield model"
+          - "`Barlat_Yld2004_18p` - Barlat linear transformation yield functions"
+          - "`Hill1979` - Generalised Hill yield criterion"
+          - "`Hill1948` - Quadratic Hill yield criterion"
+      condition: { value.is_instance: [str] }
+- type: CSV_file_path
+  _validation:
+    - path: []
+      doc: Path to CSV (possibly an Oxford Instruments single orientation) file.
+      condition: { value.is_instance: [str, path] }
+- type: scaling_factor
+  _validation:
+    - path: []
+      doc: Scaling factor.
+      condition: { value.is_instance: [int, float] }
+- type: transform_type
+  _validation:
+    - path: []
+      doc: Transformation type.
+      condition: { value.is_instance: [str] }
+- type: path
+  _validation:
+    - path: []
+      doc: Path to file to process.
+      condition: { value.is_instance: [str, path] }
+- type: root_path
+  _validation:
+    - path: []
+      doc: Location to resolve filenames with respect to.
+      condition: { value.is_instance: [str, path] }
+- type: CRC_file_path
+  _validation:
+    - path: []
+      doc: Path to channel reconstruction (Oxford Instruments binary) file.
+      condition: { value.is_instance: [str, path] }
+- type: use_contours
+  _validation:
+    - path: []
+      doc: Whether to use countours when visualising orientations.
+      condition: { value.is_instance: [bool] }
+- type: use_one_colourbar
+  _validation:
+    - path: []
+      doc: Whether to use a single colour bar when visualising orientations.
+      condition: { value.is_instance: [bool] }
+- type: stress_units
+  _validation:
+    - path: []
+      doc:
+        description: Units to use for stress values.
+        examples:
+          - The normal value here is Pascals, `"Pa"`
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [Pa, MPa, GPa]
+- type: initial_damping
+  _validation:
+    - path: []
+      doc:
+        description: List of initial damping parameters.
+        examples:
+          - The default value is `[2, 1, 0.5]`
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float, int] }
+- type: eng_stress_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: eng_strain_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: true_stress_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: true_strain_col_index
+  _validation:
+    - path: []
+      doc: CSV column index.
+      condition: { value.is_instance: [int] }
+- type: plastic_range
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 2
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: CSV_arguments
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: scale_update_size
+  _validation:
+    - path: []
+      condition: { value.is_instance: [bool] }
+- type: scale_morphology
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int, float] }
+- type: resolution
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int, float] }
+- type: levenberg_marquardt_fitter
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+- type: microstructure_image
+  _validation:
+    - path: []
+      condition: { value.is_instance: [dict] }
+- type: depth
+  _validation:
+    - path: []
+      condition: { value.is_instance: [int] }
+- type: image_axes
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [str] }
+- type: find_grains_algorithm
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [warp, floodfill]
+- type: crystal_symmetry
+  _validation:
+    - path: []
+      doc:
+        description: Single parameter to make an instance of MTEX `crystalSymmetry`.
+        examples:
+          - "`cubic` - Cubic symmetry"
+          - "`hexagonal` - Hexagonal symmetry"
+      condition: { value.is_instance: [str] }
+- type: pole_figure_directions
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [list]
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }, { "type": "list_value" }]
+      condition: { value.is_instance: [int, float] }
+- type: IPF_reference_direction
+  _validation:
+    - path: []
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["x", "y", "z"]
+- type: colourbar_limits
+  _validation:
+    - path: []
+      doc: Uses API deprecated by MTEX. Might not work at all.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 2
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [float] }
+- type: ODF_components
+  _validation:
+    - path: []
+      doc: Information used to control the orientation distribution function.
+      condition:
+        and:
+          - value.is_instance: [list]
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [dict] }
+- type: order
+  _validation:
+    - path: []
+      doc: >
+        Order to add the zones in.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 3
+    - path: [{ "type": "list_value" }]
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: ["x", "y", "z"]
+- type: buffer_sizes
+  _validation:
+    - path: []
+      doc: >
+        Size of buffer on each face `[-x, +x, -y, +y, -z, +z]`.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: phase_ids
+  _validation:
+    - path: []
+      doc: >
+        Phase of each buffer. Relative, so 1 is the first new phase and so on
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [int] }
+- type: phase_labels
+  _validation:
+    - path: []
+      doc: >
+        Labels of the new phases.
+      condition:
+        and:
+          - value.is_instance: [list]
+          - value.length.equal_to: 6
+    - path: [{ "type": "list_value" }]
+      condition: { value.is_instance: [str] }
+- type: phase_label_mapping
+  _validation:
+    - path: []
+      doc: >
+        Mapping from phase labels in the `microstructure_image` to phase
+        labels for created in the VE.
+      condition: { value.is_instance: [dict] }
+
+- type: geometry_name
+  _validation:
+    - path: []
+      doc:
+        description: The name of the geometry to mesh. Currently only `quarter_plate_with_hole` is accepted.
+      condition: { value.is_instance: [str] }
+- type: plate_width
+  _validation:
+    - path: []
+      doc:
+        description: The width of the full plate.
+      condition: { value.is_instance: [float] }
+- type: hole_diameter
+  _validation:
+    - path: []
+      doc:
+        description: The diameter of the hole in the plate.
+      condition: { value.is_instance: [float] }
+
+- type: hole_sect_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place around the circumference of the quarter-hole.
+      condition: { value.is_instance: [int] }
+
+- type: plate_radial_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place along the radial direction.
+      condition: { value.is_instance: [int] }
+
+- type: plate_diff
+  _validation:
+    - path: []
+      doc:
+        description: The height of the extra block added to the top of the mesh.
+      condition: { value.is_instance: [int] }
+
+- type: plate_diff_nodes
+  _validation:
+    - path: []
+      doc:
+        description: The number of nodes to place along the vertical direction within the extra block added to the top of the mesh.
+      condition: { value.is_instance: [int] }
+
+- type: generate_exodus
+  _validation:
+    - path: []
+      doc:
+        description: Whether to generate an Exodus file of the mesh to allow visualisation in ParaView.
+      condition: { value.is_instance: [bool] }
+
+- type: gmsh_mesh_str
+  _validation:
+    - path: []
+      doc:
+        description: The Gmsh-generated mesh, as a string.
+      condition: { value.is_instance: [str] }
+
+# Types only used to transfer values between tasks
+- type: damask_post_processing_result
+- type: damask_viz_result
+- type: fitted_yield_functions
+- type: fit_yield_fixed_parameters
+- type: fit_yield_initial_parameters
+- type: fit_yield_opt_parameters
+- type: load_case
+- type: microstructure_seeds
+- type: orientations
+- type: single_crystal_parameters
+- type: tensile_test
+- type: yield_point_criteria
+- type: input_deck

@@ -1,0 +1,57 @@
+doc: >
+  A very simple MOOSE workflow that runs a simulation using a MOOSE-generated mesh. The 
+  only input parameter is the `input_deck` parameter, which MatFlow formats into MOOSE's
+  main input file format.
+
+tasks:
+  - schema: moose_simulation
+    inputs:
+      input_deck:
+        Mesh:
+          generated:
+            type: GeneratedMeshGenerator
+            dim: 2
+            nx: 10
+            ny: 5
+            xmax: 100e-3
+            ymax: 50e-3
+            elem_type: QUAD4
+        Variables:
+          temperature:
+            initial_condition: 20.0
+        Kernels:
+          heat_conduction:
+            type: HeatConduction
+            variable: temperature
+        Materials:
+          copper_thermal:
+            type: HeatConductionMaterial
+            thermal_conductivity: 384.0
+            specific_heat: 406.0
+          copper_density:
+            type: GenericConstantMaterial
+            prop_names: density
+            prop_values: 8829.0
+        BCs:
+          heat_flux_out:
+            type: ConvectiveHeatFluxBC
+            variable: temperature
+            boundary: left
+            T_infinity: 20.0
+            heat_transfer_coefficient: 125.0e3
+          heat_flux_in:
+            type: NeumannBC
+            variable: temperature
+            boundary: right
+            value: 500.0e3
+        Executioner:
+          type: Steady
+        Postprocessors:
+          max_temp:
+            type: NodalExtremeValue
+            variable: temperature
+          avg_temp:
+            type: AverageNodalVariableValue
+            variable: temperature
+        Outputs:
+          exodus: true

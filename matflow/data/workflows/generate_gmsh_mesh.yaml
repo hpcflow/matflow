@@ -1,0 +1,113 @@
+doc:
+  - |
+    WIP: Initial workflow development for a specific MOOSE workflow: mesh-refinement of a
+    plate with a hole.
+  - |
+    TODO: support in hpcflow `InputFileGenerator.from_input_files` so we can pass the .geo
+    script to the second IFG that generates the .msh file from that geo file. This will
+    then enable passing a pre-written .geo file, and skipping the first IFG.
+  - |
+    TODO: support in hpcflow a `templates` data directory, and then ability to generate
+    an input file from a specified template, using possibly jinja. Support the ability to 
+    substitute input parameters within the template path (e.g. 
+    `<<template:gmsh/<<parameter:geometry_name>>>>`), like we currently support with
+    environment specifiers (`<<script:path/to/<<env:version>>/script.py>>`).
+  - |
+    Note: the `gmsh_env` environment should be a Python environment (with a `python_script`
+    executable) that has `gmsh` installed (from PyPI or Conda).
+
+template_components:
+  environments:
+
+  command_files:
+    - label: gmsh_geo_file
+      name:
+        name: script.geo
+      doc: Gmsh geometry script file.
+    - label: gmsh_mesh_file
+      name:
+        name: (.*\.msh)
+        is_regex: true
+      doc: Gmsh mesh file, typically generated from a Gmsh .geo script.
+  task_schemas:
+    - objective: generate_mesh
+      method: gmsh
+      inputs:
+        - parameter: geometry_name
+        - parameter: plate_width
+          default_value: 100e-3
+        - parameter: plate_thickness
+          default_value: 2e-3
+        - parameter: hole_diameter
+          default_value: 25e-3
+        - parameter: plate_thick_layers
+          default_value: 2
+        - parameter: hole_sect_nodes
+          default_value: 9 # must be odd; number of nodes around a quadrant of the circumference of the hole
+        - parameter: plate_radial_nodes
+          default_value: 9 # number of nodes from the hole to the edges of the central section
+        - parameter: plate_diff
+          default_value: 50e-3 # length of rectangular extension
+        - parameter: plate_diff_nodes
+          default_value: 5 # number of nodes along the rectangular extension
+      outputs:
+        - parameter: gmsh_mesh_str
+      actions:
+        - environments:
+            any: gmsh_env
+          input_file_generators:
+            - input_file: gmsh_geo_file
+              from_inputs:
+                - geometry_name
+                - plate_width
+                - plate_thickness
+                - hole_diameter
+                - plate_thick_layers
+                - hole_sect_nodes
+                - plate_radial_nodes
+                - plate_diff_nodes
+                - plate_diff
+              jinja_template: gmsh/<<parameter:geometry_name>>.geo
+          script: <<script:gmsh/run_geo.py>>
+          script_exe: python_script
+          script_data_in:
+            input_files.gmsh_geo_file: direct
+          script_data_out:
+            outputs.gmsh_mesh_str: direct
+          requires_dir: true
+
+# instead, we need:
+# task: generate_mesh with gmsh (via .geo file)
+#  - render jinja template to .geo file
+#  - execute .geo script with gmsh Python API to generate either a .msh or the mesh data
+#  - if generated a .msh, parse to a parameter
+#  - would also want to be able to pass a complete .geo file as well (as input_files: ...)
+
+config:
+  log_file_level: debug
+
+resources:
+  any:
+    write_app_logs: true
+
+tasks:
+  - schema: generate_mesh_gmsh
+    # input_files:
+    #   gmsh_geo_file: D:/scratch/script.geo
+    inputs:
+      geometry_name: plate_with_hole
+      plate_width: 100e-3
+      plate_thickness: 2e-3
+      hole_diameter: 25e-3
+      plate_thick_layers: 2
+      # hole_sect_nodes: 9
+      # plate_radial_nodes: 9
+      # plate_diff_nodes: 5
+      plate_diff: 50e-3
+    # sequences:
+    #   - path: inputs.hole_sect_nodes # must be odd!
+    #     values: [5, 9, 13]
+    #   - path: inputs.plate_radial_nodes
+    #     values: [5, 9, 13]
+    #   - path: inputs.plate_diff_nodes
+    #     values: [5, 9, 13]

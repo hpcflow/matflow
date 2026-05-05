@@ -1,0 +1,25 @@
+doc:
+  - >
+    Demonstration of a task to sample texture from a CRC file using MTEX, and produce
+    pole figures of the sampled orientations. Note that directory to which the
+    `CRC_file_path` points should also contain a CPR file with the same file name stem as
+    the CRC file.
+
+tasks:
+  - schema: sample_texture_from_CRC_file_mtex
+    inputs:
+      CRC_file_path: <<demo_data_file:texture_Al_CRC>>/texture_Al.crc
+      EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
+      specimen_symmetry: cubic
+      EBSD_phase: Al
+      EBSD_rotation: null
+      num_orientations: 1000
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [0, 0, 1]
+        - [1, 0, 1]
+        - [1, 1, 1]
+      use_contours: false

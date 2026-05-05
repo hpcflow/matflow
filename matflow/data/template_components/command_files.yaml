@@ -1,0 +1,110 @@
+- label: damask_geom_file
+  name:
+    name: geom.vti
+  doc: DAMASK geometry file.
+
+- label: damask_load_file
+  name:
+    name: load.yaml
+  doc: DAMASK load file, as YAML.
+
+- label: damask_material_file
+  name:
+    name: material.yaml
+  doc: DAMASK material descriptor file.
+
+- label: damask_numerics_file
+  name:
+    name: numerics.yaml
+  doc: DAMASK numeric control file.
+
+- label: damask_stdout_file
+  name:
+    name: stdout.log
+  doc: DAMASK standard output.
+
+- label: damask_stderr_file
+  name:
+    name: stderr.log
+  doc: DAMASK standard error.
+
+- label: damask_hdf5_file
+  name:
+    name: geom_load.hdf5
+  doc: DAMASK geometry description, as HDF5.
+
+- label: damask_viz_files
+  name:
+    name: ((?:geom_load_inc\d+|static_outputs).vt(i|r))
+    is_regex: true
+  doc: DAMASK output visualisation data pattern.
+
+- label: mtex_pole_figures
+  name:
+    name: pole_figure.png
+  doc: MTEX figures of poles.
+
+- label: mtex_inverse_pole_figures
+  name:
+    name: inverse_pole_figure.png
+  doc: MTEX figure of inverse pole.
+
+- label: mtex_IPF_key
+  name:
+    name: IPF_key\.png
+    is_regex: true
+  doc: Key image for MTEX inverse pole figures.
+
+- label: dream_3D_pipeline
+  name:
+    name: pipeline.json
+  doc: DREAM.3D pipeline description.
+
+- label: dream_3D_hdf5_file
+  name:
+    name: pipeline.dream3d
+  doc: DREAM.3D pipeline data.
+
+- label: dream_3D_XDMF_file
+  name:
+    name: pipeline.xdmf
+  doc: DREAM.3D model data and metadata.
+
+- label: cipher_input_file
+  name:
+    name: cipher_input.yaml
+  doc: Main input file for CIPHER.
+
+- label: cipher_VTU_files
+  name:
+    is_regex: true
+    name: out_\d+\.vtu
+
+- label: precipitates_file
+  name:
+    name: precipitates.txt
+  
+- label: misorientation_plot
+  name:
+    name: misorientation.png
+
+- label: moose_input_file
+  name:
+    name: input.i
+  doc: |
+    The main MOOSE input file, whose format is described at: `https://mooseframework.inl.gov/application_usage/input_syntax.html <https://mooseframework.inl.gov/application_usage/input_syntax.html>`_
+
+- label: gmsh_geo_file
+  name:
+    name: script.geo
+  doc: Gmsh geometry script file.
+- label: gmsh_mesh_file
+  name:
+    name: (.*\.msh)
+    is_regex: true
+  doc: Gmsh mesh file, typically generated from a Gmsh .geo script.
+- label: moose_exodus_file
+  name:
+    name: (.*\.e)
+    is_regex: true
+  doc: Moose output file in the Exodus (NetCDF) format.

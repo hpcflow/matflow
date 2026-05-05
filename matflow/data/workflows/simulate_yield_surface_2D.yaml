@@ -1,0 +1,122 @@
+doc:
+  - >
+    This workflow uses DAMASK full-field crystal plasticity simulations to generate
+    yield surfaces for an aluminium material with different strong textures.
+
+tasks:
+  - schema: generate_microstructure_seeds_from_random
+    inputs:
+      VE_size: [1, 1, 1]
+      num_grains: 1024
+      phase_label: Al
+
+  - schema: sample_texture_from_model_ODF_mtex
+    inputs:
+      crystal_symmetry: cubic
+      specimen_symmetry: orthorhombic
+      num_orientations: 1024
+      ODF_components:
+        - type: unimodal
+          component_fraction: 1.0
+          halfwidth: 3
+    sequences:
+      - path: inputs.ODF_components.0.modal_orientation_euler
+        values:
+          - [90, 35, 45] # Copper
+          - [59, 37, 63] # S
+          - [0, 45, 90] # Goss
+          - [35, 45, 90] # Brass
+          - [0, 0, 0] # Cube
+
+  - schema: visualise_orientations_pole_figure_mtex
+    inputs:
+      crystal_symmetry: cubic
+      pole_figure_directions:
+        - [1, 1, 1]
+      use_contours: true
+
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      homog_label: SX
+      VE_grid_size: [64, 64, 64]
+      scale_morphology: [1, 0.8, 0.48]
+
+  - schema: visualise_VE_VTK
+
+  - schema: define_load_case
+    inputs:
+      load_case:
+        steps:
+          - total_time: 80
+            num_increments: 400
+            target_def_grad_rate:
+              - [0.0, 0.0, "x"]
+              - [0.0, 0.0, "x"]
+              - [0.0, 0.0, "x"]
+            stress:
+              - ["x", "x", 0.0]
+              - ["x", "x", 0.0]
+              - ["x", "x", 0.0]
+            dump_frequency: 1
+    sequences:
+      - path: inputs.load_case.steps.0.target_def_grad_rate.0.0
+        values::from_rectangle:
+          start: [-0.0002, -0.0002]
+          stop: [+0.0002, +0.0002]
+          num: [17, 17]
+          coord: 0
+      - path: inputs.load_case.steps.0.target_def_grad_rate.1.1
+        values::from_rectangle:
+          start: [-0.0002, -0.0002]
+          stop: [+0.0002, +0.0002]
+          num: [17, 17]
+          coord: 1
+
+  - schema: simulate_VE_loading_damask
+    nesting_order:
+      inputs.volume_element: 0
+      inputs.load_case: 1
+      inputs.load_case.steps.0.target_def_grad_rate.0.0: 1
+      inputs.load_case.steps.0.target_def_grad_rate.1.1: 1
+    inputs:
+      homogenization:
+        SX:
+          mechanical: { type: "pass" }
+          N_constituents: 1
+      damask_phases:
+        Al:
+          lattice: cF
+          mechanical:
+            output: [F, P, F_e, F_p, L_p, O]
+            elastic:
+              type: Hooke
+              C_11: 107.3e+9
+              C_12: 60.9e+9
+              C_44: 28.3e+9
+            plastic:
+              type: phenopowerlaw
+              N_sl: [12]
+              a_sl: 1.499
+              atol_xi: 1
+              dot_gamma_0_sl: 0.001
+              h_0_sl-sl: 912.2e+6 # come from 60C results
+              h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
+              n_sl: 20
+              output: [xi_sl]
+              xi_0_sl: [138.2e+6]
+              xi_inf_sl: [300.9e+6]
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+        - name: add_strain
+          args: { F: F_p, t: U, m: 1 }
+      VE_response_data:
+        phase_data:
+          - field_name: sigma
+            phase_name: Al
+            out_name: vol_avg_stress
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_U^1(F_p)
+            phase_name: Al
+            out_name: vol_avg_plastic_strain
+            transforms: [{ mean_along_axes: 1 }]

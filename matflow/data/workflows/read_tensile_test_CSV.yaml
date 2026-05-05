@@ -1,0 +1,14 @@
+doc:
+  - Read tensile test data from a CSV file.
+
+tasks:
+  - schema: read_tensile_test_from_CSV
+    inputs:
+      CSV_file_path: <<demo_data_file:surfalex_tensile_test.csv>>
+      CSV_arguments:
+        delimiter: ","
+        skip_rows: 0
+        header_row: 1
+      eng_strain_col_index: 0
+      eng_stress_col_index: 1
+      stress_units: MPa

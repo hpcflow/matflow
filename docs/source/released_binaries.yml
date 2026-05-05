@@ -1,3 +1,6 @@
-matflow-v0.5.0a1-win.exe: https://github.com/hpcflow/matflow-new/releases/download/v0.5.0a1/matflow-v0.5.0a1-win.exe
-matflow-v0.5.0a1-macOS: https://github.com/hpcflow/matflow-new/releases/download/v0.5.0a1/matflow-v0.5.0a1-macOS
-matflow-v0.5.0a1-linux: https://github.com/hpcflow/matflow-new/releases/download/v0.5.0a1/matflow-v0.5.0a1-linux
+matflow-v0.3.0a248-win.exe: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-win.exe
+matflow-v0.3.0a248-macOS: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-macOS
+matflow-v0.3.0a248-linux: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-linux
+matflow-v0.3.0a248-win-dir.zip: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-win-dir.zip
+matflow-v0.3.0a248-macOS-dir.zip: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-macOS-dir.zip
+matflow-v0.3.0a248-linux-dir.zip: https://github.com/hpcflow/matflow/releases/download/v0.3.0a248/matflow-v0.3.0a248-linux-dir.zip

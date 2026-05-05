@@ -1,15 +1,13 @@
-:orphan:
+.. jinja:: first_ctx
 
-.. _user:
+   User Guide
+   ##########
 
-##################
-HPCFlow user guide
-##################
+   {{ app_description }}
 
-This guide is an overview and explains the important features;
-details are found in :ref:`reference`.
-
-.. toctree::
-   :maxdepth: 1
-
-   whatis
+   .. toctree::
+      :maxdepth: 3
+      
+      Getting started <getting_started/index>
+      How-to guides <how_to/index>
+      Tutorials <tutorials/index>

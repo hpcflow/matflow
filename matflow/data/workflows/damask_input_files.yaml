@@ -1,0 +1,49 @@
+doc:
+  - >
+    Demonstration of passing DAMASK input files (load case file, geometry file, and
+    material file) directly to the `simulate_VE_loading_damask` task. Input parameters
+    that are used to generate these input files need not be passed.
+tasks:
+  - schema: simulate_VE_loading_damask
+    input_files:
+      damask_load_file: <<demo_data_file:load.yaml>>
+      damask_geom_file: <<demo_data_file:geom.vti>>
+      damask_material_file: <<demo_data_file:material.yaml>>
+    inputs:
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+          opts: { add_Mises: true }
+        - name: add_strain
+          args: { F: F, t: V, m: 0 }
+          opts: { add_Mises: true }
+        - name: add_strain
+          args: { F: F_p, t: V, m: 0 }
+          opts: { add_Mises: true }
+        - name: add_IPF_color
+          args: { l: [0, 0, 1] }
+      VE_response_data:
+        phase_data:
+          - field_name: sigma_vM
+            phase_name: Al
+            out_name: vol_avg_equivalent_stress
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_V^0(F)_vM
+            phase_name: Al
+            out_name: vol_avg_equivalent_strain
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: epsilon_V^0(F_p)_vM
+            phase_name: Al
+            out_name: vol_avg_equivalent_plastic_strain
+            transforms: [{ mean_along_axes: 1 }]
+        field_data:
+          - field_name: phase
+          - field_name: O
+        grain_data:
+          - field_name: O
+            increments: [{ values: [0, -1] }]
+      damask_viz:
+        fields:
+          [F, F_p, P, sigma_vM, epsilon_V^0(F_p)_vM, IPFcolor_(0 0 1), phase]
+        increments:
+          - step: 20

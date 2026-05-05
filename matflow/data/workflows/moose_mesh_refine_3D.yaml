@@ -1,0 +1,115 @@
+loops:
+  - name: mesh_refinement
+    tasks:
+      - generate_plate_mesh_3D
+      - moose_simulation
+      - calculate_plate_SCF
+      - refine_3D_plate_mesh
+    num_iterations: 10
+
+tasks:
+  - schema: generate_plate_mesh_3D
+    inputs:
+      geometry_name: quarter_plate_with_hole
+      plate_width: 100e-3
+      plate_thickness: 2e-3
+      hole_diameter: 10e-3
+      plate_thick_layers: 2
+      hole_sect_nodes: 9 # must be odd
+      plate_radial_nodes: 9
+      plate_diff_nodes: 8 # ideally odd
+      plate_diff: 50e-3
+
+  - schema: moose_simulation
+    resources:
+      main:
+        shell: wsl
+    inputs:
+      FE_response_data: [stress_y]
+      input_deck_variables:
+        endTime: 8
+        timeStep: 1
+        # Mechanical Loads/BCs
+        topDispRate: ${fparse 1e-3 * 1 / (2 * endTime)} # m/s # scaled by two to be comparable to full-plate example
+        # Mechanical Props: SS316L @ 20degC
+        ss316LEMod: 200e9 # Pa
+        ss316LPRatio: 0.3 # -
+      input_deck:
+        GlobalParams:
+          displacements: "'disp_x disp_y disp_z'"
+        Mesh:
+          type: FileMesh
+          file: mesh.msh
+        Modules/TensorMechanics/Master:
+          all:
+            strain: SMALL
+            incremental: true
+            add_variables: true
+            material_output_family: MONOMIAL # MONOMIAL, LAGRANGE
+            material_output_order: FIRST # CONSTANT, FIRST, SECOND,
+            generate_output: "'vonmises_stress strain_xx strain_xy strain_xz strain_yx strain_yy strain_yz strain_zx strain_zy strain_zz stress_xx stress_xy stress_xz stress_yx stress_yy stress_yz stress_zx stress_zy stress_zz max_principal_strain mid_principal_strain min_principal_strain'"
+        BCs:
+          mid_y_fix_y:
+            type: DirichletBC
+            variable: disp_y
+            boundary: "'y-mid-plane'"
+            value: 0.0
+          base_z_fix_z:
+            type: DirichletBC
+            variable: disp_z
+            boundary: "'z-base-plane'"
+            value: 0.0
+          mid_x_fix_x:
+            type: DirichletBC
+            variable: disp_x
+            boundary: "'x-mid-plane'"
+            value: 0.0
+          top_y_traction_y:
+            type: FunctionDirichletBC
+            variable: disp_y
+            boundary: "'y-top-plane'"
+            function: "'${topDispRate}*t'"
+        Materials:
+          elasticity:
+            type: ComputeIsotropicElasticityTensor
+            youngs_modulus: ${ss316LEMod}
+            poissons_ratio: ${ss316LPRatio}
+          stress:
+            type: ComputeFiniteStrainElasticStress
+        Preconditioning:
+          SMP:
+            type: SMP
+            full: true
+        Executioner:
+          type: Transient
+          solve_type: "'PJFNK'"
+          petsc_options_iname: "'-pc_type -pc_hypre_type'"
+          petsc_options_value: "'hypre boomeramg'"
+          end_time: ${endTime}
+          dt: ${timeStep}
+        Postprocessors:
+          react_y_bot:
+            type: SidesetReaction
+            direction: "'0 1 0'"
+            stress_tensor: stress
+            boundary: "y-mid-plane"
+          react_y_top:
+            type: SidesetReaction
+            direction: "'0 1 0'"
+            stress_tensor: stress
+            boundary: "y-top-plane"
+          disp_y_max:
+            type: NodalExtremeValue
+            variable: disp_y
+          disp_x_max:
+            type: NodalExtremeValue
+            variable: disp_x
+          disp_z_max:
+            type: NodalExtremeValue
+            variable: disp_z
+        Outputs:
+          exodus: true
+
+  - schema: calculate_plate_SCF
+
+  - schema: refine_3D_plate_mesh

@@ -1,172 +1,89 @@
-name: build-exes
-
-env:
-  PYTHON_VERSION_BUILD_EXES: 3.9
+name: Build executables
 
 on:
   workflow_dispatch:
+    inputs:
+      build_linux:
+        description: "Build executables for linux?"
+        required: true
+        type: boolean
+        default: true
+      build_macos:
+        description: "Build executables for macOS?"
+        required: true
+        type: boolean
+        default: true
+      build_windows:
+        description: "Build executables for Windows?"
+        required: true
+        type: boolean
+        default: true
+      build_onedir:
+        description: "Build one-dir?"
+        required: true
+        type: boolean
+        default: true
+      build_onefile:
+        description: "Build one-file?"
+        required: true
+        type: boolean
+        default: true
+      logLevel:
+        description: "PyInstaller log level"
+        required: true
+        default: "INFO"
+      tmate_debugging:
+        description: "Enable tmate debugging (https://github.com/marketplace/actions/debugging-with-tmate)"
+        required: true
+        default: false
+        type: boolean
+      unit_tests:
+        description: "Run unit tests on the built executables."
+        required: true
+        default: true
+        type: boolean
+      unit_test_args:
+        description: "CLI args to pass verbatim to pytest (unit tests)."
+        required: false
+        type: string
+        default: ""
+      integration_tests:
+        description: "Run integration tests on the built executables."
+        required: true
+        default: true
+        type: boolean
+      integration_test_args:
+        description: "CLI args to pass verbatim to pytest (integration tests)."
+        required: false
+        type: string
+        default: ""
+      config_data_dir:
+        description: "URL to set the config item `data_dir` to before running the tests."
+        type: string
+        required: false
+        default: ""
+      config_program_dir:
+        description: "URL to set the config item `program_dir` to before running the tests."
+        type: string
+        required: false
+        default: ""
 
 jobs:
-  build-executables:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-2019, macos-10.15]
-        include:
-          - os: windows-2019
-            executable_ext: .exe
-            executable_os: win
-          - os: macos-10.15
-            executable_ext: ""
-            executable_os: macOS
-
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # get all history and tags
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON_VERSION_BUILD_EXES }}
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v2
-        with:
-          path: ./.venv
-          key: venv-${{ matrix.os }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install poetry
-        run: python -m pip install poetry==1.1.11
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
-
-      - name: Install dependencies
-        run: poetry install --no-dev --extras "pyinstaller"
-
-      - name: Get exectuable version name (non Windows)
-        if: "!contains(matrix.os, 'windows')"
-        run: |
-          CUR_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
-          echo "CUR_TAG is: $CUR_TAG"
-          echo "cur_tag=$CUR_TAG" >> $GITHUB_ENV
-          vers=$(git describe --tags)
-          echo "vers is: $vers"
-          echo "vers=$vers" >> $GITHUB_ENV
-
-      - name: Get exectuable version name (Windows)
-        if: contains(matrix.os, 'windows')
-        run: |
-          $CUR_TAG = $(git describe --tags $(git rev-list --tags --max-count=1))
-          echo "CUR_TAG is: $CUR_TAG"
-          echo "cur_tag=$CUR_TAG" >> $env:GITHUB_ENV
-          $vers = git describe --tags
-          echo "vers is: $vers"
-          echo "vers=$vers" >> $env:GITHUB_ENV
-
-      - name: Build with pyinstaller for ${{ matrix.executable_os }}
-        run: poetry run pyinstaller --name=matflow-${{ env.vers }}-${{ matrix.executable_os }} --onefile matflow/cli.py
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-${{ matrix.executable_os }}${{ matrix.executable_ext }}
-          path: dist/matflow-${{ env.vers }}-${{ matrix.executable_os }}${{ matrix.executable_ext }}
-
-      - name: Upload spec file
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-${{ matrix.executable_os }}.spec
-          path: matflow-${{ env.vers }}-${{ matrix.executable_os }}.spec
-
-      - name: Upload build directory
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-${{ matrix.executable_os }}-build
-          path: build/matflow-${{ env.vers }}-${{ matrix.executable_os }}
-
-      - name: Basic executable test (windows)
-        if: contains(matrix.os, 'windows')
-        run: |
-          $tag = "${{ env.cur_tag }}"
-          $tagNoV = $tag.trim('v')
-          $matflow_vers = dist/matflow-${{ env.vers }}-${{ matrix.executable_os }}${{ matrix.executable_ext }} --version
-          $matflow_vers_expected = "matflow, version $tagNoV"
-          echo $matflow_vers
-          echo "$matflow_vers_expected"
-          if ($matflow_vers -ne $matflow_vers_expected) {
-            exit 1
-          }
-
-      - name: Basic executable test (non-windows)
-        if: "!contains(matrix.os, 'windows')"
-        run: |
-          tag=${{ env.cur_tag }}
-          tagNoV=${tag:1}
-          matflow_vers=$(dist/matflow-${{ env.vers }}-${{ matrix.executable_os }}${{ matrix.executable_ext }} --version)
-          matflow_vers_expected="matflow, version $tagNoV"
-          echo $matflow_vers
-          echo $matflow_vers_expected
-          [ "$matflow_vers" = "$matflow_vers_expected" ]
-
-  build-executables-linux:
-    runs-on: ubuntu-latest
-    container:
-      image: aplowman/centos7-poetry
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # get all history and tags
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
-
-      - name: Cache the virtualenv
-        uses: actions/cache@v2
-        with:
-          path: ./.venv
-          key: venv-CentOS-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        run: poetry install --no-dev --extras "pyinstaller"
-
-      - name: Get exectuable version name
-        run: |
-          CUR_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
-          echo "CUR_TAG is: $CUR_TAG"
-          echo "cur_tag=$CUR_TAG" >> $GITHUB_ENV
-          vers=$(git describe --tags)
-          echo "vers is: $vers"
-          echo "vers=$vers" >> $GITHUB_ENV
-
-      - name: Build with pyinstaller for CentOS
-        run: poetry run pyinstaller --name=matflow-${{ env.vers }}-linux --onefile matflow/cli.py
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-linux
-          path: dist/matflow-${{ env.vers }}-linux
-
-      - name: Upload spec file
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-linux.spec
-          path: matflow-${{ env.vers }}-linux.spec
-
-      - name: Upload build directory
-        uses: actions/upload-artifact@v2
-        with:
-          name: matflow-${{ env.vers }}-linux-build
-          path: build/matflow-${{ env.vers }}-linux
-
-      - name: Basic executable test
-        run: |
-          tag=${{ env.cur_tag }}
-          tagNoV=${tag:1}
-          matflow_vers=$(dist/matflow-${{ env.vers }}-linux --version)
-          matflow_vers_expected="matflow, version $tagNoV"
-          echo $matflow_vers
-          echo $matflow_vers_expected
-          [ "$matflow_vers" = "$matflow_vers_expected" ]
+  build-exes:
+    uses: hpcflow/github-support/.github/workflows/build-exes-impl.yml@main
+    with:
+      build_linux: ${{ github.event.inputs.build_linux }}
+      build_macos: ${{ github.event.inputs.build_macos }}
+      build_windows: ${{ github.event.inputs.build_windows }}
+      build_onedir: ${{ github.event.inputs.build_onedir }}
+      build_onefile: ${{ github.event.inputs.build_onefile }}
+      logLevel: ${{ github.event.inputs.logLevel }}
+      tmate_debugging: ${{ github.event.inputs.tmate_debugging }}
+      unit_tests: ${{ github.event.inputs.unit_tests }}
+      unit_test_args: ${{ github.event.inputs.unit_test_args }}
+      integration_tests: ${{ github.event.inputs.integration_tests }}
+      integration_test_args: ${{ github.event.inputs.integration_test_args }}
+      config_data_dir: ${{ github.event.inputs.config_data_dir }}
+      config_program_dir: ${{ github.event.inputs.config_program_dir }}
+      executable_name: matflow
+      pyinstaller_dir: pyinstaller

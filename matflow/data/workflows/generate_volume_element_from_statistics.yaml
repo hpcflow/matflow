@@ -1,0 +1,69 @@
+doc:
+  - >
+    This simple workflow generates a `pipeline.json` file, and then runs it with
+    Dream.3D's `PipelineRunner` command. Phases can be specified and parametrised as if
+    using the "Stats Generator" filter in the Dream.3D GUI.
+  - >
+    In the second task, we demonstrate using a set of orientations to define a textured 
+    volume element. In the third task, we use an ODF preset to the same effect.
+
+tasks:
+  - schema: generate_volume_element_from_statistics
+    inputs:
+      grid_size: [128, 128, 256]
+      size: [1, 1, 2]
+      phase_statistics:
+        - type: primary
+          name: Al
+          crystal_structure: cubic
+          volume_fraction: 1.00 # `volume_fraction` for all phases must sum to 1!
+          size_distribution:
+            ESD_mean: 0.3 # Specify either `ESD_mean` or `ESD_log_mean`
+            ESD_log_stddev: 0.1
+            num_bins: 10 # Specify either `num_bins` or `bin_step_size
+
+  - schema: generate_volume_element_from_statistics
+    inputs:
+      grid_size: [128, 128, 256]
+      size: [1, 1, 2]
+      orientations:
+        representation:
+          type: euler
+          euler_is_degrees: true
+          euler_definition: bunge
+        unit_cell_alignment: { "x": "a", "y": "b", "z": "c" }
+        data: [[0, 0, 0], [0, 45, 0]] # defined "cube" and "goss" texture components
+      phase_statistics:
+        - type: primary
+          name: Al
+          crystal_structure: cubic
+          volume_fraction: 1.00 # `volume_fraction` for all phases must sum to 1!
+          size_distribution:
+            ESD_mean: 0.3 # Specify either `ESD_mean` or `ESD_log_mean`
+            ESD_log_stddev: 0.1
+            num_bins: 10 # Specify either `num_bins` or `bin_step_size`
+          ODF:
+            weights: [100_000, 200_000] # specify a list of length equal to `orientations` or a single number
+            sigmas: [2, 1] # specify a list of length equal to `orientations` or a single number
+
+  - schema: generate_volume_element_from_statistics
+    inputs:
+      grid_size: [128, 128, 256]
+      size: [1, 1, 2]
+      phase_statistics:
+        - type: primary
+          name: Al
+          crystal_structure: cubic
+          volume_fraction: 1.00 # `volume_fraction` for all phases must sum to 1!
+          size_distribution:
+            ESD_mean: 0.3 # Specify either `ESD_mean` or `ESD_log_mean`
+            ESD_log_stddev: 0.1
+            num_bins: 10 # Specify either `num_bins` or `bin_step_size`
+          ODF:
+            presets:
+              - name: cube # | "goss" | "brass" | "copper" | "s" | "s1" | "s2" | "rc(rd1)" | "rc(rd2)" | "rc(nd1)" | "rc(nd2)" | "p" | "q" | "r"
+                weight: 100_000
+                sigma: 2
+              - name: goss
+                weight: 200_000
+                sigma: 1

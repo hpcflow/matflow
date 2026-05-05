@@ -1,0 +1,30 @@
+- name: null_env
+  specifiers:
+    is_built_in: true
+  doc: Default system environment with no special settings. Used for tests.
+# - name: python_env
+#   executables:
+#     - label: python_script
+#       instances:
+#         - command: python "<<script_path>>" <<args>>
+#           num_cores: 1
+#           parallel_mode: null
+#   doc: For running Python; a Python virtual environment. Needs numpy and h5py.
+
+# - name: damask_env
+#   doc: For running DAMASK.
+
+# - name: damask_parse_env
+#   doc: For running damask_parse; a Python virtual environment.
+
+# - name: formable_env
+#   doc: For running formable; a Python virtual environment.
+
+# - name: matlab_env
+#   doc: For running MATLAB and MTEX.
+
+# - name: dream_3D_env
+#   doc: For running DREAM.3D
+
+# - name: defdap_env
+#   doc: For running DefDAP; a Python virtual environment.
