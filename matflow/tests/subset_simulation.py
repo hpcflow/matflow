@@ -16,6 +16,14 @@ from hpcflow.sdk.log import TimeIt
 
 import matflow as mf
 
+from .subset_simulation_result import (
+    LevelSamplingResult,
+    DALevelSamplingResult,
+    ACSLevelSamplingResult,
+    SubsetSimulationResult,
+    rms_jump_distances,
+)
+
 
 @TimeIt.decorator
 def sample_direct_MC(
@@ -208,10 +216,10 @@ def generate_next_level_samples(
     proposal,
     transformation: Callable | None = None,
     debug: bool = False,
-):
+) -> LevelSamplingResult:
 
     subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
-    mcmc_accept_arr = np.zeros((num_chains, num_states - 1))
+    component_accept_arr = np.zeros((num_chains, num_states - 1))
 
     for chain_index in range(num_chains):
 
@@ -238,7 +246,7 @@ def generate_next_level_samples(
                 proposal=proposal,
                 rng=chain_rng,
             )
-            mcmc_accept_arr[chain_index, state_idx - 1] = mcmc_accept_rate
+            component_accept_arr[chain_index, state_idx - 1] = mcmc_accept_rate
             trial_x_t = transformation(trial_x) if transformation else trial_x
             trial_g = performance(trial_x_t)
 
@@ -253,14 +261,22 @@ def generate_next_level_samples(
             all_g[chain_index, state_idx] = new_g
 
     subset_accept = np.mean(subset_accept_arr).item()
-    mcmc_accept = np.mean(mcmc_accept_arr).item()
     num_fine_evals = num_chains * (num_states - 1)
-    return {
-        "subset_accept": subset_accept,
-        "mcmc_accept": mcmc_accept,
-        "num_fine_evals": num_fine_evals,
-        "num_coarse_evals": 0,
-    }
+    component_acceptance_rate = np.mean(component_accept_arr).item()
+    jump_distances = rms_jump_distances(all_x)
+    mean_jump_distance = np.mean(jump_distances).item()
+    outer_move_rate = np.mean(jump_distances > 0).item()
+
+    return LevelSamplingResult(
+        x=all_x,
+        g=all_g,
+        component_acceptance_rate=component_acceptance_rate,
+        subset_acceptance_rate=subset_accept,
+        mean_jump_distance=mean_jump_distance,
+        jump_distances=jump_distances,
+        outer_move_rate=outer_move_rate,
+        num_fine_evals=num_fine_evals,
+    )
 
 
 def generate_next_level_samples_CS(
@@ -278,7 +294,7 @@ def generate_next_level_samples_CS(
     prop_std,
     transformation: Callable | None = None,
     debug: bool = False,
-):
+) -> LevelSamplingResult:
     """Conditional sampling algorithm for generating states in the subset simulation level
     (aka subset infinity).
 
@@ -325,11 +341,20 @@ def generate_next_level_samples_CS(
 
     subset_accept = np.mean(subset_accept_arr).item()
     num_fine_evals = num_chains * (num_states - 1)
-    return {
-        "subset_accept": subset_accept,
-        "num_fine_evals": num_fine_evals,
-        "num_coarse_evals": 0,
-    }
+    jump_distances = rms_jump_distances(all_x)
+    mean_jump_distance = np.mean(jump_distances).item()
+    outer_move_rate = np.mean(jump_distances > 0).item()
+
+    return LevelSamplingResult(
+        x=all_x,
+        g=all_g,
+        component_acceptance_rate=1.0,
+        subset_acceptance_rate=subset_accept,
+        mean_jump_distance=mean_jump_distance,
+        jump_distances=jump_distances,
+        outer_move_rate=outer_move_rate,
+        num_fine_evals=num_fine_evals,
+    )
 
 
 def generate_next_level_samples_ACS(
@@ -349,7 +374,7 @@ def generate_next_level_samples_ACS(
     prop_std=1.0,
     lambda_=1.0,
     debug: bool = False,
-):
+) -> ACSLevelSamplingResult:
     """Adaptive conditional sampling algorithm for generating states in the subset
     simulation level (aka adaptive subset infinity).
 
@@ -426,12 +451,20 @@ def generate_next_level_samples_ACS(
 
     subset_accept = np.mean(batch_avgs).item()
     num_fine_evals = num_chains * (num_states - 1)
-    return {
-        "lambda_": lambda_,
-        "subset_accept": subset_accept,
-        "num_fine_evals": num_fine_evals,
-        "num_coarse_evals": 0,
-    }
+
+    jump_distances = rms_jump_distances(all_x)
+    mean_jump_distance = np.mean(jump_distances).item()
+    outer_move_rate = np.mean(jump_distances > 0).item()
+
+    return ACSLevelSamplingResult(
+        lambda_=lambda_,
+        mcmc_acceptance_rate=1.0,
+        subset_acceptance_rate=subset_accept,
+        mean_jump_distance=mean_jump_distance,
+        jump_distances=jump_distances,
+        outer_move_rate=outer_move_rate,
+        num_fine_evals=num_fine_evals,
+    )
 
 
 def weakest_link_coarse_gradient_xt(x_t, group_idx):
@@ -494,6 +527,7 @@ def generate_coarse_subchain(
     current_sub_chain_gc = gc
 
     inner_accepts = 0
+    mmh_component_acceptance_sum = 0.0
 
     debug_data = {}
     if debug:
@@ -507,9 +541,10 @@ def generate_coarse_subchain(
         if debug:
             debug_data["rng_states"].append(rng.bit_generator.state["state"])
 
-        trial_x, _ = generate_next_state(
+        trial_x, mmh_component_acceptance = generate_next_state(
             x=current_sub_chain_x, proposal=proposal, rng=rng
         )
+        mmh_component_acceptance_sum += mmh_component_acceptance
 
         if debug:
             debug_data["current_sub_chain_x"].append(current_sub_chain_x)
@@ -536,7 +571,13 @@ def generate_coarse_subchain(
             current_sub_chain_gc = trial_gc
             inner_accepts += 1
 
-    return current_sub_chain_x, current_sub_chain_gc, inner_accepts, debug_data
+    return (
+        current_sub_chain_x,
+        current_sub_chain_gc,
+        inner_accepts,
+        mmh_component_acceptance_sum,
+        debug_data,
+    )
 
 
 def generate_next_level_samples_DA(
@@ -559,7 +600,7 @@ def generate_next_level_samples_DA(
     num_inner_states: int = 1,
     spawn_key: tuple[int] | None = None,
     debug: bool = False,
-):
+) -> DALevelSamplingResult:
     """Fixed-length subchain surrogate transition for Subset Simulation.
 
     This is the randomised-length subchain surrogate transition (RST) algorithm but with a
@@ -627,6 +668,7 @@ def generate_next_level_samples_DA(
     # ------------------------------------------------------------
 
     all_gc = np.full((num_chains, num_states), np.nan, dtype=float)
+    total_mmh_component_acceptance = 0.0
 
     debug_data = {}
     if debug:
@@ -687,6 +729,7 @@ def generate_next_level_samples_DA(
                 psi,
                 psi_gc,
                 n_inner_accepts,
+                mmh_component_acceptance_sum,
                 sub_chain_debug_data,
             ) = generate_coarse_subchain(
                 x=current_x,
@@ -702,6 +745,7 @@ def generate_next_level_samples_DA(
                 chain_idx=chain_index,
                 debug=debug,
             )
+            total_mmh_component_acceptance += mmh_component_acceptance_sum
 
             if debug:
                 debug_dat_cs_ij["generate_coarse_subchain_data"] = sub_chain_debug_data
@@ -829,45 +873,47 @@ def generate_next_level_samples_DA(
     # ============================================================
 
     n_inner_proposals = num_chains * (num_states - 1) * num_inner_states
+
     n_inner_accepts = int(inner_accept_count_arr.sum())
     n_fine_evals = int(fine_eval_arr.sum())
     n_fine_subset_pass = int(fine_subset_pass_arr.sum())
     n_fine_accepts = int(fine_accept_arr.sum())
     n_endpoint_moves = int(endpoint_move_arr.sum())
 
-    # Mean acceptance probability of individual coarse MH steps.
-    inner_accept_rate = (
+    component_acceptance_rate = (
+        total_mmh_component_acceptance / n_inner_proposals
+        if n_inner_proposals > 0
+        else np.nan
+    ).item()
+
+    coarse_acceptance_rate = (
         n_inner_accepts / n_inner_proposals if n_inner_proposals > 0 else np.nan
     )
 
-    # Fraction of outer transitions for which the coarse subchain
-    # produced an endpoint different from the current state.
     endpoint_move_rate = (
         n_endpoint_moves / num_outer_trials if num_outer_trials > 0 else np.nan
     )
 
-    # Fraction of outer transitions requiring an expensive evaluation.
     fine_eval_rate = n_fine_evals / num_outer_trials if num_outer_trials > 0 else np.nan
 
-    # Of the endpoints that were evaluated by the fine model,
-    # how many were actually in the fine subset?
+    # Of the endpoints actually evaluated with the fine model, how many satisfy the fine
+    # subset condition?
     fine_subset_pass_rate = (
         n_fine_subset_pass / n_fine_evals if n_fine_evals > 0 else np.nan
     )
 
-    # Of the endpoints passing the fine subset, how many passed
-    # the final RST correction?
-    fine_correction_accept_rate = (
+    # Of the endpoints in the fine subset, how many pass the final delayed-acceptance
+    # correction?
+    fine_correction_acceptance_rate = (
         n_fine_accepts / n_fine_subset_pass if n_fine_subset_pass > 0 else np.nan
     )
 
-    # Probability of an actual outer-chain move.
+    # Fraction of outer transitions that actually change the stored state.
     outer_move_rate = (
         n_fine_accepts / num_outer_trials if num_outer_trials > 0 else np.nan
     )
 
-    # Among fine-evaluated endpoints, fraction also above the
-    # coarse threshold.
+    # Among endpoints in the fine subset, how many are also above the coarse threshold?
     coarse_given_fine = (
         np.sum(endpoint_coarse_subset_pass_arr & fine_subset_pass_arr)
         / n_fine_subset_pass
@@ -875,57 +921,44 @@ def generate_next_level_samples_DA(
         else np.nan
     )
 
-    # overall acceptance rate for each of the outer trials
-    subset_accept = n_fine_accepts / num_outer_trials
+    jump_distances = rms_jump_distances(all_x)
+    mean_jump_distance = np.mean(jump_distances).item()
 
-    # Number of coarse model evaluations.
-    #
-    # This assumes generate_coarse_subchain evaluates the coarse
-    # model once per inner step. If it skips evaluation when the
-    # MMH proposal makes no move, adjust this using a counter
-    # returned by generate_coarse_subchain.
+    # One coarse evaluation for each chain seed plus one per# inner proposal.
     num_coarse_evals = num_chains + n_inner_proposals
 
-    return {
-        # --------------------------------------------------------
-        # Main computational quantities
-        # --------------------------------------------------------
-        "num_fine_evals": n_fine_evals,
-        "num_coarse_evals": num_coarse_evals,
-        "fine_eval_rate": fine_eval_rate,
-        # --------------------------------------------------------
-        # Inner coarse-MH diagnostics
-        # --------------------------------------------------------
-        "inner_accept_rate": inner_accept_rate,
-        "inner_accept_count_arr": inner_accept_count_arr,
-        "inner_accept_rate_arr": inner_accept_rate_arr,
-        # --------------------------------------------------------
-        # Endpoint diagnostics
-        # --------------------------------------------------------
-        "endpoint_move_rate": endpoint_move_rate,
-        "endpoint_move_arr": endpoint_move_arr,
-        # --------------------------------------------------------
-        # Fine correction diagnostics
-        # --------------------------------------------------------
-        "fine_subset_pass_rate": fine_subset_pass_rate,
-        "subset_accept": subset_accept,
-        "fine_correction_accept_rate": fine_correction_accept_rate,
-        "outer_move_rate": outer_move_rate,
-        "fine_eval_arr": fine_eval_arr,
-        "fine_subset_pass_arr": fine_subset_pass_arr,
-        "fine_accept_arr": fine_accept_arr,
-        "fine_log_alpha_arr": fine_log_alpha_arr,
-        # --------------------------------------------------------
-        # Coarse-vs-fine diagnostic at endpoints
-        # --------------------------------------------------------
-        "coarse_given_fine": coarse_given_fine,
-        "endpoint_coarse_subset_pass_arr": endpoint_coarse_subset_pass_arr,
-        # --------------------------------------------------------
-        # Optional debugging arrays
-        # --------------------------------------------------------
-        "all_gc": all_gc,
-        "debug_data": debug_data,
-    }
+    outer_move_rate_2 = np.mean(jump_distances > 0).item()
+    assert outer_move_rate == outer_move_rate_2
+
+    return DALevelSamplingResult(
+        x=all_x,
+        g=all_g,
+        component_acceptance_rate=component_acceptance_rate,
+        subset_acceptance_rate=fine_subset_pass_rate,
+        mean_jump_distance=mean_jump_distance,
+        num_fine_evals=n_fine_evals,
+        num_coarse_evals=num_coarse_evals,
+        jump_distances=jump_distances if debug else None,
+        debug_data=debug_data if debug else None,
+        coarse_acceptance_rate=coarse_acceptance_rate,
+        endpoint_move_rate=endpoint_move_rate,
+        fine_eval_rate=fine_eval_rate,
+        fine_subset_pass_rate=fine_subset_pass_rate,
+        fine_correction_acceptance_rate=fine_correction_acceptance_rate,
+        outer_move_rate=outer_move_rate,
+        coarse_given_fine=coarse_given_fine,
+        all_gc=all_gc,
+        coarse_acceptance_rates=(inner_accept_rate_arr if debug else None),
+        coarse_acceptance_counts=(inner_accept_count_arr if debug else None),
+        endpoint_moves=(endpoint_move_arr if debug else None),
+        fine_evals=(fine_eval_arr if debug else None),
+        fine_subset_passes=(fine_subset_pass_arr if debug else None),
+        fine_correction_accepts=(fine_accept_arr if debug else None),
+        fine_log_alpha=(fine_log_alpha_arr if debug else None),
+        endpoint_coarse_subset_passes=(
+            endpoint_coarse_subset_pass_arr if debug else None
+        ),
+    )
 
 
 def generate_next_level_samples_DA_single_inner(
@@ -1098,137 +1131,165 @@ def subset_simulation(
     transformation: Callable | None = None,
     mimic_matflow: bool = False,
     debug: bool = False,
-):
+) -> SubsetSimulationResult:
+    """Estimate failure probability using Subset Simulation.
+
+    ``num_levels`` includes the initial direct-Monte-Carlo level. Therefore,
+    ``num_levels=1`` performs direct Monte Carlo only and does not invoke
+    ``sampling_method``.
+
+    The ``level_idx`` passed to ``sampling_method`` identifies the transition
+    from level ``level_idx`` to level ``level_idx + 1``.
+    """
+
+    if num_levels < 1:
+        raise ValueError("num_levels must be at least 1")
+
+    # ------------------------------------------------------------------
+    # Level 0: direct Monte Carlo
+    # ------------------------------------------------------------------
 
     x = sample_direct_MC(
         dimension,
         num_samples,
         seed=master_seed,
-        spawn_key=(0,),  # spawn key to match the task ID in the matflow workflow
+        spawn_key=(0,),
         mimic_matflow=mimic_matflow,
     )
     x_t = transformation(x) if transformation else x
     g = performance(x_t)
-    sampling_method_kwargs = copy.deepcopy(sampling_method_kwargs)
 
-    # pass the performance function on to the sampling method:
-    if "performance" not in sampling_method_kwargs:
-        sampling_method_kwargs["performance"] = performance
+    x_original = x.copy() if debug else None
 
-    if debug:
-        x_original = x.copy()
+    sampling_method_kwargs = copy.deepcopy(sampling_method_kwargs or {})
+    sampling_method_kwargs.setdefault("performance", performance)
 
-    level_covs = []
-    subset_accepts = []
-    coarse_accepts = []
-    subset_accepts_arr = []
-    coarse_accepts_arr = []
-    mcmc_accepts = []
-    fine_eval_rates = []
-    thresholds = []
-    thresholds_coarse = []
-    threshold_coarse_debugs = []
-    p_coarse = []
-    p_fine = []
-    n_fine_pass = []
-    n_both_pass = []
-    p_coarse_given_fine = []
-    num_failed_all = []
+    # ------------------------------------------------------------------
+    # Simulation-level results
+    # ------------------------------------------------------------------
 
-    # for DA: includes fine-acceptance even if coarse rejected:
-    debug_subset_accepts_arr = []
-    false_coarse_rejection_rates = []
+    thresholds: list[float] = []
+    level_covs: list[float] = []
+    levels: list[LevelSamplingResult] = []
+    num_failed_per_level: list[int] = []
 
-    debug_data = {"level_data": []}
-
-    ret = None
-    all_x = None
-    all_g = None
-    # the initial direct-MC draw is always evaluated with the fine model
     num_fine_evals_total = num_samples
     num_coarse_evals_total = 0
+
+    debug_data = {"level_data": []} if debug else None
+
+    chain_seeds = None
+    chain_g = None
+    all_x = None
+    all_g = None
+
+    pf = np.nan
+
+    # ------------------------------------------------------------------
+    # Analyse each available simulation level
+    # ------------------------------------------------------------------
+
     for level_idx in range(num_levels):
-
-        if debug:
-            debug_data["level_data"].append({})
-
         num_failed = int(np.sum(g > 0))
-        num_failed_all.append(num_failed)
+        num_failed_per_level.append(num_failed)
+
         num_chains = int(len(g) * p_0)
         num_states = int(num_samples / num_chains)
-        g_unsrt = g.copy()
 
-        # sort responses
-        srt_idx = np.argsort(g)[::-1]  # sort by closest-to-failure first
-        g = g[srt_idx]
-        x = x[srt_idx, :]
+        g_unsorted = g.copy()
 
-        threshold = (g[num_chains - 1] + g[num_chains]) / 2
+        # Sort with the points closest to failure first.
+        sort_idx = np.argsort(g)[::-1]
+        g = g[sort_idx]
+        x = x[sort_idx, :]
+
+        threshold = float((g[num_chains - 1] + g[num_chains]) / 2)
         thresholds.append(threshold)
 
-        # failure probability at this level:
         indicator = np.reshape(
-            g_unsrt > np.minimum(threshold, 0), (num_chains, num_states)
+            g_unsorted > np.minimum(threshold, 0),
+            (num_chains, num_states),
         ).astype(int)
-        level_pf = np.mean(indicator)
+
+        level_pf = np.mean(indicator).item()
 
         chain_seeds = x[:num_chains]
         chain_g = g[:num_chains]
 
         pf = p_0**level_idx * num_failed / num_samples
+
         if level_idx == 0:
-            level_cov = np.sqrt((1 - level_pf) / (num_samples * level_pf))
+            level_cov = np.sqrt((1 - level_pf) / (num_samples * level_pf)).item()
         else:
-            level_cov = estimate_cov(indicator, level_pf)
+            level_cov = estimate_cov(
+                indicator,
+                level_pf,
+            ).item()
+
         level_covs.append(level_cov)
 
-        # TODO: if final level, break here? so num_levels=1 just gives direct MC result?
-
-        if is_finished := threshold > 0:
-            cov = np.sqrt(sum(np.pow(level_covs, 2))).item()
-            if debug:
-                return {
-                    "pf": pf,
-                    "cov": cov,
-                    "subset_accepts": subset_accepts,
-                    "coarse_accepts": coarse_accepts,
-                    "subset_accepts_arr": subset_accepts_arr,
-                    "coarse_accepts_arr": coarse_accepts_arr,
-                    "mcmc_accepts": mcmc_accepts,
-                    "x_original": x_original,
-                    "thresholds": thresholds,
-                    "thresholds_coarse": thresholds_coarse,
-                    "debug_chain_states": (ret or {}).get("debug_chain_states"),
-                    "debug_current_x": (ret or {}).get("debug_current_x"),
-                    "debug_trial_x": (ret or {}).get("debug_trial_x"),
-                    "debug_indices": (ret or {}).get("debug_indices"),
-                    "chain_seeds": chain_seeds,
-                    "chain_g": chain_g,
-                    "all_x": all_x,
-                    "all_g": all_g,
-                    "num_failed": num_failed,
-                    "num_failed_all": num_failed_all,
+        if debug:
+            debug_data["level_data"].append(
+                {
+                    "level_idx": level_idx,
                     "threshold": threshold,
                     "level_pf": level_pf,
                     "level_cov": level_cov,
-                    "fine_eval_rates": fine_eval_rates,
-                    "num_fine_evals": num_fine_evals_total,
-                    "num_coarse_evals": num_coarse_evals_total,
-                    "threshold_coarse_debugs": threshold_coarse_debugs,
-                    "debug_subset_accepts_arr": debug_subset_accepts_arr,
-                    "false_coarse_rejection_rates": false_coarse_rejection_rates,
-                    "p_coarse": p_coarse,
-                    "p_fine": p_fine,
-                    "n_fine_pass": n_fine_pass,
-                    "n_both_pass": n_both_pass,
-                    "p_coarse_given_fine": p_coarse_given_fine,
-                    "debug_data": debug_data,
+                    "num_failed": num_failed,
+                    "chain_seeds": chain_seeds,
+                    "chain_g": chain_g,
                 }
-            return pf, cov, subset_accepts, mcmc_accepts
+            )
 
-        all_x = np.ones((num_chains, num_states, dimension)) * np.nan
-        all_g = np.ones((num_chains, num_states)) * np.nan
-        ret = sampling_method(
+        # --------------------------------------------------------------
+        # The current level has reached the failure domain.
+        # --------------------------------------------------------------
+
+        if threshold > 0:
+            cov = np.sqrt(np.sum(np.square(level_covs))).item()
+
+            return SubsetSimulationResult(
+                pf=pf,
+                cov=cov,
+                converged=True,
+                thresholds=np.array(thresholds),
+                level_covs=np.array(level_covs),
+                levels=levels,
+                num_fine_evals=num_fine_evals_total,
+                num_coarse_evals=num_coarse_evals_total,
+                num_failed_per_level=np.array(num_failed_per_level),
+                x_original=x_original,
+                final_chain_seeds=(chain_seeds if debug else None),
+                final_chain_g=(chain_g if debug else None),
+                final_all_x=(all_x if debug else None),
+                final_all_g=(all_g if debug else None),
+                debug_data=debug_data,
+            )
+
+        # --------------------------------------------------------------
+        # No further level is permitted.
+        #
+        # In particular, num_levels == 1 reaches this point after
+        # analysing only the direct-MC samples.
+        # --------------------------------------------------------------
+
+        if level_idx == num_levels - 1:
+            break
+
+        # --------------------------------------------------------------
+        # Generate simulation level level_idx + 1.
+        # --------------------------------------------------------------
+
+        all_x = np.full(
+            (num_chains, num_states, dimension),
+            np.nan,
+        )
+        all_g = np.full(
+            (num_chains, num_states),
+            np.nan,
+        )
+
+        level_result = sampling_method(
             num_chains=num_chains,
             num_states=num_states,
             dimension=dimension,
@@ -1243,115 +1304,59 @@ def subset_simulation(
             transformation=transformation,
             **sampling_method_kwargs,
         )
-        if "debug_data" in (ret or {}):
-            debug_data["level_data"][level_idx]["sampling_method_data"] = ret[
-                "debug_data"
-            ]
 
-        if "subset_accept" in (ret or {}):
-            subset_accepts.append(ret["subset_accept"])
+        if not isinstance(level_result, LevelSamplingResult):
+            raise TypeError(
+                "sampling_method must return a "
+                "LevelSamplingResult instance; "
+                f"got {type(level_result).__name__}"
+            )
 
-        if "coarse_accept" in (ret or {}):
-            coarse_accepts.append(ret["coarse_accept"])
+        levels.append(level_result)
 
-        if "coarse_accept_arr" in (ret or {}):
-            coarse_accepts_arr.append(ret["coarse_accept_arr"])
+        # Carry ACS adaptation state into the next transition.
+        if isinstance(level_result, ACSLevelSamplingResult):
+            sampling_method_kwargs["lambda_"] = level_result.lambda_
 
-        if "subset_accept_arr" in (ret or {}):
-            subset_accepts_arr.append(ret["subset_accept_arr"])
-
-        if "mcmc_accept" in (ret or {}):
-            mcmc_accepts.append(ret["mcmc_accept"])
-
-        if "lambda_" in (ret or {}):
-            sampling_method_kwargs["lambda_"] = ret["lambda_"]
-
-        if "fine_eval_rate" in (ret or {}):
-            fine_eval_rates.append(ret["fine_eval_rate"])
-
-        if "threshold_coarse" in (ret or {}):
-            thresholds_coarse.append(ret["threshold_coarse"])
-            sampling_method_kwargs["previous_threshold_coarse_margin"] = ret[
-                "threshold_coarse_margin"
-            ]
-
-        if "threshold_coarse_debug" in (ret or {}):
-            threshold_coarse_debugs.append(ret["threshold_coarse_debug"])
-
-        if "debug_subset_accept_arr" in (ret or {}):
-            debug_subset_accepts_arr.append(ret["debug_subset_accept_arr"])
-
-        if "false_coarse_rejection_rate" in (ret or {}):
-            false_coarse_rejection_rates.append(ret["false_coarse_rejection_rate"])
-
-        if "p_coarse" in (ret or {}):
-            p_coarse.append(ret["p_coarse"])
-
-        if "p_fine" in (ret or {}):
-            p_fine.append(ret["p_fine"])
-
-        if "n_fine_pass" in (ret or {}):
-            n_fine_pass.append(ret["n_fine_pass"])
-
-        if "n_both_pass" in (ret or {}):
-            n_both_pass.append(ret["n_both_pass"])
-
-        if "p_coarse_given_fine" in (ret or {}):
-            p_coarse_given_fine.append(ret["p_coarse_given_fine"])
-
-        num_fine_evals_total += ret.get("num_fine_evals", 0)
-        num_coarse_evals_total += ret.get("num_coarse_evals", 0)
+        num_fine_evals_total += level_result.num_fine_evals
+        num_coarse_evals_total += level_result.num_coarse_evals
 
         if debug:
-            debug_data["level_data"][level_idx]["all_x"] = all_x
-            debug_data["level_data"][level_idx]["all_g"] = all_g
+            debug_data["level_data"][level_idx][
+                "sampling_method_data"
+            ] = level_result.debug_data
 
-        g = all_g.reshape((num_samples))
-        x = all_x.reshape((num_samples, dimension))
+        # Use the returned result as the authoritative sample state.
+        all_x = level_result.x
+        all_g = level_result.g
 
-    if debug:
-        print(
-            f"Failed to estimate in {num_levels} levels. Try increasing. Debug info "
-            f"is returned."
+        x = level_result.x.reshape(
+            num_samples,
+            dimension,
         )
-        return {
-            "pf": pf,
-            "subset_accepts": subset_accepts,
-            "coarse_accepts": coarse_accepts,
-            "subset_accepts_arr": subset_accepts_arr,
-            "coarse_accepts_arr": coarse_accepts_arr,
-            "mcmc_accepts": mcmc_accepts,
-            "x_original": x_original,
-            "thresholds": thresholds,
-            "thresholds_coarse": thresholds_coarse,
-            "debug_chain_states": (ret or {}).get("debug_chain_states"),
-            "debug_current_x": (ret or {}).get("debug_current_x"),
-            "debug_trial_x": (ret or {}).get("debug_trial_x"),
-            "debug_indices": (ret or {}).get("debug_indices"),
-            "chain_seeds": chain_seeds,
-            "chain_g": chain_g,
-            "all_x": all_x,
-            "all_g": all_g,
-            "num_failed": num_failed,
-            "num_failed_all": num_failed_all,
-            "threshold": threshold,
-            "level_pf": level_pf,
-            "level_cov": level_cov,
-            "fine_eval_rates": fine_eval_rates,
-            "num_fine_evals": num_fine_evals_total,
-            "num_coarse_evals": num_coarse_evals_total,
-            "threshold_coarse_debugs": threshold_coarse_debugs,
-            "debug_subset_accepts_arr": debug_subset_accepts_arr,
-            "false_coarse_rejection_rates": false_coarse_rejection_rates,
-            "p_coarse": p_coarse,
-            "p_fine": p_fine,
-            "n_fine_pass": n_fine_pass,
-            "n_both_pass": n_both_pass,
-            "p_coarse_given_fine": p_coarse_given_fine,
-            "debug_data": debug_data,
-        }
-    else:
-        raise RuntimeError(f"Failed to estimate in {num_levels} levels. Try increasing.")
+        g = level_result.g.reshape(num_samples)
+
+    # ------------------------------------------------------------------
+    # The maximum permitted number of levels was reached.
+    # ------------------------------------------------------------------
+
+    return SubsetSimulationResult(
+        pf=pf,
+        cov=None,
+        converged=False,
+        thresholds=np.array(thresholds),
+        level_covs=np.array(level_covs),
+        levels=levels,
+        num_fine_evals=num_fine_evals_total,
+        num_coarse_evals=num_coarse_evals_total,
+        num_failed_per_level=np.array(num_failed_per_level),
+        x_original=x_original,
+        final_chain_seeds=(chain_seeds if debug else None),
+        final_chain_g=(chain_g if debug else None),
+        final_all_x=(all_x if debug else None),
+        final_all_g=(all_g if debug else None),
+        debug_data=debug_data,
+    )
 
 
 def get_stats(

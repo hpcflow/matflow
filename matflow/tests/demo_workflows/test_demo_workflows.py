@@ -11,7 +11,6 @@ import matflow as mf
 from matflow.tests.subset_simulation import (
     log_surrogate_weight,
     generate_next_level_samples_DA,
-    generate_next_level_samples_MLDA_incorrect,
     get_approx_y_star_random_walk,
     make_voxel_grouping,
     subset_simulation,
@@ -67,7 +66,7 @@ def test_damask_input_files(tmp_path, save_fig, reference_array_data):
 
 
 @pytest.mark.demo_workflows
-@pytest.mark.skip(reason="takes too long")
+# @pytest.mark.skip(reason="takes too long")
 def test_subset_simulation_toy_model_prediction(tmp_path):
     """Validate the MatFlow subset simulation implementation for a toy model.
 
@@ -91,7 +90,7 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
     performance = partial(system_analysis_toy_model, dimension=200, target_pf=1e-4)
 
     # run via single function implementation:
-    pf_sf, cov_sf, sus_acc_sf, mcmc_acc_sf = subset_simulation(
+    result = subset_simulation(
         dimension=200,
         performance=performance,
         p_0=0.1,
@@ -114,9 +113,9 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
     # TODO: also verify same result with `subset_simulation_toy_model_external`, once
     # that can be submitted without a ridiculous number of processes.
 
-    assert pf == pf_sf
-    assert cov == cov_sf
-    assert np.allclose(sus_acc, sus_acc_sf)
+    assert pf == result.pf
+    assert cov == result.cov
+    assert np.allclose(sus_acc, result.outer_move_rates)
     # TODO: store and check mcmc_accept
 
 
