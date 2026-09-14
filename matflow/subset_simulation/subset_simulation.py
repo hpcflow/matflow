@@ -1,7 +1,10 @@
 """Module containing functions to run a subset simulation on a simple toy model, used as a
 validation of the MatFlow implementation."""
 
+from __future__ import annotations
+
 import copy
+
 from datetime import datetime
 import pickle
 from pathlib import Path
@@ -15,13 +18,19 @@ from numpy.exceptions import AxisError
 from hpcflow.sdk.log import TimeIt
 
 import matflow as mf
+from matflow.subset_simulation.markov_chain import (
+    _ChainAccumulator,
+    _DAChainAccumulator,
+    DAMarkovChainResult,
+    MarkovChainResult,
+)
+
 
 from .subset_simulation_result import (
     LevelSamplingResult,
     DALevelSamplingResult,
     ACSLevelSamplingResult,
     SubsetSimulationResult,
-    rms_jump_distances,
 )
 
 
@@ -208,8 +217,6 @@ def generate_next_level_samples(
     dimension,
     chain_seeds,
     chain_g,
-    all_x,
-    all_g,
     level_idx,
     master_seed,
     threshold,
@@ -217,66 +224,56 @@ def generate_next_level_samples(
     transformation: Callable | None = None,
     debug: bool = False,
 ) -> LevelSamplingResult:
+    """Generate one conditional Subset Simulation level using MMH."""
 
-    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
-    component_accept_arr = np.zeros((num_chains, num_states - 1))
+    chain_results: list[MarkovChainResult] = []
 
     for chain_index in range(num_chains):
 
-        # proceed this Markov chain until all states have been generated
-        all_x[chain_index, 0] = chain_seeds[chain_index]
-        all_g[chain_index, 0] = chain_g[chain_index]
+        chain_x = np.full((num_states, dimension), np.nan)
+        chain_g_values = np.full(num_states, np.nan)
 
-        chain_rng = None
-        for state_idx in range(1, num_states):
+        chain_x[0] = chain_seeds[chain_index]
+        chain_g_values[0] = chain_g[chain_index]
 
-            # RNG seed sequence for Markov chains:
-            if state_idx == 1:
-                # spawn key to match the task ID in the matflow workflow
-                spawn_key = (4, level_idx, chain_index)
-                chain_rng = np.random.default_rng(
-                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                )
+        chain = _ChainAccumulator(x=chain_x, g=chain_g_values)
 
-            x = all_x[chain_index, state_idx - 1]
-            g = all_g[chain_index, state_idx - 1]
+        # Preserve the existing MatFlow-compatible RNG mapping.
+        spawn_key = (
+            4,
+            level_idx,
+            chain_index,
+        )
+        chain_rng = np.random.default_rng(
+            np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+        )
 
-            trial_x, mcmc_accept_rate = generate_next_state(
-                x=x,
+        while not chain.is_complete:
+            current_x = chain.current_x
+
+            (trial_x, component_acceptance_rate,) = generate_next_state(
+                x=current_x,
                 proposal=proposal,
                 rng=chain_rng,
             )
-            component_accept_arr[chain_index, state_idx - 1] = mcmc_accept_rate
+
+            # Preferably generate_next_state() would return this
+            # integer count directly.
+            num_components_accepted = int(np.rint(component_acceptance_rate * dimension))
+
             trial_x_t = transformation(trial_x) if transformation else trial_x
             trial_g = performance(trial_x_t)
 
-            current_x = x
-            current_g = g
-            is_ss_accept = trial_g > threshold
-            subset_accept_arr[chain_index, state_idx - 1] = is_ss_accept
-            new_x = trial_x if is_ss_accept else current_x
-            new_g = trial_g if is_ss_accept else current_g
+            chain.append_transition(
+                trial_x=trial_x,
+                trial_g=trial_g,
+                threshold=threshold,
+                num_components_accepted=(num_components_accepted),
+            )
 
-            all_x[chain_index, state_idx] = new_x
-            all_g[chain_index, state_idx] = new_g
+        chain_results.append(chain.finalise(retain_jump_distances=debug))
 
-    subset_accept = np.mean(subset_accept_arr).item()
-    num_fine_evals = num_chains * (num_states - 1)
-    component_acceptance_rate = np.mean(component_accept_arr).item()
-    jump_distances = rms_jump_distances(all_x)
-    mean_jump_distance = np.mean(jump_distances).item()
-    outer_move_rate = np.mean(jump_distances > 0).item()
-
-    return LevelSamplingResult(
-        x=all_x,
-        g=all_g,
-        component_acceptance_rate=component_acceptance_rate,
-        subset_acceptance_rate=subset_accept,
-        mean_jump_distance=mean_jump_distance,
-        jump_distances=jump_distances,
-        outer_move_rate=outer_move_rate,
-        num_fine_evals=num_fine_evals,
-    )
+    return LevelSamplingResult(chains=tuple(chain_results))
 
 
 def generate_next_level_samples_CS(
@@ -286,8 +283,6 @@ def generate_next_level_samples_CS(
     dimension,
     chain_seeds,
     chain_g,
-    all_x,
-    all_g,
     level_idx,
     master_seed,
     threshold,
@@ -295,66 +290,44 @@ def generate_next_level_samples_CS(
     transformation: Callable | None = None,
     debug: bool = False,
 ) -> LevelSamplingResult:
-    """Conditional sampling algorithm for generating states in the subset simulation level
-    (aka subset infinity).
+    """Generate one conditional level using conditional sampling (aka subset infinity)."""
 
-    """
-    subset_accept_arr = np.zeros((num_chains, num_states - 1)).astype(bool)
+    chain_results: list[MarkovChainResult] = []
+
     for chain_index in range(num_chains):
+        chain_x = np.full((num_states, dimension), np.nan)
+        chain_g_values = np.full(num_states, np.nan)
 
-        # proceed this Markov chain until all states have been generated
-        all_x[chain_index, 0] = chain_seeds[chain_index]
-        all_g[chain_index, 0] = chain_g[chain_index]
+        chain_x[0] = chain_seeds[chain_index]
+        chain_g_values[0] = chain_g[chain_index]
 
-        chain_rng = None
-        for state_idx in range(1, num_states):
+        chain = _ChainAccumulator(x=chain_x, g=chain_g_values)
 
-            # RNG seed sequence for Markov chains:
-            if state_idx == 1:
-                # spawn key to match the task ID in the matflow workflow
-                spawn_key = (4, level_idx, chain_index)
-                chain_rng = np.random.default_rng(
-                    np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                )
+        spawn_key = (4, level_idx, chain_index)
+        chain_rng = np.random.default_rng(
+            np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+        )
 
-            x = all_x[chain_index, state_idx - 1]
-            g = all_g[chain_index, state_idx - 1]
-
+        while not chain.is_complete:
             trial_x = generate_next_state_CS(
-                x=x,
-                prop_std=prop_std,
-                rng=chain_rng,
+                x=chain.current_x, prop_std=prop_std, rng=chain_rng
             )
+
             trial_x_t = transformation(trial_x) if transformation else trial_x
             trial_g = performance(trial_x_t)
 
-            current_x = x
-            current_g = g
+            chain.append_transition(
+                trial_x=trial_x,
+                trial_g=trial_g,
+                threshold=threshold,
+                num_components_accepted=0,  # CS has no component-wise MMH stage.
+                num_components_proposed=0,
+                fine_evaluated=True,
+            )
 
-            is_accept = trial_g > threshold
-            subset_accept_arr[chain_index, state_idx - 1] = is_accept
-            new_x = trial_x if is_accept else current_x
-            new_g = trial_g if is_accept else current_g
+        chain_results.append(chain.finalise(retain_jump_distances=debug))
 
-            all_x[chain_index, state_idx] = new_x
-            all_g[chain_index, state_idx] = new_g
-
-    subset_accept = np.mean(subset_accept_arr).item()
-    num_fine_evals = num_chains * (num_states - 1)
-    jump_distances = rms_jump_distances(all_x)
-    mean_jump_distance = np.mean(jump_distances).item()
-    outer_move_rate = np.mean(jump_distances > 0).item()
-
-    return LevelSamplingResult(
-        x=all_x,
-        g=all_g,
-        component_acceptance_rate=1.0,
-        subset_acceptance_rate=subset_accept,
-        mean_jump_distance=mean_jump_distance,
-        jump_distances=jump_distances,
-        outer_move_rate=outer_move_rate,
-        num_fine_evals=num_fine_evals,
-    )
+    return LevelSamplingResult(chains=tuple(chain_results))
 
 
 def generate_next_level_samples_ACS(
@@ -364,8 +337,6 @@ def generate_next_level_samples_ACS(
     dimension,
     chain_seeds,
     chain_g,
-    all_x,
-    all_g,
     level_idx,
     master_seed,
     threshold,
@@ -375,8 +346,8 @@ def generate_next_level_samples_ACS(
     lambda_=1.0,
     debug: bool = False,
 ) -> ACSLevelSamplingResult:
-    """Adaptive conditional sampling algorithm for generating states in the subset
-    simulation level (aka adaptive subset infinity).
+    """Generate one conditional level using adaptive conditional sampling (aka adaptive
+    subset infinity).
 
     Parameters
     ----------
@@ -391,80 +362,79 @@ def generate_next_level_samples_ACS(
 
     """
 
-    A_STAR = 0.44
+    target_acceptance_rate = 0.44
 
     num_chains_per_update = int(chains_per_update * num_chains)
-    assert float(num_chains_per_update) == chains_per_update * num_chains
 
-    num_batches = int(num_chains / num_chains_per_update)
-    batch_avgs = []  # mean acceptance for each batch
+    if num_chains_per_update != chains_per_update * num_chains:
+        raise ValueError("chains_per_update * num_chains must be an integer.")
+
+    if num_chains_per_update < 1:
+        raise ValueError("chains_per_update must select at least one chain.")
+
+    if num_chains % num_chains_per_update:
+        raise ValueError("num_chains must be divisible by num_chains_per_update.")
+
+    num_batches = num_chains // num_chains_per_update
+
+    chain_results: list[MarkovChainResult] = []
 
     for batch_idx in range(num_batches):
+        sigma = np.minimum(1.0, lambda_ * prop_std)
+        rho = np.sqrt(1.0 - sigma**2)
 
-        sigma = np.minimum(1, lambda_ * prop_std)
-        rho = np.sqrt(1 - sigma**2)
+        batch_results: list[MarkovChainResult] = []
 
-        is_accept_arr = np.zeros((num_chains_per_update, num_states - 1)).astype(bool)
         for batch_chain_idx in range(num_chains_per_update):
+            chain_index = batch_idx * num_chains_per_update + batch_chain_idx
 
-            chain_index = batch_chain_idx + (batch_idx * num_chains_per_update)
+            chain_x = np.full((num_states, dimension), np.nan)
+            chain_g_values = np.full(num_states, np.nan)
 
-            # proceed this Markov chain until all states have been generated
-            all_x[chain_index, 0] = chain_seeds[chain_index]
-            all_g[chain_index, 0] = chain_g[chain_index]
+            chain_x[0] = chain_seeds[chain_index]
+            chain_g_values[0] = chain_g[chain_index]
 
-            chain_rng = None
-            for state_idx in range(1, num_states):
+            chain = _ChainAccumulator(x=chain_x, g=chain_g_values)
 
-                # RNG seed sequence for Markov chains:
-                if state_idx == 1:
-                    # spawn key to match the task ID in the matflow workflow
-                    spawn_key = (4, level_idx, chain_index)
-                    chain_rng = np.random.default_rng(
-                        np.random.SeedSequence(master_seed, spawn_key=spawn_key)
-                    )
+            spawn_key = (4, level_idx, chain_index)
+            chain_rng = np.random.default_rng(
+                np.random.SeedSequence(master_seed, spawn_key=spawn_key)
+            )
 
-                x = all_x[chain_index, state_idx - 1]
-                g = all_g[chain_index, state_idx - 1]
+            while not chain.is_complete:
+                trial_x = norm.rvs(
+                    loc=chain.current_x * rho,
+                    scale=sigma,
+                    random_state=chain_rng,
+                )
 
-                trial_x = norm.rvs(loc=x * rho, scale=sigma, random_state=chain_rng)
                 trial_x_t = transformation(trial_x) if transformation else trial_x
                 trial_g = performance(trial_x_t)
 
-                current_x = x
-                current_g = g
+                chain.append_transition(
+                    trial_x=trial_x,
+                    trial_g=trial_g,
+                    threshold=threshold,
+                    num_components_accepted=0,
+                    num_components_proposed=0,
+                    fine_evaluated=True,
+                )
 
-                is_accept = trial_g > threshold
-                is_accept_arr[batch_chain_idx, state_idx - 1] = is_accept
+            chain_result = chain.finalise(retain_jump_distances=debug)
+            batch_results.append(chain_result)
+            chain_results.append(chain_result)
 
-                new_x = trial_x if is_accept else current_x
-                new_g = trial_g if is_accept else current_g
+        num_batch_accepts = sum(chain.num_subset_accepts for chain in batch_results)
+        num_batch_trials = sum(chain.num_subset_trials for chain in batch_results)
 
-                all_x[chain_index, state_idx] = new_x
-                all_g[chain_index, state_idx] = new_g
+        accept_batch_avg = (
+            num_batch_accepts / num_batch_trials if num_batch_trials > 0 else np.nan
+        )
 
-        accept_batch_avg = np.mean(is_accept_arr)
-        batch_avgs.append(accept_batch_avg)
+        zeta = 1.0 / np.sqrt(batch_idx + 1)
+        lambda_ *= np.exp(zeta * (accept_batch_avg - target_acceptance_rate))
 
-        zeta = 1 / np.sqrt(batch_idx + 1)
-        lambda_ *= np.exp(zeta * (accept_batch_avg - A_STAR))
-
-    subset_accept = np.mean(batch_avgs).item()
-    num_fine_evals = num_chains * (num_states - 1)
-
-    jump_distances = rms_jump_distances(all_x)
-    mean_jump_distance = np.mean(jump_distances).item()
-    outer_move_rate = np.mean(jump_distances > 0).item()
-
-    return ACSLevelSamplingResult(
-        lambda_=lambda_,
-        mcmc_acceptance_rate=1.0,
-        subset_acceptance_rate=subset_accept,
-        mean_jump_distance=mean_jump_distance,
-        jump_distances=jump_distances,
-        outer_move_rate=outer_move_rate,
-        num_fine_evals=num_fine_evals,
-    )
+    return ACSLevelSamplingResult(chains=tuple(chain_results), lambda_=lambda_)
 
 
 def weakest_link_coarse_gradient_xt(x_t, group_idx):
@@ -588,8 +558,6 @@ def generate_next_level_samples_DA(
     dimension,
     chain_seeds,
     chain_g,
-    all_x,
-    all_g,
     level_idx,
     master_seed,
     threshold,
@@ -598,10 +566,10 @@ def generate_next_level_samples_DA(
     transformation: Callable | None = None,
     temperature=1.0,
     num_inner_states: int = 1,
-    spawn_key: tuple[int] | None = None,
+    spawn_key: tuple[int, ...] | None = None,
     debug: bool = False,
 ) -> DALevelSamplingResult:
-    """Fixed-length subchain surrogate transition for Subset Simulation.
+    """Generate one conditional level using fixed-subchain RST.
 
     This is the randomised-length subchain surrogate transition (RST) algorithm but with a
     fixed length subchain. For num_inner_states=1, this should be identical to
@@ -633,71 +601,30 @@ def generate_next_level_samples_DA(
     The endpoint is then corrected to the fine target.
     """
 
-    num_outer_trials = num_chains * (num_states - 1)
-
-    # ------------------------------------------------------------
-    # Per-outer-transition diagnostics
-    # ------------------------------------------------------------
-
-    # Fraction of inner coarse-MH proposals accepted.
-    inner_accept_rate_arr = np.zeros((num_chains, num_states - 1), dtype=float)
-
-    # Number of accepted coarse moves within each inner subchain.
-    inner_accept_count_arr = np.zeros((num_chains, num_states - 1), dtype=int)
-
-    # Whether the final endpoint differs from the outer current state.
-    endpoint_move_arr = np.zeros((num_chains, num_states - 1), dtype=bool)
-
-    # Whether the expensive fine model was evaluated.
-    fine_eval_arr = np.zeros((num_chains, num_states - 1), dtype=bool)
-
-    # Whether the endpoint passed the fine subset condition.
-    fine_subset_pass_arr = np.zeros((num_chains, num_states - 1), dtype=bool)
-
-    # Whether the final fine correction accepted the endpoint.
-    fine_accept_arr = np.zeros((num_chains, num_states - 1), dtype=bool)
-
-    # Whether the accepted endpoint is above the coarse threshold.
-    endpoint_coarse_subset_pass_arr = np.zeros((num_chains, num_states - 1), dtype=bool)
-
-    # Final coarse surrogate acceptance log probability.
-    fine_log_alpha_arr = np.full((num_chains, num_states - 1), np.nan, dtype=float)
-
-    # ------------------------------------------------------------
-    # Store coarse performance at outer states
-    # ------------------------------------------------------------
-
-    all_gc = np.full((num_chains, num_states), np.nan, dtype=float)
-    total_mmh_component_acceptance = 0.0
-
-    debug_data = {}
-    if debug:
-        debug_data["chain_data"] = []
+    chain_results: list[DAMarkovChainResult] = []
+    debug_data = {"chain_data": []} if debug else None
 
     for chain_index in range(num_chains):
-        if debug:
-            debug_data["chain_data"].append({"state_data": []})
+        seed_x = np.asarray(chain_seeds[chain_index])
 
-        # --------------------------------------------------------
-        # Initial state
-        # --------------------------------------------------------
+        chain_x = np.full((num_states, dimension), np.nan)
+        chain_g_values = np.full(num_states, np.nan)
+        chain_gc = np.full(num_states, np.nan)
 
-        seed_x = chain_seeds[chain_index]
-
-        all_x[chain_index, 0] = seed_x
-        all_g[chain_index, 0] = chain_g[chain_index]
+        chain_x[0] = seed_x
+        chain_g_values[0] = chain_g[chain_index]
 
         seed_x_t = transformation(seed_x) if transformation else seed_x
+        chain_gc[0] = performance_coarse(seed_x_t)
 
-        seed_gc = performance_coarse(seed_x_t)
-        all_gc[chain_index, 0] = seed_gc
+        chain = _DAChainAccumulator(
+            x=chain_x,
+            g=chain_g_values,
+            gc=chain_gc,
+            num_coarse_evals=1,  # initial coarse evaluation of the seed.
+        )
 
-        # --------------------------------------------------------
-        # RNG for this chain
-        # --------------------------------------------------------
-
-        # `4` is usually the task insert ID of the generate_next_state task:
-        spawn_key_ = tuple([*(spawn_key or (4,)), level_idx, chain_index])
+        spawn_key_ = (*(spawn_key or (4,)), level_idx, chain_index)
         chain_rng = np.random.default_rng(
             np.random.SeedSequence(
                 master_seed,
@@ -705,32 +632,19 @@ def generate_next_level_samples_DA(
             )
         )
 
-        # --------------------------------------------------------
-        # Generate outer states
-        # --------------------------------------------------------
+        chain_debug_data = {"state_data": []} if debug else None
 
-        for state_idx in range(1, num_states):
-
-            if debug:
-                debug_data["chain_data"][chain_index]["state_data"].append({})
-                debug_dat_cs_ij = debug_data["chain_data"][chain_index]["state_data"][
-                    state_idx - 1
-                ]
-
-            current_x = all_x[chain_index, state_idx - 1]
-            current_g = all_g[chain_index, state_idx - 1]
-            current_gc = all_gc[chain_index, state_idx - 1]
-
-            # ----------------------------------------------------
-            # Run the coarse subchain
-            # ----------------------------------------------------
+        while not chain.is_complete:
+            current_x = chain.current_x
+            current_g = chain.current_g
+            current_gc = float(chain.gc[chain.next_state_idx - 1])
 
             (
                 psi,
                 psi_gc,
-                n_inner_accepts,
-                mmh_component_acceptance_sum,
-                sub_chain_debug_data,
+                num_inner_accepts,
+                component_acceptance_sum,
+                subchain_debug_data,
             ) = generate_coarse_subchain(
                 x=current_x,
                 gc=current_gc,
@@ -745,108 +659,54 @@ def generate_next_level_samples_DA(
                 chain_idx=chain_index,
                 debug=debug,
             )
-            total_mmh_component_acceptance += mmh_component_acceptance_sum
 
-            if debug:
-                debug_dat_cs_ij["generate_coarse_subchain_data"] = sub_chain_debug_data
-                debug_dat_cs_ij["psi"] = psi
-
-            inner_accept_count_arr[chain_index, state_idx - 1] = n_inner_accepts
-
-            inner_accept_rate_arr[chain_index, state_idx - 1] = (
-                n_inner_accepts / num_inner_states if num_inner_states > 0 else np.nan
-            )
-
-            # ----------------------------------------------------
-            # Did the coarse subchain actually move?
-            # ----------------------------------------------------
+            num_components_proposed = num_inner_states * dimension
+            num_components_accepted = int(np.rint(component_acceptance_sum * dimension))
 
             endpoint_moved = not np.array_equal(psi, current_x)
 
-            endpoint_move_arr[chain_index, state_idx - 1] = endpoint_moved
+            fine_evaluated = False
+            fine_subset_pass = False
+            fine_correction_accept = False
+            coarse_subset_pass = False
+            fine_log_alpha = np.nan
+            psi_g = None
 
             if not endpoint_moved:
-
-                # The subchain ended where it started.
-                # No fine evaluation is necessary.
                 new_x = current_x
                 new_g = current_g
                 new_gc = current_gc
 
-                if debug:
-                    debug_dat_cs_ij["psi_g"] = None
-
             else:
-
-                # ------------------------------------------------
-                # Endpoint coarse diagnostics
-                # ------------------------------------------------
-
-                endpoint_coarse_subset_pass_arr[chain_index, state_idx - 1] = (
-                    psi_gc > threshold
-                )
-
-                # ------------------------------------------------
-                # Fine evaluation
-                # ------------------------------------------------
-
-                fine_eval_arr[chain_index, state_idx - 1] = True
+                coarse_subset_pass = psi_gc > threshold
+                fine_evaluated = True
 
                 psi_t = transformation(psi) if transformation else psi
-
                 psi_g = performance(psi_t)
-
-                if debug:
-                    debug_dat_cs_ij["psi_g"] = psi_g
-
-                # ------------------------------------------------
-                # Fine subset test
-                # ------------------------------------------------
-
                 fine_subset_pass = psi_g > threshold
-                fine_subset_pass_arr[chain_index, state_idx - 1] = fine_subset_pass
 
                 if not fine_subset_pass:
-
-                    # The fine target is zero here.
                     new_x = current_x
                     new_g = current_g
                     new_gc = current_gc
 
                 else:
-
-                    # ------------------------------------------------
-                    # Final RST correction
-                    #
-                    # alpha_F =
-                    # min(1, pi_C(current_x) / pi_C(psi))
-                    #
-                    # The phi terms cancel, leaving:
-                    #
-                    # alpha_F =
-                    # min(1, s(current_x) / s(psi))
-                    # ------------------------------------------------
-
                     log_s_current = log_surrogate_weight(
                         current_gc,
                         threshold,
                         temperature,
                     )
-
                     log_s_psi = log_surrogate_weight(
                         psi_gc,
                         threshold,
                         temperature,
                     )
 
-                    log_alpha_fine = min(0.0, log_s_current - log_s_psi)
-                    random_num = chain_rng.random()
-                    fine_log_alpha_arr[chain_index, state_idx - 1] = log_alpha_fine
-                    fine_accept = np.log(random_num) < log_alpha_fine
+                    fine_log_alpha = min(0.0, log_s_current - log_s_psi)
 
-                    fine_accept_arr[chain_index, state_idx - 1] = fine_accept
+                    fine_correction_accept = np.log(chain_rng.random()) < fine_log_alpha
 
-                    if fine_accept:
+                    if fine_correction_accept:
                         new_x = psi
                         new_g = psi_g
                         new_gc = psi_gc
@@ -855,110 +715,41 @@ def generate_next_level_samples_DA(
                         new_g = current_g
                         new_gc = current_gc
 
+            chain.append_DA_transition(
+                new_x=new_x,
+                new_g=new_g,
+                new_gc=new_gc,
+                num_components_accepted=(num_components_accepted),
+                num_components_proposed=(num_components_proposed),
+                num_coarse_accepts=num_inner_accepts,
+                num_coarse_proposals=num_inner_states,
+                endpoint_moved=endpoint_moved,
+                fine_evaluated=fine_evaluated,
+                fine_subset_pass=fine_subset_pass,
+                fine_correction_accept=(fine_correction_accept),
+                coarse_subset_pass=coarse_subset_pass,
+            )
+
             if debug:
-                debug_dat_cs_ij["new_x"] = new_x
-                debug_dat_cs_ij["new_g"] = new_g
-                debug_dat_cs_ij["new_gc"] = new_gc
+                chain_debug_data["state_data"].append(
+                    {
+                        "psi": psi,
+                        "psi_gc": psi_gc,
+                        "psi_g": psi_g,
+                        "endpoint_moved": endpoint_moved,
+                        "fine_subset_pass": fine_subset_pass,
+                        "fine_correction_accept": (fine_correction_accept),
+                        "fine_log_alpha": fine_log_alpha,
+                        "subchain_data": (subchain_debug_data),
+                    }
+                )
 
-            # ----------------------------------------------------
-            # Store outer state
-            # ----------------------------------------------------
+        chain_results.append(chain.finalise(retain_jump_distances=debug))
 
-            all_x[chain_index, state_idx] = new_x
-            all_g[chain_index, state_idx] = new_g
-            all_gc[chain_index, state_idx] = new_gc
+        if debug:
+            debug_data["chain_data"].append(chain_debug_data)
 
-    # ============================================================
-    # Aggregate diagnostics
-    # ============================================================
-
-    n_inner_proposals = num_chains * (num_states - 1) * num_inner_states
-
-    n_inner_accepts = int(inner_accept_count_arr.sum())
-    n_fine_evals = int(fine_eval_arr.sum())
-    n_fine_subset_pass = int(fine_subset_pass_arr.sum())
-    n_fine_accepts = int(fine_accept_arr.sum())
-    n_endpoint_moves = int(endpoint_move_arr.sum())
-
-    component_acceptance_rate = (
-        total_mmh_component_acceptance / n_inner_proposals
-        if n_inner_proposals > 0
-        else np.nan
-    ).item()
-
-    coarse_acceptance_rate = (
-        n_inner_accepts / n_inner_proposals if n_inner_proposals > 0 else np.nan
-    )
-
-    endpoint_move_rate = (
-        n_endpoint_moves / num_outer_trials if num_outer_trials > 0 else np.nan
-    )
-
-    fine_eval_rate = n_fine_evals / num_outer_trials if num_outer_trials > 0 else np.nan
-
-    # Of the endpoints actually evaluated with the fine model, how many satisfy the fine
-    # subset condition?
-    fine_subset_pass_rate = (
-        n_fine_subset_pass / n_fine_evals if n_fine_evals > 0 else np.nan
-    )
-
-    # Of the endpoints in the fine subset, how many pass the final delayed-acceptance
-    # correction?
-    fine_correction_acceptance_rate = (
-        n_fine_accepts / n_fine_subset_pass if n_fine_subset_pass > 0 else np.nan
-    )
-
-    # Fraction of outer transitions that actually change the stored state.
-    outer_move_rate = (
-        n_fine_accepts / num_outer_trials if num_outer_trials > 0 else np.nan
-    )
-
-    # Among endpoints in the fine subset, how many are also above the coarse threshold?
-    coarse_given_fine = (
-        np.sum(endpoint_coarse_subset_pass_arr & fine_subset_pass_arr)
-        / n_fine_subset_pass
-        if n_fine_subset_pass > 0
-        else np.nan
-    )
-
-    jump_distances = rms_jump_distances(all_x)
-    mean_jump_distance = np.mean(jump_distances).item()
-
-    # One coarse evaluation for each chain seed plus one per# inner proposal.
-    num_coarse_evals = num_chains + n_inner_proposals
-
-    outer_move_rate_2 = np.mean(jump_distances > 0).item()
-    assert outer_move_rate == outer_move_rate_2
-
-    return DALevelSamplingResult(
-        x=all_x,
-        g=all_g,
-        component_acceptance_rate=component_acceptance_rate,
-        subset_acceptance_rate=fine_subset_pass_rate,
-        mean_jump_distance=mean_jump_distance,
-        num_fine_evals=n_fine_evals,
-        num_coarse_evals=num_coarse_evals,
-        jump_distances=jump_distances if debug else None,
-        debug_data=debug_data if debug else None,
-        coarse_acceptance_rate=coarse_acceptance_rate,
-        endpoint_move_rate=endpoint_move_rate,
-        fine_eval_rate=fine_eval_rate,
-        fine_subset_pass_rate=fine_subset_pass_rate,
-        fine_correction_acceptance_rate=fine_correction_acceptance_rate,
-        outer_move_rate=outer_move_rate,
-        coarse_given_fine=coarse_given_fine,
-        all_gc=all_gc,
-        coarse_acceptance_rates=(inner_accept_rate_arr if debug else None),
-        coarse_acceptance_counts=(inner_accept_count_arr if debug else None),
-        endpoint_moves=(endpoint_move_arr if debug else None),
-        fine_evals=(fine_eval_arr if debug else None),
-        fine_subset_passes=(fine_subset_pass_arr if debug else None),
-        fine_correction_accepts=(fine_accept_arr if debug else None),
-        fine_log_alpha=(fine_log_alpha_arr if debug else None),
-        endpoint_coarse_subset_passes=(
-            endpoint_coarse_subset_pass_arr if debug else None
-        ),
-    )
+    return DALevelSamplingResult(chains=tuple(chain_results), debug_data=debug_data)
 
 
 def generate_next_level_samples_DA_single_inner(
@@ -1280,23 +1071,12 @@ def subset_simulation(
         # Generate simulation level level_idx + 1.
         # --------------------------------------------------------------
 
-        all_x = np.full(
-            (num_chains, num_states, dimension),
-            np.nan,
-        )
-        all_g = np.full(
-            (num_chains, num_states),
-            np.nan,
-        )
-
         level_result = sampling_method(
             num_chains=num_chains,
             num_states=num_states,
             dimension=dimension,
             chain_seeds=chain_seeds,
             chain_g=chain_g,
-            all_x=all_x,
-            all_g=all_g,
             level_idx=level_idx,
             master_seed=master_seed,
             threshold=threshold,
@@ -1307,8 +1087,7 @@ def subset_simulation(
 
         if not isinstance(level_result, LevelSamplingResult):
             raise TypeError(
-                "sampling_method must return a "
-                "LevelSamplingResult instance; "
+                "sampling_method must return a LevelSamplingResult instance; "
                 f"got {type(level_result).__name__}"
             )
 

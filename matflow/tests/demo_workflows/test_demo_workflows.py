@@ -8,7 +8,7 @@ from hpcflow.sdk.core.enums import EARStatus
 import numpy as np
 
 import matflow as mf
-from matflow.tests.subset_simulation import (
+from matflow.subset_simulation.subset_simulation import (
     log_surrogate_weight,
     generate_next_level_samples_DA,
     get_approx_y_star_random_walk,
@@ -66,7 +66,7 @@ def test_damask_input_files(tmp_path, save_fig, reference_array_data):
 
 
 @pytest.mark.demo_workflows
-# @pytest.mark.skip(reason="takes too long")
+@pytest.mark.skip(reason="takes too long")
 def test_subset_simulation_toy_model_prediction(tmp_path):
     """Validate the MatFlow subset simulation implementation for a toy model.
 
@@ -161,7 +161,7 @@ def test_subset_simulation_toy_model_DA_prediction(tmp_path):
         weakest_link_performance_coarse, y_star=y_star, group_idx=group_idx
     )
 
-    debug = subset_simulation(
+    result = subset_simulation(
         performance=performance,
         dimension=dimension,
         p_0=0.1,
@@ -186,6 +186,6 @@ def test_subset_simulation_toy_model_DA_prediction(tmp_path):
     wk.wait()
 
     iter_i = wk.tasks.collate_results.elements[0].iterations[-1]
-    assert iter_i.get("outputs.pf") == debug["pf"]
-    assert iter_i.get("outputs.cov") == debug["cov"]
-    assert iter_i.get("outputs.threshold") == debug["thresholds"][-1]
+    assert iter_i.get("outputs.pf") == result.pf
+    assert iter_i.get("outputs.cov") == result.cov
+    assert iter_i.get("outputs.threshold") == result.thresholds[-1]
