@@ -37,6 +37,8 @@ def test_subset_simulation_toy_model():
     assert np.isclose(result.pf, 1.3000e-04)
     assert np.isclose(result.cov, 0.9559503335693211)
     assert np.allclose(result.outer_move_rates, [0.51111111, 0.3, 0.25555556])
+    assert np.allclose(result.mean_jump_distances, [0.33655373, 0.19935043, 0.16935632])
+    assert np.allclose(result.component_acceptance_rates, [0.704, 0.7025, 0.69927778])
 
 
 def test_subset_simulation_toy_model_DA():
@@ -83,3 +85,7 @@ def test_subset_simulation_toy_model_DA():
     assert np.isclose(result.pf, 1.1000e-04)
     assert np.isclose(result.cov, 0.6454545454545455)
     assert np.allclose(result.outer_move_rates, [0.64444444, 0.42222222, 0.35555556])
+    assert np.allclose(result.mean_jump_distances, [0.53359356, 0.31473844, 0.24871597])
+    assert np.allclose(
+        result.component_acceptance_rates, [0.70409259, 0.70640741, 0.7047037]
+    )

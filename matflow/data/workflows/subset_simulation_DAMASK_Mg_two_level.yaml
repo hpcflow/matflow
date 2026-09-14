@@ -479,6 +479,9 @@ tasks:
       proposal:
         type: norm
         scale: 1.0
+    groups:
+      - name: all
+        
   - schema: system_analysis_16 # [inner MC loop; outer MC loop] # 7,8,9
   - schema: increment_chain_inner # [inner MC loop; outer MC loop] # outputs x, like `generate_next_state` does # 10
 

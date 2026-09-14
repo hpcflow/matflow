@@ -180,6 +180,9 @@ def estimate_cov(indicator, p_i: float) -> float:
 def generate_next_state(x, proposal, rng):
     """
     Proposal must be a symmetric distribution centred on zero.
+
+    Returns the new candidate state and the number of new components in that state (i.e.
+    number of accepted components).
     """
 
     dim = len(x)
@@ -193,9 +196,8 @@ def generate_next_state(x, proposal, rng):
 
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
-    mcmc_accept_rate = np.mean(accept_idx)
 
-    return xi, mcmc_accept_rate
+    return xi, np.sum(accept_idx)
 
 
 def generate_next_state_CS(x, prop_std, rng):
@@ -251,15 +253,11 @@ def generate_next_level_samples(
         while not chain.is_complete:
             current_x = chain.current_x
 
-            (trial_x, component_acceptance_rate,) = generate_next_state(
+            trial_x, num_components_accepted = generate_next_state(
                 x=current_x,
                 proposal=proposal,
                 rng=chain_rng,
             )
-
-            # Preferably generate_next_state() would return this
-            # integer count directly.
-            num_components_accepted = int(np.rint(component_acceptance_rate * dimension))
 
             trial_x_t = transformation(trial_x) if transformation else trial_x
             trial_g = performance(trial_x_t)
@@ -268,7 +266,8 @@ def generate_next_level_samples(
                 trial_x=trial_x,
                 trial_g=trial_g,
                 threshold=threshold,
-                num_components_accepted=(num_components_accepted),
+                num_components_accepted=num_components_accepted,
+                num_components_proposed=chain.current_x.size,
             )
 
         chain_results.append(chain.finalise(retain_jump_distances=debug))
@@ -497,7 +496,7 @@ def generate_coarse_subchain(
     current_sub_chain_gc = gc
 
     inner_accepts = 0
-    mmh_component_acceptance_sum = 0.0
+    num_components_accepted_sum = 0.0
 
     debug_data = {}
     if debug:
@@ -511,10 +510,10 @@ def generate_coarse_subchain(
         if debug:
             debug_data["rng_states"].append(rng.bit_generator.state["state"])
 
-        trial_x, mmh_component_acceptance = generate_next_state(
+        trial_x, num_components_accepted = generate_next_state(
             x=current_sub_chain_x, proposal=proposal, rng=rng
         )
-        mmh_component_acceptance_sum += mmh_component_acceptance
+        num_components_accepted_sum += num_components_accepted
 
         if debug:
             debug_data["current_sub_chain_x"].append(current_sub_chain_x)
@@ -545,7 +544,7 @@ def generate_coarse_subchain(
         current_sub_chain_x,
         current_sub_chain_gc,
         inner_accepts,
-        mmh_component_acceptance_sum,
+        num_components_accepted_sum,
         debug_data,
     )
 
@@ -643,7 +642,7 @@ def generate_next_level_samples_DA(
                 psi,
                 psi_gc,
                 num_inner_accepts,
-                component_acceptance_sum,
+                num_components_accepted,
                 subchain_debug_data,
             ) = generate_coarse_subchain(
                 x=current_x,
@@ -660,8 +659,7 @@ def generate_next_level_samples_DA(
                 debug=debug,
             )
 
-            num_components_proposed = num_inner_states * dimension
-            num_components_accepted = int(np.rint(component_acceptance_sum * dimension))
+            num_components_proposed = num_inner_states * current_x.size
 
             endpoint_moved = not np.array_equal(psi, current_x)
 
@@ -719,14 +717,14 @@ def generate_next_level_samples_DA(
                 new_x=new_x,
                 new_g=new_g,
                 new_gc=new_gc,
-                num_components_accepted=(num_components_accepted),
-                num_components_proposed=(num_components_proposed),
+                num_components_accepted=num_components_accepted,
+                num_components_proposed=num_components_proposed,
                 num_coarse_accepts=num_inner_accepts,
                 num_coarse_proposals=num_inner_states,
                 endpoint_moved=endpoint_moved,
                 fine_evaluated=fine_evaluated,
                 fine_subset_pass=fine_subset_pass,
-                fine_correction_accept=(fine_correction_accept),
+                fine_correction_accept=fine_correction_accept,
                 coarse_subset_pass=coarse_subset_pass,
             )
 

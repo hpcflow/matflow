@@ -1819,6 +1819,12 @@
     - parameter: coarse_eval_count
       default_value: null      
       group: all
+    - parameter: num_components_accepted
+      group: all
+      default_value: null
+    - parameter: num_components_proposed
+      group: all
+      default_value: null      
     - parameter: fine_eval_rates
       default_value: null
   outputs:
@@ -1836,9 +1842,11 @@
     - parameter: total_coarse_eval_count
     - parameter: pf
     - parameter: is_finished
-    - parameter: accept_rate
+    - parameter: outer_move_rate
     - parameter: cov
-    - parameter: fine_eval_rates    
+    - parameter: fine_eval_rates
+    - parameter: component_acceptance_rate
+    - parameter: mean_jump_distance
   actions:
     - script: <<script:uq/collate_results.py>>
       script_data_in:
@@ -1864,6 +1872,8 @@
     - parameter: all_x
     - parameter: all_g
     - parameter: all_accept
+    - parameter: num_components_accepted
+    - parameter: num_components_proposed
   actions:
     - script: <<script:uq/initialise_markov_chains.py>>
       script_data_in: direct
@@ -1909,10 +1919,15 @@
     - parameter: chain_index
     - parameter: rng
       default_value: null
+    - parameter: num_components_accepted
+      default_value: 0
+    - parameter: num_components_proposed
+      default_value: 1
   outputs:
     - parameter: x
-    - parameter: mcmc_accept_rate
     - parameter: rng
+    - parameter: num_components_accepted
+    - parameter: num_components_proposed
   actions:
     - script: <<script:uq/generate_next_state.py>>
       script_data_in: direct

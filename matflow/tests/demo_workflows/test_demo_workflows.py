@@ -108,15 +108,19 @@ def test_subset_simulation_toy_model_prediction(tmp_path):
     final_iter = wk.tasks.collate_results.elements[0].latest_iteration_non_skipped
     pf = final_iter.get("outputs.pf")
     cov = final_iter.get("outputs.cov")
-    sus_acc = final_iter.get("outputs.accept_rate")[:]
+    outer_move_rate = final_iter.get("outputs.outer_move_rate")
+    mean_jump = final_iter.get("outputs.mean_jump_distance")
+    comp_accept = final_iter.get("outputs.component_acceptance_rate")
 
     # TODO: also verify same result with `subset_simulation_toy_model_external`, once
     # that can be submitted without a ridiculous number of processes.
 
+    # note the actual values are tested in ``test_subset_simulation``
     assert pf == result.pf
     assert cov == result.cov
-    assert np.allclose(sus_acc, result.outer_move_rates)
-    # TODO: store and check mcmc_accept
+    assert np.allclose(outer_move_rate, result.outer_move_rates)
+    assert np.isclose(mean_jump, result.mean_jump_distances[-1])
+    assert np.isclose(comp_accept, result.component_acceptance_rates[-1])
 
 
 @pytest.mark.demo_workflows
@@ -185,7 +189,16 @@ def test_subset_simulation_toy_model_DA_prediction(tmp_path):
 
     wk.wait()
 
-    iter_i = wk.tasks.collate_results.elements[0].iterations[-1]
-    assert iter_i.get("outputs.pf") == result.pf
-    assert iter_i.get("outputs.cov") == result.cov
-    assert iter_i.get("outputs.threshold") == result.thresholds[-1]
+    final_iter = wk.tasks.collate_results.elements[0].iterations[-1]
+    pf = final_iter.get("outputs.pf")
+    cov = final_iter.get("outputs.cov")
+    outer_move_rate = final_iter.get("outputs.outer_move_rate")
+    mean_jump = final_iter.get("outputs.mean_jump_distance")
+    comp_accept = final_iter.get("outputs.component_acceptance_rate")
+
+    # note the actual values are tested in ``test_subset_simulation``
+    assert pf == result.pf
+    assert cov == result.cov
+    assert np.allclose(outer_move_rate, result.outer_move_rates)
+    assert np.isclose(mean_jump, result.mean_jump_distances[-1])
+    assert np.isclose(comp_accept, result.component_acceptance_rates[-1])
