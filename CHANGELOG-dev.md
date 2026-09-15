@@ -1,4 +1,12 @@
 
+<a name="v0.4.0a10"></a>
+## [v0.4.0a10](https://github.com/hpcflow/matflow/compare/v0.4.0a9...v0.4.0a10) - 2026.09.15
+
+### 🐛 Bug Fixes
+
+* tests
+
+
 <a name="v0.4.0a9"></a>
 ## [v0.4.0a9](https://github.com/hpcflow/matflow/compare/v0.4.0a8...v0.4.0a9) - 2026.09.15
 
