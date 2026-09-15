@@ -1,4 +1,22 @@
 
+<a name="v0.4.0a9"></a>
+## [v0.4.0a9](https://github.com/hpcflow/matflow/compare/v0.4.0a8...v0.4.0a9) - 2026.09.15
+
+### ♻ Code Refactoring
+
+* encapsulate some behaviour in subset simulation related objects
+* define a `SubsetSimulationResult` object
+* remove initial attempts at SuS-DA
+
+### ✨ Features
+
+* return mean MMH component acceptance rate and mean jump distance
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.4.0a8"></a>
 ## [v0.4.0a8](https://github.com/hpcflow/matflow/compare/v0.4.0a7...v0.4.0a8) - 2026.09.14
 
