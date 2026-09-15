@@ -95,7 +95,7 @@ class _ChainAccumulator:
         self.jump_distance_sum += jump_distance
         self.num_fine_evals += int(fine_evaluated)
 
-    def finalise(self, *, retain_jump_distances: bool = False) -> MarkovChainResult:
+    def finalise(self, *, retain_jump_distances: bool = True) -> MarkovChainResult:
         """Create a result from the completed chain."""
 
         if not self.is_complete:
@@ -187,7 +187,7 @@ class _DAChainAccumulator(_ChainAccumulator):
     def finalise(
         self,
         *,
-        retain_jump_distances=False,
+        retain_jump_distances=True,
     ) -> DAMarkovChainResult:
         """Create a result from a completed DA chain."""
 

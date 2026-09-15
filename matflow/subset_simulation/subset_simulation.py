@@ -270,7 +270,7 @@ def generate_next_level_samples(
                 num_components_proposed=chain.current_x.size,
             )
 
-        chain_results.append(chain.finalise(retain_jump_distances=debug))
+        chain_results.append(chain.finalise(retain_jump_distances=True))
 
     return LevelSamplingResult(chains=tuple(chain_results))
 
@@ -324,7 +324,7 @@ def generate_next_level_samples_CS(
                 fine_evaluated=True,
             )
 
-        chain_results.append(chain.finalise(retain_jump_distances=debug))
+        chain_results.append(chain.finalise(retain_jump_distances=True))
 
     return LevelSamplingResult(chains=tuple(chain_results))
 
@@ -419,7 +419,7 @@ def generate_next_level_samples_ACS(
                     fine_evaluated=True,
                 )
 
-            chain_result = chain.finalise(retain_jump_distances=debug)
+            chain_result = chain.finalise(retain_jump_distances=True)
             batch_results.append(chain_result)
             chain_results.append(chain_result)
 
@@ -742,7 +742,7 @@ def generate_next_level_samples_DA(
                     }
                 )
 
-        chain_results.append(chain.finalise(retain_jump_distances=debug))
+        chain_results.append(chain.finalise(retain_jump_distances=True))
 
         if debug:
             debug_data["chain_data"].append(chain_debug_data)
