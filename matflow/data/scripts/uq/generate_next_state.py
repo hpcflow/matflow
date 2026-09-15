@@ -34,7 +34,9 @@ def _init_rng(chain_index, loop_idx):
     return rng
 
 
-def generate_next_state(x, proposal, rng, chain_index):
+def generate_next_state(
+    x, proposal, rng, chain_index, num_components_accepted, num_components_proposed
+):
     """Generate the next candidate state in a modified Metropolis algorithm.
 
     Parameters
@@ -48,6 +50,10 @@ def generate_next_state(x, proposal, rng, chain_index):
         Random number generator to be used in this function.
     chain_index
         Index of the Markov chain within the subset simulation level loop.
+    num_components_accepted
+        Running total of the number of accepted MMH components.
+    num_components_proposed
+        Running total of the number of proposed MMH components.
 
     Returns
     -------
@@ -98,6 +104,12 @@ def generate_next_state(x, proposal, rng, chain_index):
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
 
-    mcmc_accept_rate = np.mean(accept_idx)
+    num_components_accepted += np.sum(accept_idx).item()
+    num_components_proposed += current_state.size
 
-    return {"x": xi, "mcmc_accept_rate": mcmc_accept_rate, "rng": rng}
+    return {
+        "x": xi,
+        "num_components_accepted": num_components_accepted,
+        "num_components_proposed": num_components_proposed,
+        "rng": rng,
+    }

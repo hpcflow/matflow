@@ -81,6 +81,8 @@ tasks:
       proposal:
         type: norm
         scale: 1.0
+    groups:
+      - name: all        
 
   - schema: system_analysis_toy_model_max_random_walk_coarse
     resources:

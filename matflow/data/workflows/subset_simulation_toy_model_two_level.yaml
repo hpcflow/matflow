@@ -53,6 +53,8 @@ tasks:
       proposal:
         type: norm
         scale: 1.0
+    groups:
+      - name: all        
 
   - schema: system_analysis_toy_model # [inner MC loop; outer MC loop]
     inputs:
