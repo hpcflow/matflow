@@ -1,0 +1,17 @@
+doc:
+  - >
+    Demo of a task to combine texture from EBSD .crc files
+    and sample texure using the Markov-Chain Monte-Carlo method.
+
+tasks:
+- schema: combine_orientations_from_EBSD_maps
+  inputs:
+    CRC_file_paths:
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-45°RDxND/48D.crc
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-TDxND/48T.crc
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-RDxND/48L.crc
+    phi_corrections:
+    - [89, 88, 135]
+    - [89, 88, 93]
+    - [89, 88, 1]
+    euler_degrees: true
