@@ -7,6 +7,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
+    colourmap = allOpts.colourmap
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
@@ -57,6 +58,10 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             millerDirs, ...
             'property', oriColors ...
             );
+    end
+
+    if colourmap
+        mtexColorMap(gcf, colourmap);
     end
 
     if ~isempty(allOpts.colourbar_limits)

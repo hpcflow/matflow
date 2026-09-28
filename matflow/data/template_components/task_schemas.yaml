@@ -540,6 +540,8 @@
     - parameter: execution_mode
       default_value: script # precompiled | compile
       propagation_mode: explicit
+    - parameter: colourmap
+      default_value: null
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
