@@ -15,3 +15,14 @@ tasks:
     - [89, 88, 93]
     - [89, 88, 1]
     euler_degrees: true
+
+- schema: visualise_orientations_pole_figure_mtex
+  inputs:
+    crystal_symmetry: cubic
+    pole_figure_directions:
+        - [1, 0, 0]
+        - [1, 1, 0]
+        - [1, 1, 1]
+    use_contours: true
+    use_one_colourbar: true
+    colourbar_limits: [0.5, 5.0]

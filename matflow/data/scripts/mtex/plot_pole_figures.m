@@ -3,7 +3,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
-    crystalSym = allOpts.crystal_symmetry;    
+    crystalSym = allOpts.crystal_symmetry;
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
@@ -16,10 +16,10 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     reprQuatOrderInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_quat_order');
 
     alignment = { ...
-                     sprintf('X||%s', latticeDirs{align(1) + 1}), ...
-                     sprintf('Y||%s', latticeDirs{align(2) + 1}), ...
-                     sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
-                 };
+        sprintf('X||%s', latticeDirs{align(1) + 1}), ...
+        sprintf('Y||%s', latticeDirs{align(2) + 1}), ...
+        sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
+        };
     crystalSym = crystalSymmetry(crystalSym, alignment{:});
     oriQuatOrder = reprQuatOrders{reprQuatOrderInt + 1};
 
@@ -29,7 +29,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
 
     data = h5read(inputs_HDF5_path, '/orientations/data');
-    
+
     % TODO: why?
     data(2:end, :) = data(2:end, :) * -1;
 
@@ -56,16 +56,24 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             orientations, ...
             millerDirs, ...
             'property', oriColors ...
-        );
+            );
     end
 
     if ~isempty(allOpts.colourbar_limits)
-        CLim(gcm, allOpts.colourbar_limits);
+        try
+            setColorRange(allOpts.colourbar_limits, 'current');
+        catch
+            CLim(gcm, allOpts.colourbar_limits);
+        end
     end
 
     if allOpts.use_one_colourbar
         mtexColorbar % remove colorbars
-        CLim(gcm, 'equal');
+        try
+            setColorRange('equal', 'current');
+        catch
+            CLim(gcm, 'equal');
+        end
         mtexColorbar % add a single colorbar
     end
 
@@ -102,7 +110,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
         [xvector, yvector, zvector], ...
         'label', {xyzLabels{1}, xyzLabels{2}, xyzLabels{3}}, ...
         'backgroundcolor', 'w' ...
-    )
+        )
 
     if ~aLabelAdded
         annotate([crystalSym.aAxis], 'label', {'a'}, 'backgroundcolor', 'w');
@@ -115,7 +123,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     if ~cLabelAdded
         annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
     end
-    
+
     saveFigure('pole_figure.png');
 
     if ~useContours
