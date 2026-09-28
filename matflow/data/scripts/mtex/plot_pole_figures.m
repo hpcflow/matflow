@@ -7,7 +7,8 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
-    colourmap = allOpts.colourmap
+    colourmap = allOpts.colourmap;
+    mtex_prefs = allOpts.mtex_prefs;
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
@@ -44,7 +45,14 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     orientations = orientation(quat_data, crystalSym);
 
     newMtexFigure('layout', [1, 1], 'visible', 'off');
-    plotx2east;
+    if ~isstruct(mtex_prefs)
+        plotx2east;
+    else
+        keys = fieldnames(mtex_prefs);
+        for p = 1 : length(keys)
+            setMTEXpref(keys{p}, mtex_prefs.(keys{p}));
+        end
+    end
 
     if useContours
         plotPDF(orientations, millerDirs, 'contourf');
