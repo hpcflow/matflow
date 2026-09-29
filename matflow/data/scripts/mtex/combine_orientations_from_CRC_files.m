@@ -9,8 +9,6 @@ function combine_orientations_from_CRC_files(inputs_JSON_path, outputs_HDF5_path
     % load, correct, check maps
     corrected_maps = cell(length(CRC_file_paths), 1);
     for m=1:length(CRC_file_paths)
-        disp(CRC_file_paths(m))
-        disp(phi_corrections(m,:))
         corrected_maps{m} = loadmap_correct(CRC_file_paths(m), CS, phi_corrections(m,:));
     end
 
