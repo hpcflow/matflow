@@ -349,17 +349,22 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
-  doc: Sample texture from using Markov-Chain Monte-Carlo method.
+  doc: Sample texture using Markov-Chain Monte-Carlo method.
   method: MCMC
   implementation: mtex
   inputs:
-    - parameter: orientations
+  - parameter: orientations
+  - parameter: crystal_symmetry
+  - parameter: pole_figure_directions
+  - parameter: max_samples
   outputs:
     - parameter: orientations
   actions:
   - requires_dir: true
     script: <<script:mtex/sample_texture_mcmc.m>>
-    script_data_in: json
+    script_data_in:
+      orientations: hdf5
+      "*": json
     script_data_out: hdf5
     script_exe: run_mtex
     environments:

@@ -30,3 +30,7 @@ tasks:
     mtex_prefs:
       xAxisDirection: north
       zAxisDirection: OutPlane
+
+- schema: sample_texture_MCMC_mtex
+  inputs:
+    max_samples: 500
