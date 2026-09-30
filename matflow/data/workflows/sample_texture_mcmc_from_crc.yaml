@@ -34,3 +34,12 @@ tasks:
 - schema: sample_texture_MCMC_mtex
   inputs:
     max_samples: 500
+
+- schema: visualise_orientations_pole_figure_mtex
+  inputs:
+    use_one_colourbar: true
+    colourbar_limits: [0.5, 5.0]
+    colourmap: LaboTeX
+    mtex_prefs:
+      xAxisDirection: north
+      zAxisDirection: OutPlane

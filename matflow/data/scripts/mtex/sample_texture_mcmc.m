@@ -54,7 +54,7 @@ function orientations = load_orientations_from_hdf(inputs_HDF5_path, crystalSym,
         quat_data = circshift(quat_data, 1, 2);
     end
 
-    orientations = orientation(quat_data', crystalSym);
+    orientations = orientation(quat_data, crystalSym);
 end
 
 
