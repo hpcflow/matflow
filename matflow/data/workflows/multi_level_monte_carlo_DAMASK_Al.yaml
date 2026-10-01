@@ -1,0 +1,198 @@
+doc:
+  - >
+    WIP: Multi-level Monte Carlo (MLMC) for estimating the probability of failure (yield
+    stress) with DAMASK.
+
+template_components:
+  meta_task_schemas:
+    - objective: multi_level_estimator
+      outputs:
+        - parameter: mean_indicator
+  task_schemas:
+    - objective: evaluate_ML_monte_carlo_level_estimator
+      inputs:
+        - parameter: g
+          group: all
+        - parameter: VE_grid_size # don't need
+          group: all
+        - parameter: x # don't need
+          group: all
+      outputs:
+        - parameter: mean_indicator
+      actions:
+        - script: <<script:uq/evaluate_ML_monte_carlo_level_estimator.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+    - objective: group_mean_indicators
+      inputs:
+        - parameter: mean_indicator
+
+    - objective: evaluate_ML_monte_carlo_estimator
+      inputs:
+        - parameter: mean_indicator
+          group: all
+      outputs:
+        - parameter: ML_monte_carlo_estimator
+      actions:
+        - script: <<script:uq/evaluate_ML_monte_carlo_estimator.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+          environments:
+            - scope:
+                type: any
+              environment: damask_parse_env
+
+environments:
+  python_env:
+    poetry_env: true
+  damask_parse_env:
+    poetry_env: true
+
+resources:
+  any:
+    scheduler_args:
+      directives:
+        --partition: ukaea-spr
+        --time: 00:30:00
+    combine_scripts: true
+
+# TODO: support workflow inputs/outputs, and then can assign inputs/outputs for meta-tasks
+#   to make this workflow easier to structure (no scoping issues?)
+# should be a way to scope properly without meta-tasks, but the idea is this would make it
+# easier.
+
+# TODO: nested-metatasks (application bit shouldn't include sampling and evaluate_ML_monte_carlo_level_estimator)
+
+meta_tasks:
+  multi_level_estimator:
+    - schema: sample_direct_MC
+      inputs:
+        dimension: 120 # 20 grains * (3 seed point dimensions + 3 orientation dimensions)
+    - schema: generate_volume_element_from_voronoi_random_variates
+      nesting_order:
+        inputs.x: 0
+      inputs:
+        VE_size: [1, 1, 1]
+        phase_label: Al
+      groups:
+        - name: all
+    - schema: simulate_VE_loading_damask
+      resources:
+        any:
+          combine_scripts: false
+          num_cores: 4
+      inputs:
+        load_case::uniaxial:
+          total_time: 5
+          num_increments: 20
+          direction: x
+          target_def_grad_rate: 1.0e-3
+          dump_frequency: 1
+        homogenization:
+          SX:
+            mechanical: { type: "pass" }
+            N_constituents: 1
+        damask_phases:
+          Al:
+            lattice: cF
+            mechanical:
+              output: [F, P, F_p]
+              elastic:
+                type: Hooke
+                C_11: 106750000000
+                C_12: 60410000000
+                C_44: 28340000000
+              plastic:
+                type: phenopowerlaw
+                N_sl: [12]
+                a_sl: 2.25
+                atol_xi: 1
+                dot_gamma_0_sl: 0.001
+                h_0_sl-sl: 75.0e+6
+                h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
+                n_sl: 20
+                output: [xi_sl]
+                xi_0_sl: [31.0e+6]
+                xi_inf_sl: [63.0e+6]
+        damask_post_processing:
+          - name: add_stress_Cauchy
+            args: { P: P, F: F }
+            opts: { add_Mises: true }
+          - name: add_strain
+            args: { F: F_p, t: V, m: 0 }
+            opts: { add_Mises: true }
+        VE_response_data:
+          phase_data:
+            - field_name: sigma_vM
+              phase_name: Al
+              out_name: vol_avg_equivalent_stress
+              transforms: [{ mean_along_axes: 1 }]
+            - field_name: epsilon_V^0(F_p)_vM
+              phase_name: Al
+              out_name: vol_avg_equivalent_plastic_strain
+              transforms: [{ mean_along_axes: 1 }]
+        calculate_yield_stress:
+          yield_point: 0.002
+        remove_damask_hdf5: true
+    - schema: evaluate_yield_stress_limit_state
+      inputs:
+        threshold_yield_stress: 83.0e+6 # 75.0e+6 # MPa
+      groups:
+        - name: all
+    - schema: evaluate_ML_monte_carlo_level_estimator # use group for these sims in this meta-task
+
+# TODO: make separate workflow for just direct-MC yield stress prob. failure so we know
+# roughly what yield stress to target/test here
+
+tasks:
+  # TODO: some higher-level "sequence" for repeating a (meta-)task multiple times with
+  # different parametrisations;
+  # ideally want to define N_L = [1000, 500, 250], and VE_grid_sizes: [8,8,8], [16,16,16], [32,32,32] etc
+  # as some sort of workflows variables, and then matflow can set up the tasks as below
+
+  - schema: multi_level_estimator
+    inputs:
+      generate_volume_element_from_voronoi_random_variates:
+        VE_grid_size: [16, 16, 16]
+    repeats:
+      sample_direct_MC: 1000 # N_0
+
+  - schema: multi_level_estimator
+    repeats:
+      sample_direct_MC: 500 # N_1
+    sequences:
+      generate_volume_element_from_voronoi_random_variates:
+        - path: inputs.VE_grid_size
+          nesting_order: 1 # note: nested after x, so elements for different grid sizes will be adjacent
+          values:
+            - [32, 32, 32]
+            - [16, 16, 16]
+
+  - schema: multi_level_estimator
+    repeats:
+      sample_direct_MC: 250 # N_2
+    sequences:
+      generate_volume_element_from_voronoi_random_variates:
+        - path: inputs.VE_grid_size
+          nesting_order: 1 # note: nested after x, so elements for different grid sizes will be adjacent
+          values:
+            - [64, 64, 64]
+            - [32, 32, 32]
+
+  - schema: group_mean_indicators # ideally, won't need this intermediate task
+    groups:
+      - name: all
+    input_sources:
+      mean_indicator:
+        - task.evaluate_ML_monte_carlo_level_estimator_1 # TODO: improve meta-tasks to allow referencing in input sources!
+        - task.evaluate_ML_monte_carlo_level_estimator_2
+        - task.evaluate_ML_monte_carlo_level_estimator_3
+
+  - schema: evaluate_ML_monte_carlo_estimator
