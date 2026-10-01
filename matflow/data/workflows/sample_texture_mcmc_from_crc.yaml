@@ -1,0 +1,48 @@
+doc:
+  - >
+    Demo of a task to combine texture from EBSD .crc files
+    and sample texure using the Markov-Chain Monte-Carlo method.
+
+tasks:
+- schema: combine_orientations_from_EBSD_maps
+  inputs:
+    CRC_file_paths:
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-45°RDxND/48D.crc
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-TDxND/48T.crc
+    - /home/mbexegc2/projects/lightform/iterative_sample_mtex/matflow-gui/438_6016/AA6016-Y04084A1-RDxND/48L.crc
+    phi_corrections:
+    - [89, 88, 135]
+    - [89, 88, 93]
+    - [89, 88, 1]
+    euler_degrees: true
+
+- schema: visualise_orientations_pole_figure_mtex
+  inputs:
+    crystal_symmetry: cubic
+    pole_figure_directions:
+        - [1, 0, 0]
+        - [1, 1, 0]
+        - [1, 1, 1]
+    use_contours: true
+    use_one_colourbar: true
+    colourbar_limits: [0.5, 5.0]
+    colourmap: LaboTeX
+    mtex_prefs:
+      xAxisDirection: north
+      zAxisDirection: OutPlane
+    annotations:
+      X: RD
+      Y: TD
+
+- schema: sample_texture_MCMC_mtex
+  inputs:
+    max_samples: 500
+
+- schema: visualise_orientations_pole_figure_mtex
+  inputs:
+    use_one_colourbar: true
+    colourbar_limits: [0.5, 5.0]
+    colourmap: LaboTeX
+    mtex_prefs:
+      xAxisDirection: north
+      zAxisDirection: OutPlane

@@ -3,10 +3,13 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
 
     allOpts = jsondecode(fileread(inputs_JSON_path));
-    crystalSym = allOpts.crystal_symmetry;    
+    crystalSym = allOpts.crystal_symmetry;
     useContours = allOpts.use_contours;
     poleFigureDirections = allOpts.pole_figure_directions;
     IPFRefDir = allOpts.IPF_reference_direction;
+    colourmap = allOpts.colourmap;
+    mtex_prefs = allOpts.mtex_prefs;
+    annotations = allOpts.annotations;
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
@@ -16,10 +19,10 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     reprQuatOrderInt = h5readatt(inputs_HDF5_path, '/orientations', 'representation_quat_order');
 
     alignment = { ...
-                     sprintf('X||%s', latticeDirs{align(1) + 1}), ...
-                     sprintf('Y||%s', latticeDirs{align(2) + 1}), ...
-                     sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
-                 };
+        sprintf('X||%s', latticeDirs{align(1) + 1}), ...
+        sprintf('Y||%s', latticeDirs{align(2) + 1}), ...
+        sprintf('Z||%s', latticeDirs{align(3) + 1}) ...
+        };
     crystalSym = crystalSymmetry(crystalSym, alignment{:});
     oriQuatOrder = reprQuatOrders{reprQuatOrderInt + 1};
 
@@ -29,7 +32,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
 
     data = h5read(inputs_HDF5_path, '/orientations/data');
-    
+
     % TODO: why?
     data(2:end, :) = data(2:end, :) * -1;
 
@@ -43,7 +46,14 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     orientations = orientation(quat_data, crystalSym);
 
     newMtexFigure('layout', [1, 1], 'visible', 'off');
-    plotx2east;
+    if ~isstruct(mtex_prefs)
+        plotx2east;
+    else
+        keys = fieldnames(mtex_prefs);
+        for p = 1 : length(keys)
+            setMTEXpref(keys{p}, mtex_prefs.(keys{p}));
+        end
+    end
 
     if useContours
         plotPDF(orientations, millerDirs, 'contourf');
@@ -56,66 +66,83 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
             orientations, ...
             millerDirs, ...
             'property', oriColors ...
-        );
+            );
+    end
+
+    if colourmap
+        mtexColorMap(gcf, colourmap);
     end
 
     if ~isempty(allOpts.colourbar_limits)
-        CLim(gcm, allOpts.colourbar_limits);
+        try
+            setColorRange(allOpts.colourbar_limits, 'current');
+        catch
+            CLim(gcm, allOpts.colourbar_limits);
+        end
     end
 
     if allOpts.use_one_colourbar
         mtexColorbar % remove colorbars
-        CLim(gcm, 'equal');
+        try
+            setColorRange('equal', 'current');
+        catch
+            CLim(gcm, 'equal');
+        end
         mtexColorbar % add a single colorbar
     end
 
-    aAxis = Miller(crystalSym.aAxis, 'xyz');
-    bAxis = Miller(crystalSym.bAxis, 'xyz');
-    cAxis = Miller(crystalSym.cAxis, 'xyz');
+    if ~isstruct(annotations)
+        % Default option
+        aAxis = Miller(crystalSym.aAxis, 'xyz');
+        bAxis = Miller(crystalSym.bAxis, 'xyz');
+        cAxis = Miller(crystalSym.cAxis, 'xyz');
 
-    xyzVecs = eye(3);
-    xyzLabels = {'x', 'y', 'z'};
-    aLabelAdded = 0;
-    bLabelAdded = 0;
-    cLabelAdded = 0;
+        xyzVecs = eye(3);
+        xyzLabels = {'x', 'y', 'z'};
+        aLabelAdded = 0;
+        bLabelAdded = 0;
+        cLabelAdded = 0;
 
-    for i = 1:3
-
-        if round(aAxis.xyz, 10) == xyzVecs(i, :)
-            aLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/a');
+        for i = 1:3
+            if round(aAxis.xyz, 10) == xyzVecs(i, :)
+                aLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/a');
+            end
+            if round(bAxis.xyz, 10) == xyzVecs(i, :)
+                bLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/b');
+            end
+            if round(cAxis.xyz, 10) == xyzVecs(i, :)
+                cLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/c');
+            end
         end
 
-        if round(bAxis.xyz, 10) == xyzVecs(i, :)
-            bLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/b');
+        annotate( ...
+            [xvector, yvector, zvector], ...
+            'label', {xyzLabels{1}, xyzLabels{2}, xyzLabels{3}}, ...
+            'backgroundcolor', 'w' ...
+            )
+
+        if ~aLabelAdded
+            annotate([crystalSym.aAxis], 'label', {'a'}, 'backgroundcolor', 'w');
         end
 
-        if round(cAxis.xyz, 10) == xyzVecs(i, :)
-            cLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/c');
+        if ~bLabelAdded
+            annotate([crystalSym.bAxis], 'label', {'b'}, 'backgroundcolor', 'w');
         end
 
+        if ~cLabelAdded
+            annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
+        end
+    else
+        % Custom annotations
+        keys = fieldnames(annotations);
+        for i = 1:length(keys)
+            annotate(vector3d.(keys{i}), 'label', {annotations.(keys{i})}, 'backgroundcolor', 'w');
+        end
     end
 
-    annotate( ...
-        [xvector, yvector, zvector], ...
-        'label', {xyzLabels{1}, xyzLabels{2}, xyzLabels{3}}, ...
-        'backgroundcolor', 'w' ...
-    )
-
-    if ~aLabelAdded
-        annotate([crystalSym.aAxis], 'label', {'a'}, 'backgroundcolor', 'w');
-    end
-
-    if ~bLabelAdded
-        annotate([crystalSym.bAxis], 'label', {'b'}, 'backgroundcolor', 'w');
-    end
-
-    if ~cLabelAdded
-        annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
-    end
-    
     saveFigure('pole_figure.png');
 
     if ~useContours
@@ -125,5 +152,4 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
 
     close all;
-
 end

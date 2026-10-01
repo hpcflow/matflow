@@ -349,6 +349,49 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
+  doc: Sample texture using Markov-Chain Monte-Carlo method.
+  method: MCMC
+  implementation: mtex
+  inputs:
+  - parameter: orientations
+  - parameter: crystal_symmetry
+  - parameter: pole_figure_directions
+  - parameter: max_samples
+  outputs:
+    - parameter: orientations
+  actions:
+  - requires_dir: true
+    script: <<script:mtex/sample_texture_mcmc.m>>
+    script_data_in:
+      orientations: hdf5
+      "*": json
+    script_data_out: hdf5
+    script_exe: run_mtex
+    environments:
+    - scope:
+        type: any
+      environment: matlab_env
+
+- objective: combine_orientations_from_EBSD_maps
+  inputs:
+  - parameter: CRC_file_paths
+  - parameter: phi_corrections
+  - parameter: euler_degrees
+  outputs: 
+    - parameter: orientations
+  actions:
+  - requires_dir: true
+    script: <<script:mtex/combine_orientations_from_CRC_files.m>>
+    script_data_in: json
+    script_data_out: hdf5
+    script_exe: run_mtex
+    environments:
+    - scope:
+        type: any
+      environment: matlab_env
+
+
+- objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
   method: from_ODF_mat_file
   implementation: mtex
@@ -502,6 +545,12 @@
     - parameter: execution_mode
       default_value: script # precompiled | compile
       propagation_mode: explicit
+    - parameter: colourmap
+      default_value: null
+    - parameter: mtex_prefs
+      default_value: null
+    - parameter: annotations
+      default_value: null
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -1739,6 +1788,7 @@
         - path: inputs.execution_mode
           condition:
             value.equal_to: precompiled
+  
 
 - objective: generate_rve
   method: from_damask_input_files
