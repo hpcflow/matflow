@@ -30,6 +30,9 @@ tasks:
     mtex_prefs:
       xAxisDirection: north
       zAxisDirection: OutPlane
+    annotations:
+      X: RD
+      Y: TD
 
 - schema: sample_texture_MCMC_mtex
   inputs:

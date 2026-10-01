@@ -549,6 +549,8 @@
       default_value: null
     - parameter: mtex_prefs
       default_value: null
+    - parameter: annotations
+      default_value: null
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>

@@ -9,6 +9,7 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     IPFRefDir = allOpts.IPF_reference_direction;
     colourmap = allOpts.colourmap;
     mtex_prefs = allOpts.mtex_prefs;
+    annotations = allOpts.annotations;
 
     % as defined in MatFlow
     latticeDirs = {'a', 'b', 'c', 'a*', 'b*', 'c*'};
@@ -90,51 +91,56 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
         mtexColorbar % add a single colorbar
     end
 
-    aAxis = Miller(crystalSym.aAxis, 'xyz');
-    bAxis = Miller(crystalSym.bAxis, 'xyz');
-    cAxis = Miller(crystalSym.cAxis, 'xyz');
+    if ~isstruct(annotations)
+        % Default option
+        aAxis = Miller(crystalSym.aAxis, 'xyz');
+        bAxis = Miller(crystalSym.bAxis, 'xyz');
+        cAxis = Miller(crystalSym.cAxis, 'xyz');
 
-    xyzVecs = eye(3);
-    xyzLabels = {'x', 'y', 'z'};
-    aLabelAdded = 0;
-    bLabelAdded = 0;
-    cLabelAdded = 0;
+        xyzVecs = eye(3);
+        xyzLabels = {'x', 'y', 'z'};
+        aLabelAdded = 0;
+        bLabelAdded = 0;
+        cLabelAdded = 0;
 
-    for i = 1:3
-
-        if round(aAxis.xyz, 10) == xyzVecs(i, :)
-            aLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/a');
+        for i = 1:3
+            if round(aAxis.xyz, 10) == xyzVecs(i, :)
+                aLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/a');
+            end
+            if round(bAxis.xyz, 10) == xyzVecs(i, :)
+                bLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/b');
+            end
+            if round(cAxis.xyz, 10) == xyzVecs(i, :)
+                cLabelAdded = 1;
+                xyzLabels(i) = append(xyzLabels(i), '/c');
+            end
         end
 
-        if round(bAxis.xyz, 10) == xyzVecs(i, :)
-            bLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/b');
+        annotate( ...
+            [xvector, yvector, zvector], ...
+            'label', {xyzLabels{1}, xyzLabels{2}, xyzLabels{3}}, ...
+            'backgroundcolor', 'w' ...
+            )
+
+        if ~aLabelAdded
+            annotate([crystalSym.aAxis], 'label', {'a'}, 'backgroundcolor', 'w');
         end
 
-        if round(cAxis.xyz, 10) == xyzVecs(i, :)
-            cLabelAdded = 1;
-            xyzLabels(i) = append(xyzLabels(i), '/c');
+        if ~bLabelAdded
+            annotate([crystalSym.bAxis], 'label', {'b'}, 'backgroundcolor', 'w');
         end
 
-    end
-
-    annotate( ...
-        [xvector, yvector, zvector], ...
-        'label', {xyzLabels{1}, xyzLabels{2}, xyzLabels{3}}, ...
-        'backgroundcolor', 'w' ...
-        )
-
-    if ~aLabelAdded
-        annotate([crystalSym.aAxis], 'label', {'a'}, 'backgroundcolor', 'w');
-    end
-
-    if ~bLabelAdded
-        annotate([crystalSym.bAxis], 'label', {'b'}, 'backgroundcolor', 'w');
-    end
-
-    if ~cLabelAdded
-        annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
+        if ~cLabelAdded
+            annotate([crystalSym.cAxis], 'label', {'c'}, 'backgroundcolor', 'w');
+        end
+    else
+        % Custom annotations
+        keys = fieldnames(annotations);
+        for i = 1:length(keys)
+            annotate(vector3d.(keys{i}), 'label', {annotations.(keys{i})}, 'backgroundcolor', 'w');
+        end
     end
 
     saveFigure('pole_figure.png');
@@ -146,5 +152,4 @@ function plot_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     end
 
     close all;
-
 end
