@@ -96,6 +96,7 @@ def env_configure_python_all(
             "defdap",
             "gmsh",
             "moose_processing",
+            "pytorch_env",
         ),
     )
 

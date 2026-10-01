@@ -1,0 +1,9 @@
+tasks:
+  - schema: generate_volume_element_APD
+    inputs:
+      VE_grid_size: [16, 16, 16]
+      VE_size: [1, 1, 1]
+      num_grains: 10
+      phase_label: Al
+
+  - schema: visualise_VE_VTK
