@@ -5,32 +5,25 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path, outputs_JSO
     all_args = jsondecode(fileread(inputs_JSON_path));
 
     num_grains = all_args.num_grains;
+    num_components = all_args.num_components;
     odf_fname = all_args.odf_fname;
     index = all_args.index;
     filename = all_args.filename
 
     CS = crystalSymmetry('cubic');
 
-    components = [...
-    orientation.goss(CS),...
-    orientation.brass(CS),...
-    orientation.cube(CS),...
-    orientation.cubeND22(CS),...
-    orientation.cubeND45(CS),...
-    orientation.cubeRD(CS),...
-    orientation.copper(CS),...
-    orientation.PLage(CS),...
-    orientation.QLage(CS),...
-    ];
+    components = equispacedSO3Grid(CS, SS, 'points', num_components);
+
+    n_halfwidths = length(components)
 
     data = table2array(readtable(filename));
 
-    halfwidths = data(index,1:9);
-    weights = data(index,10:end);
+    halfwidths = data(index,1:n_halfwidths);
+    weights = data(index,n_halfwidths+1:end);
 
     odf = weights(:,end) * uniformODF(CS);
     
-    for n = 1:length(halfwidths);
+    for n = 1:n_halfwidths;
     
         if halfwidths(n) ~= 0;
     
