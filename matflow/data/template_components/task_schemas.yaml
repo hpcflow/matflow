@@ -196,6 +196,7 @@
       propagation_mode: explicit
     - parameter: filename
     - parameter: num_grains
+    - parameter: num_components
     - parameter: index
       default_value: 1
     - parameter: odf_fname
