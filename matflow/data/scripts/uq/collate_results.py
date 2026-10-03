@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 
@@ -62,9 +64,12 @@ def collate_results(
     # all iterations of g are passed just to get the level index:
     # TODO: in future set and read loop_idx from environment variable?
 
-    level_idx = sorted(g.items(), key=lambda x: int(x[0].split("_")[1]))[-1][1][
-        "loop_idx"
-    ]["levels"]
+    try:
+        level_idx = sorted(g.items(), key=lambda x: int(x[0].split("_")[1]))[-1][1][
+            "loop_idx"
+        ]["levels"]
+    except KeyError:
+        warnings.warn("Not in a subset simulation level loop.")
 
     if fine_eval_rates is None:
         fine_eval_rates = []
