@@ -70,6 +70,7 @@ def collate_results(
         ]["levels"]
     except KeyError:
         warnings.warn("Not in a subset simulation level loop.")
+        level_idx = 0
 
     if fine_eval_rates is None:
         fine_eval_rates = []
