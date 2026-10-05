@@ -68,8 +68,10 @@ def collate_results(
         level_idx = sorted(g.items(), key=lambda x: int(x[0].split("_")[1]))[-1][1][
             "loop_idx"
         ]["levels"]
+        just_monte_carlo = False
     except KeyError:
         warnings.warn("Not in a subset simulation level loop.")
+        just_monte_carlo = True
         level_idx = 0
 
     if fine_eval_rates is None:
@@ -182,36 +184,53 @@ def collate_results(
     if all_g:
         # from multiple Markov chains:
         level_cov = estimate_cov(indicator, level_pf)
+    elif just_monte_carlo:
+        # just running Monte Carlo; not SuS:
+        level_cov = np.sqrt((1 - pf) / (num_samples * pf))
     else:
         # from initial direct Monte Carlo samples:
         level_cov = np.sqrt((1 - level_pf) / (num_samples * level_pf))
     all_level_cov.append(level_cov)
 
-    cov = np.sqrt(sum(np.pow(all_level_cov, 2))).item()
+    if just_monte_carlo:
+        cov = level_cov
+        print(
+            f"Direct Monte Carlo results\n"
+            f"--------------------------\n"
+            f"pf: {pf}\n"
+            f"cov: {cov}\n"
+            f"threshold: {threshold.item()!r}\n"
+            f"num_samples: {num_samples!r}\n"
+            f"num_failed: {num_failed!r}\n"
+            f"total_fine_eval_count: {total_fine_eval_count!r}\n"
+            "\n",
+        )
 
-    print(
-        f"collate_results summary for level index {level_idx}\n"
-        f"---------------------------------------------------\n"
-        f"is_finished: {is_finished}\n"
-        f"pf: {pf}\n"
-        f"cov: {cov}\n"
-        f"threshold: {threshold.item()!r}\n"
-        f"num_samples: {num_samples!r}\n"
-        f"num_chains: {num_chains!r}\n"
-        f"num_failed: {num_failed!r}\n"
-        f"outer_move_rate: {outer_move_rate if outer_move_rate is not None else '-'}\n"
-        f"total_fine_eval_count: {total_fine_eval_count!r}\n"
-        f"total_coarse_eval_count: {total_coarse_eval_count!r}\n"
-        f"level_pf: {level_pf.item()!r}\n"
-        f"level_cov: {level_cov.item()!r}\n"
-        f"level_fine_eval_count: {fine_eval_count!r}\n"
-        f"level_fine_eval_rate: {fine_eval_rate!r}\n"
-        f"level_coarse_eval_count: {coarse_eval_count if coarse_eval_count is not None else '-'}\n"
-        f"fine_eval_rates: {fine_eval_rates!r}\n"
-        f"component_acceptance_rate: {component_acceptance_rate if component_acceptance_rate is not None else '-'}\n"
-        f"mean_jump_distance: {mean_jump_distance if mean_jump_distance is not None else '-'}\n"
-        "\n",
-    )
+    else:
+        cov = np.sqrt(sum(np.pow(all_level_cov, 2))).item()
+        print(
+            f"collate_results summary for level index {level_idx}\n"
+            f"---------------------------------------------------\n"
+            f"is_finished: {is_finished}\n"
+            f"pf: {pf}\n"
+            f"cov: {cov}\n"
+            f"threshold: {threshold.item()!r}\n"
+            f"num_samples: {num_samples!r}\n"
+            f"num_chains: {num_chains!r}\n"
+            f"num_failed: {num_failed!r}\n"
+            f"outer_move_rate: {outer_move_rate if outer_move_rate is not None else '-'}\n"
+            f"total_fine_eval_count: {total_fine_eval_count!r}\n"
+            f"total_coarse_eval_count: {total_coarse_eval_count!r}\n"
+            f"level_pf: {level_pf.item()!r}\n"
+            f"level_cov: {level_cov.item()!r}\n"
+            f"level_fine_eval_count: {fine_eval_count!r}\n"
+            f"level_fine_eval_rate: {fine_eval_rate!r}\n"
+            f"level_coarse_eval_count: {coarse_eval_count if coarse_eval_count is not None else '-'}\n"
+            f"fine_eval_rates: {fine_eval_rates!r}\n"
+            f"component_acceptance_rate: {component_acceptance_rate if component_acceptance_rate is not None else '-'}\n"
+            f"mean_jump_distance: {mean_jump_distance if mean_jump_distance is not None else '-'}\n"
+            "\n",
+        )
 
     return {
         "chain_seeds": chain_seeds,
