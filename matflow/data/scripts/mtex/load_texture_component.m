@@ -12,7 +12,7 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path, outputs_JSO
 
     CS = crystalSymmetry('cubic');
 
-    components = equispacedSO3Grid(CS, SS, 'points', num_components);
+    components = equispacedSO3Grid(CS, 'points', num_components);
 
     n_halfwidths = length(components)
 
