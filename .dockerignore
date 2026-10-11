@@ -1,0 +1,14 @@
+**
+!Dockerfile.damask_grid
+!requirements.damask_grid.txt
+!.dockerignore
+!pyproject.toml
+!README.md
+!LICENSE
+!matflow/
+!matflow/**
+matflow/tests/
+matflow/data/demo_data/
+**/__pycache__/
+**/*.pyc
+**/*.pyo

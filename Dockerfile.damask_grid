@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+ARG DAMASK_IMAGE=mydamask:py313
+
+FROM ${DAMASK_IMAGE} AS build
+WORKDIR /build
+
+# Supply the sibling hpcflow checkout as a named BuildKit context.
+COPY --from=hpcflow pyproject.toml README.md LICENSE ./hpcflow/
+COPY --from=hpcflow hpcflow ./hpcflow/hpcflow
+COPY pyproject.toml README.md LICENSE ./matflow/
+COPY matflow ./matflow/matflow
+COPY requirements.damask_grid.txt ./
+RUN python3 -c "import sys; assert sys.version_info[:2] == (3, 13), sys.version" \
+    && python3 -m venv /opt/venv \
+    && /opt/venv/bin/python -m pip install --no-cache-dir --no-compile \
+        "./hpcflow[notebook]" ./matflow -r requirements.damask_grid.txt \
+    && /opt/venv/bin/python -m pip check
+
+FROM ${DAMASK_IMAGE} AS runtime
+
+# Build and runtime share the same DAMASK base and system Python libraries.
+COPY --from=build /opt/venv /opt/venv
+COPY --from=hpcflow --chmod=755 hpcflow/sdk/containerisation/container_entrypoint.sh /usr/local/bin/hpcflow-container-entrypoint
+RUN /opt/venv/bin/python -m pip check \
+    && /opt/venv/bin/python -c "import ssl, sqlite3, bz2, lzma, ctypes, matflow, jupyterlab, damask, damask_parse"
+
+ARG MATFLOW_IMAGE=matflow:damask-py313
+ENV MATFLOW_CONTAINER=${MATFLOW_IMAGE} \
+    PATH="/opt/venv/bin:${PATH}" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+WORKDIR /work
+ENTRYPOINT ["hpcflow-container-entrypoint", "matflow"]
+CMD ["--help"]
