@@ -32,7 +32,7 @@ def load_microstructure_EBSD_DIC(
         dic_crop=DIC.get("crop", None),
         dic_scale=DIC.get("scale", None),
     )
-    _link_EBSD_DIC_maps(
+    grain_image = _link_EBSD_DIC_maps(
         ebsd_map=ebsd_map,
         dic_map=dic_map,
         dic_homog_points=DIC["homog_points"],
@@ -41,7 +41,7 @@ def load_microstructure_EBSD_DIC(
         transform_type=transform_type,
         find_grains_algorithm=find_grains_algorithm,
     )
-    DIC_image = _get_DIC_image(dic_map, scaling_factor)
+    DIC_image = _get_DIC_image(dic_map, scaling_factor, grain_image)
 
     return {"microstructure_image": DIC_image}
 
@@ -90,15 +90,19 @@ def _link_EBSD_DIC_maps(
     ebsd_homog_points: NDArray,
     transform_type: str,
     find_grains_algorithm: str,
-) -> None:
-    dic_map.homogPoints = dic_homog_points
-    ebsd_map.homogPoints = ebsd_homog_points
+) -> NDArray:
+    dic_map.frame.set_homog_points(dic_homog_points)
+    ebsd_map.frame.set_homog_points(ebsd_homog_points)
     dic_map.link_ebsd_map(ebsd_map, transform_type=transform_type)
 
-    dic_map.find_grains(min_grain_size=dic_min_grain_size, algorithm=find_grains_algorithm)
+    return dic_map.find_grains(
+        min_grain_size=dic_min_grain_size, algorithm=find_grains_algorithm
+    )
 
 
-def _get_DIC_image(dic_map: hrdic.Map, scaling_factor: float) -> dict[str, Any]:
+def _get_DIC_image(
+    dic_map: hrdic.Map, scaling_factor: float, grain_image: NDArray
+) -> dict[str, Any]:
     # Construct an array of Euler angles
     grain_quats = np.empty((len(dic_map), 4))
 
