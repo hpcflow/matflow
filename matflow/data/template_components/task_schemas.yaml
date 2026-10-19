@@ -191,12 +191,13 @@
     - parameter: volume_element
     - parameter: path
       default_value: geom.vti
+  save_files: [damask_geom_file]
   actions:
     - requires_dir: true
       script: <<script:damask/write_geom.py>>
       script_data_in: direct
       script_exe: python_script
-      save_files: [damask_geom_file]
+      output_files: [damask_geom_file]
       environments:
         - scope:
             type: any
@@ -502,6 +503,7 @@
     - parameter: execution_mode
       default_value: script # precompiled | compile
       propagation_mode: explicit
+  save_files: [mtex_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -525,7 +527,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -541,7 +543,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -557,7 +559,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -575,6 +577,7 @@
     - parameter: execution_mode
       default_value: script # precompiled | compile
       propagation_mode: explicit
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -598,7 +601,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -614,7 +617,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -630,7 +633,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -650,6 +653,7 @@
     - parameter: use_contours
     - parameter: compile
       default_value: false
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -673,7 +677,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.compile
           condition:
@@ -689,7 +693,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.compile
           condition:
@@ -768,6 +772,7 @@
     - parameter: VE_response
     - parameter: damask_viz_result
     - parameter: yield_stress
+  save_files: [damask_stdout_file, damask_viz_files]
   actions:
     - environments:
         - scope:
@@ -829,18 +834,15 @@
           script: <<script:damask/read_log.py>>
         damask_post_processing_result:
           from_files: [damask_hdf5_file]
-          save_files: false
           script: <<script:damask/process_damask_HDF5.py>>
           inputs: [damask_post_processing]
         VE_response:
           from_files: [damask_hdf5_file]
-          save_files: false
           script: <<script:damask/extract_damask_HDF5.py>>
           inputs: [VE_response_data]
         damask_viz_result:
           from_files: [damask_hdf5_file]
-          save_files: [damask_viz_files]
-          clean_up: [damask_viz_files]
+          generates_files: [damask_viz_files]
           inputs: [damask_viz]
           outputs: [VE_response]
           script: <<script:damask/viz_damask_HDF5.py>>
@@ -849,7 +851,6 @@
               condition: { value.not_equal_to: null }
         yield_stress:
           from_files: [damask_hdf5_file]
-          save_files: false
           inputs: [calculate_yield_stress, remove_damask_hdf5]
           outputs: [VE_response]
           script: <<script:damask/get_yield_stress.py>>
@@ -881,6 +882,7 @@
       default_value: null
   outputs:
     - parameter: VE_response
+  save_files: [damask_viz_files]
   actions:
     - environments:
         - scope:
@@ -918,8 +920,7 @@
       output_file_parsers:
         VE_response: # this generates VTK files as well if requested
           from_files: [damask_hdf5_file]
-          save_files: [damask_viz_files]
-          clean_up: [damask_viz_files]
+          generates_files: [damask_viz_files]
           script: <<script:damask/high_concurrency/process_HDF5.py>>
           inputs:
             - damask_post_processing
@@ -1318,6 +1319,7 @@
       default_value: null
   outputs:
     - parameter: volume_element
+  save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
   actions:
     - environments:
         - scope:
@@ -1337,10 +1339,10 @@
           script: <<script:dream_3D/generate_volume_element_statistics.py>>
       commands:
         - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
+      output_files: [dream_3D_XDMF_file]
       output_file_parsers:
         volume_element:
           from_files: [dream_3D_hdf5_file]
-          save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
 
 - objective: generate_volume_element
@@ -1367,6 +1369,7 @@
   - parameter: RNG_seed
   outputs:
   - parameter: volume_element
+  save_files: [dream_3D_hdf5_file]
   actions:
   - environments:
     - scope: any
@@ -2491,6 +2494,7 @@
     default_value: false
   outputs:
   - parameter: phase_field_output
+  save_files: [cipher_VTU_files]
   actions:
   - environments:
     - scope:
@@ -2531,12 +2535,13 @@
   - parameter: gamma_stop_index
   outputs:
   - parameter: volume_element
+  save_files: [misorientation_plot]
   actions:
   - script: <<script:cluster_orientations.py>>
     script_exe: python_script
     script_data_in: direct
     script_data_out: direct
-    save_files: [misorientation_plot]
+    output_files: [misorientation_plot]
     requires_dir: true
     environments:
     - scope:
@@ -2763,7 +2768,6 @@
       output_file_parsers:
         FE_response:
           from_files: [moose_exodus_file]
-          save_files: false
           script: <<script:moose/parse_exodus.py>>
           inputs: [FE_response_data]
           rules:
@@ -3038,6 +3042,7 @@
       default_value: 0
   outputs:
     - parameter: DIC_results
+  save_files: [pyvale_dic_result_files]
   actions:
     - script: <<script:pyvale/run_dic.py>>
       script_data_in: direct
@@ -3049,7 +3054,6 @@
       output_file_parsers:
         DIC_results:
           from_files: [pyvale_dic_result_files]
-          save_files: [pyvale_dic_result_files]
           script: <<script:pyvale/extract_dic_result.py>>
 
 - objective: damask_geom_file_from_dream3D
@@ -3057,12 +3061,13 @@
   - parameter: dream_3D_hdf5_file_path
   outputs:
   - parameter: geom_path
+  save_files: [damask_geom_file]
   actions:
   - script: <<script:damask/write_geom_from_dream_3D.py>>
     script_exe: python_script
     script_data_in: direct
     script_data_out: direct
-    save_files: [damask_geom_file]
+    output_files: [damask_geom_file]
     environments:
     - scope:
         type: any
