@@ -124,11 +124,16 @@ def _get_DIC_image(
 
     # Filter out -1 (grain boundary points) and -2 (too small grains)
     # values in the grain image
-    grain_image = dic_map.grains
+    grain_image[grain_image > len(grain_quats)] = -2
     _remove_boundary_points(grain_image)
     _remove_small_grain_points(grain_image)
     _remove_boundary_points(grain_image)
     _remove_boundary_points(grain_image, force_remove=True)
+
+    if np.any((grain_image < 1) | (grain_image > len(grain_quats))):
+        raise ValueError(
+            "Grain image contains labels without matching grain orientations."
+        )
 
     # scale down image if needed
     if scaling_factor != 1:
