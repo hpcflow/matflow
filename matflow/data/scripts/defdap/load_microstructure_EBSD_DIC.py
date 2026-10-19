@@ -54,14 +54,14 @@ def _load_EBSD_map(
     ebsd_map = ebsd.Map(Path(root_path).joinpath(ebsd_filename))
 
     # check for non-indexed points
-    if np.count_nonzero(ebsd_map.phaseArray == 0) != 0:
+    if np.count_nonzero(ebsd_map.data.phase == 0) != 0:
         raise ValueError("EBSD map contains non-indexed points.")
 
-    ebsd_map.buildQuatArray()
+    ebsd_map.calc_quat_array()
 
-    ebsd_map.findBoundaries(boundDef=ebsd_boundary_tol)
-    ebsd_map.findGrains(minGrainSize=ebsd_min_grain_size)
-    ebsd_map.calcGrainAvOris()
+    ebsd_map.find_boundaries(misori_tol=ebsd_boundary_tol)
+    ebsd_map.find_grains(min_grain_size=ebsd_min_grain_size)
+    ebsd_map.calc_grain_av_oris()
 
     return ebsd_map
 
@@ -71,13 +71,13 @@ def _load_DIC_map(
 ) -> hrdic.Map:
     "Load in DIC, crop and set scale."
 
-    dic_map = hrdic.Map(root_path, dic_filename)
+    dic_map = hrdic.Map(Path(root_path).joinpath(dic_filename))
     if dic_crop is not None:
-        dic_map.setCrop(
-            xMin=dic_crop[0], xMax=dic_crop[1], yMin=dic_crop[2], yMax=dic_crop[3]
+        dic_map.set_crop(
+            left=dic_crop[0], right=dic_crop[1], bottom=dic_crop[2], top=dic_crop[3]
         )
     if dic_scale is not None:
-        dic_map.setScale(dic_scale)
+        dic_map.set_scale(dic_scale)
 
     return dic_map
 
@@ -93,9 +93,9 @@ def _link_EBSD_DIC_maps(
 ) -> None:
     dic_map.homogPoints = dic_homog_points
     ebsd_map.homogPoints = ebsd_homog_points
-    dic_map.linkEbsdMap(ebsd_map, transformType=transform_type)
+    dic_map.link_ebsd_map(ebsd_map, transform_type=transform_type)
 
-    dic_map.findGrains(minGrainSize=dic_min_grain_size, algorithm=find_grains_algorithm)
+    dic_map.find_grains(min_grain_size=dic_min_grain_size, algorithm=find_grains_algorithm)
 
 
 def _get_DIC_image(dic_map: hrdic.Map, scaling_factor: float) -> dict[str, Any]:
@@ -104,19 +104,19 @@ def _get_DIC_image(dic_map: hrdic.Map, scaling_factor: float) -> dict[str, Any]:
 
     # Transformation orientations from EBSD orientation reference frame
     # to EBSD spatial reference frame
-    frame_transform = Quat.fromAxisAngle(np.array((1, 0, 0)), np.pi)
+    frame_transform = Quat.from_axis_angle(np.array((1, 0, 0)), np.pi)
 
-    if dic_map.ebsdMap.crystalSym == "hexagonal":
+    if dic_map.ebsd_map.crystal_sym == "hexagonal":
         # Convert hex convention from y // a2 of EBSD map to x // a1 for DAMASK
-        hex_transform = Quat.fromAxisAngle(np.array([0, 0, 1]), -np.pi / 6)
+        hex_transform = Quat.from_axis_angle(np.array([0, 0, 1]), -np.pi / 6)
         for i, grain in enumerate(dic_map):
             grain_quats[i] = (
-                hex_transform * grain.ebsdGrain.refOri * frame_transform
-            ).quatCoef
+                hex_transform * grain.ref_ori * frame_transform
+            ).quat_coef
 
     else:
         for i, grain in enumerate(dic_map):
-            grain_quats[i] = (grain.ebsdGrain.refOri * frame_transform).quatCoef
+            grain_quats[i] = (grain.ref_ori * frame_transform).quat_coef
 
     # Filter out -1 (grain boundary points) and -2 (too small grains)
     # values in the grain image
