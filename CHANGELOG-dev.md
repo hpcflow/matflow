@@ -1,4 +1,20 @@
 
+<a name="v0.4.0a12"></a>
+## [v0.4.0a12](https://github.com/hpcflow/matflow/compare/v0.4.0a11...v0.4.0a12) - 2026.10.19
+
+### ♻ Code Refactoring
+
+* migrate task schemas to task-schema-level `save_files`
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a15
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.4.0a11"></a>
 ## [v0.4.0a11](https://github.com/hpcflow/matflow/compare/v0.4.0a10...v0.4.0a11) - 2026.09.24
 
