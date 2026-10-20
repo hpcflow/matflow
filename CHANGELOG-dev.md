@@ -1,4 +1,24 @@
 
+<a name="v0.4.0a15"></a>
+## [v0.4.0a15](https://github.com/hpcflow/matflow/compare/v0.4.0a14...v0.4.0a15) - 2026.10.20
+
+### ♻ Code Refactoring
+
+* do not store damask_stdout_file by default
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a18
+
+### 🐛 Bug Fixes
+
+* fix mtex tasks that assume orientations are stored in Zarr groups
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.4.0a14"></a>
 ## [v0.4.0a14](https://github.com/hpcflow/matflow/compare/v0.4.0a13...v0.4.0a14) - 2026.10.20
 
