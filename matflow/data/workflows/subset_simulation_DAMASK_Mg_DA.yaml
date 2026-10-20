@@ -466,14 +466,13 @@ meta_tasks:
       groups:
         - name: all
 
-
 tasks:
-  - schema: sample_direct_MC    
+  - schema: sample_direct_MC
     inputs:
       dimension: 120
     repeats:
       number: 100 # num_samples
-      generate_seed_sequence: false    
+      generate_seed_sequence: false
     groups:
       - name: all
 
@@ -481,13 +480,13 @@ tasks:
 
   - schema: collate_results
     resources:
-      any:        
+      any:
         num_cores: 1
         scheduler_args:
           directives:
             --time: 00:30:00
             --partition: ukaea-spr
-            --account: UKAEA-AP002-CPU  
+            --account: UKAEA-AP002-CPU
     inputs:
       p_0: 0.1
 
@@ -501,7 +500,7 @@ tasks:
 
   - schema: system_analysis_16
     output_labels:
-      evaluate_yield_stress_limit_state:      
+      evaluate_yield_stress_limit_state:
         - parameter: g
           label: coarse_initial
 
@@ -520,7 +519,7 @@ tasks:
           skip_downstream_on_failure: false
       evaluate_yield_stress_limit_state:
         any:
-          skip_downstream_on_failure: false        
+          skip_downstream_on_failure: false
     output_labels:
       evaluate_yield_stress_limit_state:
         - parameter: g
@@ -529,7 +528,7 @@ tasks:
   - schema: increment_sub_chain
     inputs:
       temperature: 1e+6 # Pa; should be of similar scale to threshold
-   
+
   - schema: check_sub_chain
     inputs:
       num_inner_states: 3
@@ -538,11 +537,11 @@ tasks:
     resources:
       generate_volume_element_from_voronoi_random_variates:
         any:
-          skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False            
-      simulate_VE_loading_damask: 
+          skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False
+      simulate_VE_loading_damask:
         any:
-          skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False      
-      evaluate_yield_stress_limit_state:    
+          skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False
+      evaluate_yield_stress_limit_state:
         any:
           skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False
     condition:
@@ -556,7 +555,7 @@ tasks:
 
   - schema: increment_chain_RST
     input_sources:
-      # TODO: support meta-task names in input sources (will need to resolve which task 
+      # TODO: support meta-task names in input sources (will need to resolve which task
       # provides the parameter...)
       g[coarse_initial]: [task.evaluate_yield_stress_limit_state_2.output]
     groups:

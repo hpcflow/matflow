@@ -4,7 +4,7 @@ doc:
     grain coarsening based on misorientation dependant GB energy and mobility
 
 tasks:
-    # rotated cube texture for the sub-grain matrix:
+  # rotated cube texture for the sub-grain matrix:
   - schema: sample_texture_from_model_ODF_mtex
     inputs:
       num_orientations: 2300
@@ -56,19 +56,19 @@ tasks:
   - schema: generate_phase_field_input_from_volume_element
     inputs:
       materials:
-      - name: sub-grain-matrix
-        properties:
-          chemicalenergy: none
-          molarvolume: 1e-5
-          temperature0: 500.0
+        - name: sub-grain-matrix
+          properties:
+            chemicalenergy: none
+            molarvolume: 1e-5
+            temperature0: 500.0
       interfaces:
-      - materials: [sub-grain-matrix, sub-grain-matrix]
-        properties:
-          width: 6.0
-          energy:
-            e0: 1.0e+8
-          mobility:
-            m0: 3.333e-11
+        - materials: [sub-grain-matrix, sub-grain-matrix]
+          properties:
+            width: 6.0
+            energy:
+              e0: 1.0e+8
+            mobility:
+              m0: 3.333e-11
       components: [ti]
       outputs: [phaseid, matid, interfaceid, 0_phi]
       solution_parameters:
@@ -99,16 +99,16 @@ tasks:
     inputs:
       num_VTU_files: 22
       derive_outputs:
-      - name: num_voxels_per_phase
+        - name: num_voxels_per_phase
       save_outputs:
-      - name: phaseid
-        time_interval: 5_000
-      - name: matid
-        number: 4
-      - name: interfaceid
-        number: 4
-      - name: 0_phi
-        number: 4
-      - name: num_voxels_per_phase
-        time_interval: 5_000
+        - name: phaseid
+          time_interval: 5_000
+        - name: matid
+          number: 4
+        - name: interfaceid
+          number: 4
+        - name: 0_phi
+          number: 4
+        - name: num_voxels_per_phase
+          time_interval: 5_000
       delete_VTUs: true

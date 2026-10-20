@@ -57,7 +57,7 @@ tasks:
         type: norm
         scale: 0.5
     groups:
-      - name: all        
+      - name: all
   - schema: system_analysis # [inner loop]
   - schema: increment_chain # [inner loop]
     groups:
