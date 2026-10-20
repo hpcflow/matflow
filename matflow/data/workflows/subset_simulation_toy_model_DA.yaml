@@ -33,18 +33,17 @@ loops:
       path: outputs.is_finished
       condition: { value.equal_to: true }
 
-
 resources:
   any:
     combine_scripts: true
-  
+
 tasks:
-  - schema: sample_direct_MC    
+  - schema: sample_direct_MC
     inputs:
       dimension: 200
     repeats:
       number: 100 # num_samples
-      generate_seed_sequence: false    
+      generate_seed_sequence: false
     groups:
       - name: all
 
@@ -82,7 +81,7 @@ tasks:
         type: norm
         scale: 1.0
     groups:
-      - name: all        
+      - name: all
 
   - schema: system_analysis_toy_model_max_random_walk_coarse
     resources:
@@ -91,7 +90,7 @@ tasks:
     inputs:
       dimension: 200
       target_pf: 1.0e-4
-      block_size: 10  
+      block_size: 10
     output_labels:
       - parameter: g
         label: coarse
@@ -99,7 +98,7 @@ tasks:
   - schema: increment_sub_chain
     inputs:
       temperature: 1 # should be of similar scale to the threshold
-   
+
   - schema: check_sub_chain
     inputs:
       num_inner_states: 3
@@ -111,13 +110,14 @@ tasks:
         skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False
     inputs:
       dimension: 200
-      target_pf: 1.0e-4    
+      target_pf: 1.0e-4
     output_labels:
       - parameter: g
         label: fine
 
   - schema: increment_chain_RST
     input_sources:
-      g[coarse_initial]: [task.system_analysis_toy_model_max_random_walk_coarse_1.output]
+      g[coarse_initial]:
+        [task.system_analysis_toy_model_max_random_walk_coarse_1.output]
     groups:
       - name: all

@@ -63,12 +63,12 @@ tasks:
             plastic:
               type: phenopowerlaw
               output: [gamma_sl]
-              N_sl: [3, 3, 0, 12]  # basal, prism, -, 1. pyr<c+a>
+              N_sl: [3, 3, 0, 12] # basal, prism, -, 1. pyr<c+a>
               n_sl: 20
               a_sl: 2
               dot_gamma_0_sl: 0.001
-              xi_0_sl:   [349.e+6, 150.e+6, 0.0, 1107.e+6] # C. Zambaldi et al.
-              xi_inf_sl: [568.e+6, 150.e+7, 0.0, 3420.e+6] # C. Zambaldi et al.              
+              xi_0_sl: [349.e+6, 150.e+6, 0.0, 1107.e+6] # C. Zambaldi et al.
+              xi_inf_sl: [568.e+6, 150.e+7, 0.0, 3420.e+6] # C. Zambaldi et al.
               h_0_sl-sl: 15.e6
               h_sl-sl: [+1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0, -1.0,
                         -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  1.0,

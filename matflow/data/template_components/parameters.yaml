@@ -652,15 +652,15 @@
 - type: reference_image_path
   _validation:
     - path: []
-      doc: 
+      doc:
       condition: { value.is_instance: [str, path] }
 - type: deformed_image_path
   _validation:
     - path: []
-      doc: 
+      doc:
       condition: { value.is_instance: [str, path] }
 - type: subset_size
-  _validation: 
+  _validation:
     - path: []
       doc: "Size of the square subset window in pixels (default: 21)."
       condition: { value.is_instance: [int] }

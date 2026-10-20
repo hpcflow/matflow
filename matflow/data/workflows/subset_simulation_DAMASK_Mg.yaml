@@ -260,7 +260,7 @@ tasks:
         type: norm
         scale: 1.0
     groups:
-      - name: all        
+      - name: all
   - schema: system_analysis # [inner loop]
   - schema: increment_chain # [inner loop]
     groups:
