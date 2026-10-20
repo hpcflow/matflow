@@ -221,6 +221,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_CTF.m>>
@@ -294,6 +296,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_CRC.m>>
@@ -361,6 +365,8 @@
     - parameter: num_orientations
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_ODF_mat.m>>
@@ -430,6 +436,8 @@
       propagation_mode: explicit
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_model_ODF.m>>
@@ -1545,6 +1553,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CTF.m>>
@@ -1618,6 +1628,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CRC.m>>
@@ -1686,6 +1698,8 @@
     - parameter: crystal_symmetry
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_random.m>>
