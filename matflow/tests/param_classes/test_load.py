@@ -24,8 +24,18 @@ def test_single_multistep_uniaxial():
 
 def test_load_case_yaml_init(tmp_path: Path, load_case_1: LoadCase):
     wk = make_test_data_YAML_workflow("define_load.yaml", path=tmp_path)
-    load_case = wk.tasks.define_load_case.elements[0].inputs.load_case.value
+    load_case = wk.tasks.define_load_case_1.elements[0].inputs.load_case.value
     assert load_case == load_case_1
+
+    # second task uses the `load_case::random_polynomial` syntax with a fixed seed:
+    load_case_poly = wk.tasks.define_load_case_2.elements[0].inputs.load_case.value
+    assert load_case_poly == LoadCase.random_polynomial(
+        total_time=100,
+        num_steps=10,
+        coefficient_ranges=[[-1e-3, 1e-3], [-1e-5, 1e-5], [-1e-7, 1e-7]],
+        num_increments=20,
+        seed=12345,
+    )
 
 
 def test_load_case_from_npz_file():
@@ -67,3 +77,71 @@ def test_load_case_from_npz_file():
         assert set(all_target_def_grad_rates) == {None}
         assert set(all_stresses) == {None}
         assert set(all_dump_freqs) == {1}
+
+
+def test_load_case_random_polynomial():
+    args = {
+        "total_time": 10.0,
+        "num_steps": 5,
+        "coefficient_ranges": [[-0.01, 0.01], [-0.001, 0.001], [-0.0001, 0.0001]],
+        "num_increments": 4,
+        "dump_frequency": 2,
+        "seed": 123,
+    }
+    lc = LoadCase.random_polynomial(**args)
+    assert lc.num_steps == args["num_steps"]
+    for step in lc.steps:
+        assert step.total_time == args["total_time"] / args["num_steps"]
+        assert step.num_increments == args["num_increments"]
+        assert step.dump_frequency == args["dump_frequency"]
+        assert step.target_def_grad.shape == (3, 3)
+        assert not np.any(step.target_def_grad.mask)
+        assert np.all(step.stress.mask)
+        assert np.isclose(np.linalg.det(step.target_def_grad.data), 1.0)
+
+    # reproducible with the same seed, different otherwise:
+    assert lc == LoadCase.random_polynomial(**args)
+    assert lc != LoadCase.random_polynomial(**{**args, "seed": 124})
+
+    # same result via `multistep`:
+    assert lc == LoadCase.multistep(steps=[{"type": "random_polynomial", **args}])
+
+
+def test_load_case_random_polynomial_evaluates_polynomial():
+    # with degenerate ranges the coefficients are known exactly:
+    c_1, c_2, c_3 = 0.01, -0.001, 0.0002
+    num_steps = 4
+    total_time = 2.0
+    lc = LoadCase.random_polynomial(
+        total_time=total_time,
+        num_steps=num_steps,
+        coefficient_ranges=[[c_1, c_1], [c_2, c_2], [c_3, c_3]],
+    )
+    dt = total_time / num_steps
+    for step_idx, step in enumerate(lc.steps):
+        t = (step_idx + 1) * dt
+        expected = np.eye(3) + c_1 * t + c_2 * t**2 + c_3 * t**3
+        expected /= np.cbrt(np.linalg.det(expected))
+        assert np.allclose(step.target_def_grad.data, expected)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"coefficient_ranges": [0.1, 0.2]},
+        {"coefficient_ranges": []},
+        {"coefficient_ranges": [[0.2, 0.1]]},
+        {"num_steps": 0},
+        # large linear coefficient leads to a non-positive determinant:
+        {"coefficient_ranges": [[-5.0, -5.0]]},
+    ],
+)
+def test_load_case_random_polynomial_raises(kwargs):
+    args = {
+        "total_time": 1.0,
+        "num_steps": 2,
+        "coefficient_ranges": [[-0.01, 0.01]],
+        **kwargs,
+    }
+    with pytest.raises(ValueError):
+        LoadCase.random_polynomial(**args)

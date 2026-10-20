@@ -17,3 +17,18 @@ tasks:
               - [x, x, x]
               - [x, 0.0, x]
               - [x, x, 0.0]
+
+  # Each deformation gradient component follows a random polynomial in time,
+  # F_ij(t) = δ_ij + c_1 t + c_2 t² + c_3 t³, sampled at the end of each of
+  # `num_steps` equal time intervals to give one load step per interval:
+  - schema: define_load_case
+    inputs:
+      load_case::random_polynomial:
+        total_time: 100
+        num_steps: 10
+        coefficient_ranges:
+          - [-1.0e-3, 1.0e-3] # c_1
+          - [-1.0e-5, 1.0e-5] # c_2
+          - [-1.0e-7, 1.0e-7] # c_3
+        num_increments: 20
+        seed: 12345
