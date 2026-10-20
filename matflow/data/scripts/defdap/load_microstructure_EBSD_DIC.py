@@ -114,9 +114,7 @@ def _get_DIC_image(
         # Convert hex convention from y // a2 of EBSD map to x // a1 for DAMASK
         hex_transform = Quat.from_axis_angle(np.array([0, 0, 1]), -np.pi / 6)
         for i, grain in enumerate(dic_map):
-            grain_quats[i] = (
-                hex_transform * grain.ref_ori * frame_transform
-            ).quat_coef
+            grain_quats[i] = (hex_transform * grain.ref_ori * frame_transform).quat_coef
 
     else:
         for i, grain in enumerate(dic_map):
