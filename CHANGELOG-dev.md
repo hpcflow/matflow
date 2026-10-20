@@ -1,4 +1,16 @@
 
+<a name="v0.4.0a14"></a>
+## [v0.4.0a14](https://github.com/hpcflow/matflow/compare/v0.4.0a13...v0.4.0a14) - 2026.10.20
+
+### ✨ Features
+
+* add `random_polynomial` load case method
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.4.0a13"></a>
 ## [v0.4.0a13](https://github.com/hpcflow/matflow/compare/v0.4.0a12...v0.4.0a13) - 2026.10.19
 
