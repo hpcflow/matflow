@@ -780,7 +780,7 @@
     - parameter: VE_response
     - parameter: damask_viz_result
     - parameter: yield_stress
-  save_files: [damask_stdout_file, damask_viz_files]
+  save_files: [damask_viz_files]
   actions:
     - environments:
         - scope:
