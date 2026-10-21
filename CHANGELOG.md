@@ -1,4 +1,74 @@
 
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/hpcflow/matflow/compare/v0.3.0...v0.4.0) - 2026.10.21
+
+### ♻ Code Refactoring
+
+* do not store damask_stdout_file by default
+* migrate task schemas to task-schema-level `save_files`
+* encapsulate some behaviour in subset simulation related objects
+* define a `SubsetSimulationResult` object
+* remove initial attempts at SuS-DA
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0
+* bump hpcflow version to 0.3.0a20
+* bump hpcflow version to 0.3.0a19
+* bump hpcflow version to 0.3.0a18
+* add `random_polynomial` load case method
+* bump hpcflow version to 0.3.0a15
+* bump hpcflow version
+* return mean MMH component acceptance rate and mean jump distance
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* add printed summary to collate results
+* initial delayed acceptance SuS DAMASK demo
+* bump hpcflow version
+* bump hpcflow version
+* Add task for defining DIC region with cropped edges
+* Add task for running DIC with pyvale
+
+### 🐛 Bug Fixes
+
+* fix mtex tasks that assume orientations are stored in Zarr groups
+* tests
+* tests
+* SuS collate_results vanilla
+* improve numerical stability in SuS-DA, and note that temperature should have an appropriate scale
+* handle simulation failures in the coarse subchain in SuS-DA
+* num dimensions in DA SuS DAMASK demo
+* various improvements and implementation of a more-correct delayed-acceptance SuS variant
+* increase number of load incs in Mg DAMASK example
+* add multi-level delayed acceptance toy model subset simulation workflow
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* set PATCH level bumps for other commit types including build
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0](https://github.com/hpcflow/matflow/compare/v0.2.26...v0.3.0) - 2026.05.05
 
