@@ -13,7 +13,7 @@ loops:
 resources:
   any:
     combine_scripts: true
-    random_seed: 1234    
+    random_seed: 1234
 
 tasks:
   - schema: sample_direct_MC

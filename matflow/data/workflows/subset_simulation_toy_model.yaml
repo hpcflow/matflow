@@ -1,9 +1,9 @@
 loops:
   - name: markov_chain_state # [inner loop]
-    tasks: [ 4, 5, 6 ]
+    tasks: [4, 5, 6]
     num_iterations: 9 # num_states - 1: (1 / p_0) - 1
   - name: levels # [outer loop]
-    tasks: [ 2, 3, 4, 5, 6 ]
+    tasks: [2, 3, 4, 5, 6]
     num_iterations: 7
     termination_task: 2
     termination:
@@ -44,6 +44,8 @@ tasks:
       proposal:
         type: norm
         scale: 1.0
+    groups:
+      - name: all
   - schema: system_analysis_toy_model # [inner loop]
     inputs:
       dimension: 200

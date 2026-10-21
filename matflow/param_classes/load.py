@@ -131,7 +131,13 @@ class LoadStep(ParameterValue):
     def __cmp_tensors(mine: ArrayLike | None, theirs: ArrayLike | None):
         if mine is None:
             return theirs is None
-        return theirs is not None and np.allclose(mine, theirs)
+        if theirs is None:
+            return False
+        # `np.allclose` is False for fully-masked arrays, so compare masks and data
+        # separately:
+        return np.array_equal(
+            np.ma.getmaskarray(mine), np.ma.getmaskarray(theirs)
+        ) and bool(np.ma.allclose(mine, theirs, masked_equal=True))
 
     def __eq__(self, other: object) -> bool:
         # check type and scalars
@@ -908,6 +914,110 @@ class LoadStep(ParameterValue):
         return obj._remember_name_args(_method_name, _method_args)
 
     @classmethod
+    def random_polynomial(
+        cls,
+        total_time: int | float,
+        num_steps: int,
+        coefficient_ranges: ArrayLike,
+        num_increments: int = 1,
+        dump_frequency: int = 1,
+        seed: int | None = None,
+    ) -> list[Self]:
+        """
+        Generate a sequence of load steps in which each component of the deformation
+        gradient follows a random polynomial in time.
+
+        Each of the nine components of the deformation gradient is modelled as:
+
+            F_ij(t) = δ_ij + c_1 t + c_2 t² + c_3 t³ + ...
+
+        where the polynomial coefficients are sampled independently (for each component
+        and each coefficient) and uniformly from the given ranges. The polynomial is then
+        sampled at `num_steps` fixed time intervals spanning `total_time`, and a load
+        step is generated for each interval, where the target deformation gradient is
+        that at the end of the interval. Each sampled deformation gradient is normalised
+        to have a unit determinant.
+
+        Parameters
+        ----------
+        total_time
+            Total simulation time.
+        num_steps
+            Number of load steps (i.e. the number of fixed time intervals) to generate.
+        coefficient_ranges
+            Sequence of `(min, max)` pairs, one for each polynomial coefficient in
+            increasing order of the power of time, starting from the linear term `c_1`.
+            Typically three pairs are given, for `c_1`, `c_2` and `c_3`. The same ranges
+            are used for all nine components of the deformation gradient, but each
+            component is sampled independently.
+        num_increments
+            Number of simulation increments per load step. By default, 1.
+        dump_frequency
+            By default, 1, meaning results are written out every increment.
+        seed
+            Optional seed for the random number generator, for reproducible sampling.
+        """
+        coeff_ranges = np.asarray(coefficient_ranges, dtype=float)
+        if coeff_ranges.ndim != 2 or coeff_ranges.shape[1] != 2 or not coeff_ranges.size:
+            raise ValueError(
+                "`coefficient_ranges` must be a sequence of (min, max) pairs, one for "
+                f"each polynomial coefficient, but received: {coefficient_ranges!r}."
+            )
+        if np.any(coeff_ranges[:, 0] > coeff_ranges[:, 1]):
+            raise ValueError(
+                "Each (min, max) pair in `coefficient_ranges` must satisfy min <= max, "
+                f"but received: {coefficient_ranges!r}."
+            )
+        if num_steps < 1:
+            raise ValueError(
+                f"`num_steps` must be at least 1, but received: {num_steps}."
+            )
+
+        rng = np.random.default_rng(seed)
+        num_coeffs = coeff_ranges.shape[0]
+
+        # Independently sample each coefficient of each of the nine components:
+        coeffs = rng.uniform(
+            coeff_ranges[:, 0], coeff_ranges[:, 1], size=(3, 3, num_coeffs)
+        )
+
+        time_interval = total_time / num_steps
+        times = np.arange(1, num_steps + 1) * time_interval
+        powers = np.arange(1, num_coeffs + 1)
+        time_powers = times[:, np.newaxis] ** powers[np.newaxis, :]
+
+        # Evaluate the polynomial at the end of each time interval; shape (num_steps, 3, 3):
+        def_grads = np.eye(3)[np.newaxis] + np.einsum("ijk,nk->nij", coeffs, time_powers)
+
+        dets = np.linalg.det(def_grads)
+        if np.any(dets <= 0):
+            raise ValueError(
+                "One or more sampled deformation gradients has a non-positive "
+                "determinant and so cannot be normalised to a unit determinant. Consider "
+                "narrowing `coefficient_ranges` or reducing `total_time`."
+            )
+        def_grads /= np.cbrt(dets)[:, np.newaxis, np.newaxis]
+
+        stress_arr = np.ma.masked_array(
+            np.zeros((3, 3)), mask=np.ones((3, 3), dtype=bool)
+        )
+        load_steps: list[dict[str, Any]] = []
+        for def_grad in def_grads:
+            load_steps.append(
+                {
+                    "total_time": time_interval,
+                    "num_increments": num_increments,
+                    "target_def_grad": np.ma.masked_array(
+                        def_grad, mask=np.zeros((3, 3), dtype=bool)
+                    ),
+                    "stress": stress_arr,
+                    "dump_frequency": dump_frequency,
+                }
+            )
+
+        return [cls(**i)._remember_name_args(None, i) for i in load_steps]
+
+    @classmethod
     def random_inc(
         cls,
         total_time: Union[int, float],
@@ -1233,6 +1343,15 @@ class LoadCase(ParameterValue):
         See :py:meth:`~LoadStep.random_3D` for argument documentation.
         """
         return cls(steps=[LoadStep.random_3D(**kwargs)])
+
+    @classmethod
+    def random_polynomial(cls, **kwargs) -> Self:
+        """A multi-step load case in which each deformation gradient component follows
+        a random polynomial in time.
+
+        See :py:meth:`~LoadStep.random_polynomial` for argument documentation.
+        """
+        return cls(steps=LoadStep.random_polynomial(**kwargs))
 
     @classmethod
     def uniaxial_cyclic(cls, **kwargs) -> Self:

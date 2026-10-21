@@ -1,0 +1,123 @@
+loops:
+  - name: sub_chain
+    tasks:
+      - generate_next_state
+      - system_analysis_toy_model_max_random_walk_coarse_2
+      - increment_sub_chain
+    num_iterations: 3 # num_inner_states
+
+  - name: markov_chain_state
+    tasks:
+      - generate_next_state
+      - system_analysis_toy_model_max_random_walk_coarse_2
+      - increment_sub_chain
+      - check_sub_chain
+      - system_analysis_toy_model_max_random_walk_2
+      - increment_chain_RST
+    num_iterations: 9 # num_states - 1: (1 / p_0) - 1
+
+  - name: levels
+    tasks:
+      - collate_results
+      - initialise_markov_chains
+      - system_analysis_toy_model_max_random_walk_coarse_1
+      - generate_next_state
+      - system_analysis_toy_model_max_random_walk_coarse_2
+      - increment_sub_chain
+      - check_sub_chain
+      - system_analysis_toy_model_max_random_walk_2
+      - increment_chain_RST
+    num_iterations: 4
+    termination_task: collate_results
+    termination:
+      path: outputs.is_finished
+      condition: { value.equal_to: true }
+
+resources:
+  any:
+    combine_scripts: true
+
+tasks:
+  - schema: sample_direct_MC
+    inputs:
+      dimension: 200
+    repeats:
+      number: 100 # num_samples
+      generate_seed_sequence: false
+    groups:
+      - name: all
+
+  - schema: system_analysis_toy_model_max_random_walk
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+    groups:
+      - name: all
+
+  - schema: collate_results
+    inputs:
+      p_0: 0.1
+
+  - schema: initialise_markov_chains
+    sequences:
+      - path: inputs.chain_index
+        values::from_range:
+          start: 0
+          stop: 10 # num_chains: num_samples * p_0
+          step: 1
+
+  - schema: system_analysis_toy_model_max_random_walk_coarse
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+      block_size: 10
+    output_labels:
+      - parameter: g
+        label: coarse_initial
+
+  - schema: generate_next_state
+    inputs:
+      proposal:
+        type: norm
+        scale: 1.0
+    groups:
+      - name: all
+
+  - schema: system_analysis_toy_model_max_random_walk_coarse
+    resources:
+      any:
+        skip_downstream_on_failure: false
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+      block_size: 10
+    output_labels:
+      - parameter: g
+        label: coarse
+
+  - schema: increment_sub_chain
+    inputs:
+      temperature: 1 # should be of similar scale to the threshold
+
+  - schema: check_sub_chain
+    inputs:
+      num_inner_states: 3
+
+  - condition: task.check_sub_chain.outputs.endpoint_moved
+    schema: system_analysis_toy_model_max_random_walk
+    resources:
+      any:
+        skip_downstream_on_failure: false # TODO: add skip_downstream_on_false_condition with default False
+    inputs:
+      dimension: 200
+      target_pf: 1.0e-4
+    output_labels:
+      - parameter: g
+        label: fine
+
+  - schema: increment_chain_RST
+    input_sources:
+      g[coarse_initial]:
+        [task.system_analysis_toy_model_max_random_walk_coarse_1.output]
+    groups:
+      - name: all

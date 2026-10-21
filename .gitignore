@@ -139,3 +139,4 @@ docs/source/reference/ts_*.html
 docs/source/reference/api.rst
 
 problems/
+.DS_Store

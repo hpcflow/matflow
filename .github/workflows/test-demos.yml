@@ -56,7 +56,7 @@ jobs:
         id: configure_envs
         run: |
           poetry run matflow env setup python-all --use-current
-          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.0.2 --option u ${{ env.UID }}:${{ env.GID }}
+          poetry run matflow env setup damask --docker-image damaskmultiphysics/damask-grid:3.1.0 --option u ${{ env.UID }}:${{ env.GID }}
           result=$(poetry run matflow env info source_file -n python_env)
           echo "env_source_file=$result" >> "$GITHUB_OUTPUT"
 

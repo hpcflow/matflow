@@ -34,7 +34,9 @@ def _init_rng(chain_index, loop_idx):
     return rng
 
 
-def generate_next_state(x, proposal, rng, chain_index):
+def generate_next_state(
+    x, proposal, rng, chain_index, num_components_accepted, num_components_proposed
+):
     """Generate the next candidate state in a modified Metropolis algorithm.
 
     Parameters
@@ -48,6 +50,10 @@ def generate_next_state(x, proposal, rng, chain_index):
         Random number generator to be used in this function.
     chain_index
         Index of the Markov chain within the subset simulation level loop.
+    num_components_accepted
+        Running total of the number of accepted MMH components.
+    num_components_proposed
+        Running total of the number of proposed MMH components.
 
     Returns
     -------
@@ -70,7 +76,19 @@ def generate_next_state(x, proposal, rng, chain_index):
         )
     }
 
-    if loop_idx["markov_chain_state"] == 0:
+    MC_loop_idx = loop_idx.get("markov_chain_state")
+    sub_chain_idx = loop_idx.get("sub_chain")
+    if MC_loop_idx is None:
+        new_rng = (
+            loop_idx.get("inner_markov_chain") == 0
+            and loop_idx.get("outer_markov_chain") == 0
+        )
+    elif sub_chain_idx is None:
+        new_rng = MC_loop_idx == 0
+    else:
+        new_rng = MC_loop_idx == 0 and sub_chain_idx == 0
+
+    if new_rng:
         # new chain, so want a new RNG:
         rng = _init_rng(chain_index, loop_idx)
 
@@ -86,6 +104,12 @@ def generate_next_state(x, proposal, rng, chain_index):
     xi[accept_idx] = xi_hat[accept_idx]
     xi[~accept_idx] = current_state[~accept_idx]
 
-    mcmc_accept_rate = np.mean(accept_idx)
+    num_components_accepted += np.sum(accept_idx).item()
+    num_components_proposed += current_state.size
 
-    return {"x": xi, "mcmc_accept_rate": mcmc_accept_rate, "rng": rng}
+    return {
+        "x": xi,
+        "num_components_accepted": num_components_accepted,
+        "num_components_proposed": num_components_proposed,
+        "rng": rng,
+    }

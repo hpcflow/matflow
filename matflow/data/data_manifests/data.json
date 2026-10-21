@@ -40,5 +40,11 @@
     },
     "clustering_quaternions": {
         "zip_file": "clustering_quaternions.zip"
+    },
+    "3D_EBSD_example_data": {
+        "zip_file": "3D_EBSD_example_data.zip"
+    },
+    "Zr_cooling_data": {
+        "zip_file": "Zr_cooling_data.zip"
     }
 }

@@ -36,7 +36,28 @@ def estimate_cov(indicator, p_i: float) -> float:
     return delta
 
 
-def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
+def rms_jump_distances(all_x: np.ndarray, diff_axis) -> np.ndarray:
+    """RMS jump distance between consecutive stored chain states."""
+    dx = np.diff(all_x, axis=diff_axis)
+    return np.linalg.norm(dx, axis=-1) / np.sqrt(dx.shape[-1])
+
+
+def collate_results(
+    g,
+    x,
+    p_0,
+    all_g,
+    all_x,
+    all_accept,
+    level_cov,
+    total_fine_eval_count,
+    total_coarse_eval_count,
+    fine_eval_count,
+    coarse_eval_count,
+    fine_eval_rates,
+    num_components_accepted,
+    num_components_proposed,
+):
 
     # all iterations of g are passed just to get the level index:
     # TODO: in future set and read loop_idx from environment variable?
@@ -45,8 +66,13 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
         "loop_idx"
     ]["levels"]
 
+    if fine_eval_rates is None:
+        fine_eval_rates = []
+
     g = g["iteration_0"]["value"]
     num_samples = len(g)
+    num_chains = int(num_samples * p_0)
+    num_states = int(num_samples / num_chains)
 
     if all_g:
         # from multiple Markov chains:
@@ -55,13 +81,46 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
         for iter_dat in all_accept.values():
             if iter_dat["value"]:
                 all_all_accept.append(np.vstack([i[:] for i in iter_dat["value"]]))
-        accept_rate = np.mean(all_all_accept, axis=(1, 2))
-        x = np.vstack([i[:] for i in all_x])
+        outer_move_rate = np.mean(all_all_accept, axis=(1, 2))
+        x = []
+        jump_distances = []
+        for i in all_x:
+            x.append(i[:])
+            jump_distances.extend(rms_jump_distances(i, diff_axis=0))
+        x = np.vstack(x)
+
+        # sum over chains:
+        num_components_accepted = sum(num_components_accepted)
+        num_components_proposed = sum(num_components_proposed)
+        component_acceptance_rate = num_components_accepted / num_components_proposed
+
+        jump_distances = np.array(jump_distances)
+        mean_jump_distance = np.mean(jump_distances).item()
+
+        # sum across chains:
+        fine_eval_count = np.sum(fine_eval_count)
+
+        # excluding seed points, from previous level:
+        total_states = num_chains * (num_states - 1)
+
+        if coarse_eval_count[0] is not None:
+            # e.g. for delayed acceptance variant; sum across chains:
+            coarse_eval_count = int(np.sum(coarse_eval_count))
+            total_coarse_eval_count += coarse_eval_count
+        else:
+            coarse_eval_count = None
     else:
         # from initial direct Monte Carlo samples:
         g_unsrt = np.array(g)
         x = np.vstack([i[:] for i in x])
-        accept_rate = None
+        outer_move_rate = None
+        total_states = num_samples
+        fine_eval_count = g_unsrt.size
+        mean_jump_distance = None
+        component_acceptance_rate = None
+
+    fine_eval_count = int(fine_eval_count)
+    total_fine_eval_count += fine_eval_count
 
     # consider missing data in `g` by copying from non-missing data:
     bad_bool = g_unsrt == None
@@ -82,8 +141,10 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
         g_unsrt = g_corrected
 
     num_failed = int(np.sum(g_unsrt > 0))
-    num_chains = int(len(g_unsrt) * p_0)
-    num_states = int(num_samples / num_chains)
+
+    # rate of fine evaluations for the previous level:
+    fine_eval_rate = fine_eval_count / total_states
+    fine_eval_rates.append(fine_eval_rate)
 
     # sort responses
     srt_idx = np.argsort(g_unsrt)[::-1]  # sort by closest-to-failure first
@@ -122,6 +183,30 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
 
     cov = np.sqrt(sum(np.pow(all_level_cov, 2))).item()
 
+    print(
+        f"collate_results summary for level index {level_idx}\n"
+        f"---------------------------------------------------\n"
+        f"is_finished: {is_finished}\n"
+        f"pf: {pf}\n"
+        f"cov: {cov}\n"
+        f"threshold: {threshold.item()!r}\n"
+        f"num_samples: {num_samples!r}\n"
+        f"num_chains: {num_chains!r}\n"
+        f"num_failed: {num_failed!r}\n"
+        f"outer_move_rate: {outer_move_rate if outer_move_rate is not None else '-'}\n"
+        f"total_fine_eval_count: {total_fine_eval_count!r}\n"
+        f"total_coarse_eval_count: {total_coarse_eval_count!r}\n"
+        f"level_pf: {level_pf.item()!r}\n"
+        f"level_cov: {level_cov.item()!r}\n"
+        f"level_fine_eval_count: {fine_eval_count!r}\n"
+        f"level_fine_eval_rate: {fine_eval_rate!r}\n"
+        f"level_coarse_eval_count: {coarse_eval_count if coarse_eval_count is not None else '-'}\n"
+        f"fine_eval_rates: {fine_eval_rates!r}\n"
+        f"component_acceptance_rate: {component_acceptance_rate if component_acceptance_rate is not None else '-'}\n"
+        f"mean_jump_distance: {mean_jump_distance if mean_jump_distance is not None else '-'}\n"
+        "\n",
+    )
+
     return {
         "chain_seeds": chain_seeds,
         "chain_g": chain_g,
@@ -130,8 +215,16 @@ def collate_results(g, x, p_0, all_g, all_x, all_accept, level_cov):
         "num_failed": num_failed,
         "level_pf": level_pf,
         "level_cov": level_cov,
+        "level_fine_eval_count": fine_eval_count,
+        "level_fine_eval_rate": fine_eval_rate,
+        "level_coarse_eval_count": coarse_eval_count,
+        "fine_eval_rates": fine_eval_rates,
         "pf": pf,
         "is_finished": is_finished,
-        "accept_rate": accept_rate,
+        "outer_move_rate": outer_move_rate,
         "cov": cov,
+        "total_fine_eval_count": total_fine_eval_count,
+        "total_coarse_eval_count": total_coarse_eval_count,
+        "component_acceptance_rate": component_acceptance_rate,
+        "mean_jump_distance": mean_jump_distance,
     }
