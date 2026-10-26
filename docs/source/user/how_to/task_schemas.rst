@@ -1,6 +1,29 @@
 Task schemas
 ------------
 
+Generating multiple load cases
+==============================
+
+The built-in ``generate_load_cases`` task generates a list of independent uniaxial
+``LoadCase`` objects with identical loading parameters:
+
+.. code-block:: yaml
+
+    name: multiple_load_cases
+    tasks:
+      - schema: generate_load_cases_uniaxial
+        inputs:
+          num_load_cases: 3
+          total_time: 100
+          num_increments: 200
+          direction: x
+          target_def_grad_rate: 1.0e-3
+
+``num_load_cases`` must be a positive integer. The ``load_case`` schema output has
+``multiplicity: "<<input:num_load_cases>>"``, allowing downstream tasks to source
+the individual load cases. With a multiplicity of one, the output remains a
+single-member list, in accordance with the framework's multiplicity semantics.
+
 Action command strings
 ======================
 

@@ -7,7 +7,72 @@ import numpy as np
 
 import matflow as mf
 from matflow.param_classes import LoadCase
+from matflow.data.scripts.generate_load_case import generate_load_case
+from matflow.data.scripts.generate_load_cases import generate_load_cases
 from matflow.tests.utils import make_test_data_YAML_workflow
+
+
+def test_generate_load_case():
+    inputs = {
+        "total_time": 100,
+        "num_increments": 200,
+        "direction": "x",
+        "target_def_grad_rate": 1e-3,
+    }
+    result = generate_load_case(**inputs)
+
+    assert isinstance(result["load_case"], LoadCase)
+    assert result["load_case"] == LoadCase.uniaxial(**inputs)
+
+
+@pytest.mark.parametrize("num_load_cases", [1, 3])
+@pytest.mark.parametrize("direction", ["x", "y", "z"])
+def test_generate_load_cases(num_load_cases: int, direction: str) -> None:
+    result = generate_load_cases(
+        num_load_cases=num_load_cases,
+        total_time=10,
+        num_increments=20,
+        direction=direction,
+        target_def_grad_rate=2e-3,
+    )
+    assert set(result) == {"load_case"}
+    load_cases = result["load_case"]
+    assert len(load_cases) == num_load_cases
+    expected = LoadCase.uniaxial(
+        total_time=10,
+        num_increments=20,
+        direction=direction,
+        target_def_grad_rate=2e-3,
+    )
+    assert all(isinstance(case, LoadCase) and case == expected for case in load_cases)
+    assert len({id(case) for case in load_cases}) == num_load_cases
+    assert len({id(case.steps[0]) for case in load_cases}) == num_load_cases
+
+
+@pytest.mark.parametrize("num_load_cases", [0, -1, True])
+def test_generate_load_cases_invalid_count(num_load_cases: int) -> None:
+    with pytest.raises(ValueError, match="num_load_cases must be a positive integer"):
+        generate_load_cases(
+            num_load_cases=num_load_cases,
+            total_time=100,
+            num_increments=200,
+            direction="x",
+            target_def_grad_rate=1e-3,
+        )
+
+
+def test_generate_load_cases_schema() -> None:
+    template = mf.WorkflowTemplate.from_YAML_string(
+        "name: generate_load_cases_test\n"
+        "tasks:\n"
+        "  - schema: generate_load_cases_uniaxial\n"
+        "    inputs:\n"
+        "      num_load_cases: 3\n"
+    )
+    output = template.tasks[0].all_schema_outputs[0]
+    assert output.parameter.typ == "load_case"
+    assert output.multiplicity == "<<input:num_load_cases>>"
+    assert output.resolve_multiplicity(3) == 3
 
 
 def test_single_multistep_uniaxial():

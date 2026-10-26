@@ -734,6 +734,58 @@
   inputs:
     - parameter: load_case
 
+- objective: generate_load_case
+  doc: Generate a uniaxial load case.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+  actions:
+    - script: <<script:generate_load_case.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_load_cases
+  doc: Generate a list of independent, identical uniaxial load cases.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: num_load_cases
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+      multiplicity: "<<input:num_load_cases>>"
+  actions:
+    - script: <<script:generate_load_cases.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
 - objective: define_orientations
   inputs:
     - parameter: orientations
