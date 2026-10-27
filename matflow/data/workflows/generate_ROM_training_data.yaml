@@ -12,14 +12,19 @@ doc:
     Example submission: 
       `matflow go demo-workflow generate_ROM_training_data --var num_load_cases 100 --var num_microstructures_per_load_case 5`
     
-    This workflow will typically submit a minimum of two jobscripts (on scheduled systems):
+    Recommended resources specification: as specified, use a resources `any` scope for 
+    the DAMASK task, such that all actions (pre-/post-processing and the simulation 
+    itself) run in a single jobscript. Otherwise, a large number of simulation files
+    may exist on disk concurrently.
+
+    This workflow will typically submit three jobscripts (on scheduled systems):
       1. Non-array job to sample orientations and then generate load cases
-      2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure 
-         generation and DAMASK simulations
+      2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure
+         generation
+      3. Array-job (of maximum size `max_array_size`) to run the DAMASK task
 
-    If specifying distinct resources for the simulations, four jobscripts in total will be submitted.
-
-    Once the workflow has finished, zip the workflow or consolidate the array outputs for best read performance: 
+    Once the workflow has finished, zip the workflow or consolidate the array outputs
+    for best read performance: 
       `matflow zip /path/to/workflow`
       `matflow workflow /path/to/workflow consolidate-array-outputs`
 
@@ -45,13 +50,18 @@ doc:
 name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
 
 inputs:
-  num_load_cases: <<var:num_load_cases[default=5000]>>
+  num_load_cases: <<var:num_load_cases[default=100]>>
   num_microstructures_per_load_case: <<var:num_microstructures_per_load_case[default=5]>>
   num_simulations: <<calc(<<input:num_load_cases>> * <<input:num_microstructures_per_load_case>>)>>
+  num_cores_DAMASK: 1  
+  time_DAMASK: <<var:time_DAMASK[default=01:00:00]>>
 
 resources:
   any:
     max_array_size: 1000
+    # scheduler_args:
+    #   directives:
+    #     --time: 01:00:00 # for sample_texture_... and generate_load_cases_...
 
 tasks:
 
@@ -71,7 +81,12 @@ tasks:
       num_increments: 20
 
   - schema: generate_volume_element_from_statistics
-    save_files: null # disable saving Dream3D XDMF and HDF5 files
+    # resources:
+    #   any:
+    #     scheduler_args:
+    #       directives:
+    #         --time: 00:10:00
+    save_files: false # disable saving Dream3D XDMF and HDF5 files
     inputs:
       # grid_size: [64, 64, 64]
       grid_size: [16, 16, 16]
@@ -88,10 +103,11 @@ tasks:
 
   - schema: simulate_VE_loading_damask
     resources:
-      main:
-        num_threads: 4
-    save_files:
-      - damask_load_file
+      any:
+        num_cores: <<input:num_cores_DAMASK>>
+        # scheduler_args:
+        #   directives:
+        #     --time: <<input:time_DAMASK>>    
     repeats:
       number: <<input:num_microstructures_per_load_case>>
       nesting_order: 2
