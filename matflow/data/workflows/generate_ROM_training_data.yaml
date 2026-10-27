@@ -9,10 +9,14 @@ doc:
       - volume-averaged Cauchy stress per time increment
       - deformation gradient per time increment
 
+    The following variables are available for specification on the command line:
+      - num_load_cases: number of load cases to consider
+      - num_microstructures_per_load_case: number of microstructures to simulate for each load case.
+
     Example submission: 
       `matflow go demo-workflow generate_ROM_training_data --var num_load_cases 100 --var num_microstructures_per_load_case 5`
-    
-    Recommended resources specification: as specified, use a resources `any` scope for 
+
+    Recommended resources: as specified, use a resources `any` scope for 
     the DAMASK task, such that all actions (pre-/post-processing and the simulation 
     itself) run in a single jobscript. Otherwise, a large number of simulation files
     may exist on disk concurrently.
@@ -28,7 +32,7 @@ doc:
       `matflow zip /path/to/workflow`
       `matflow workflow /path/to/workflow consolidate-array-outputs`
 
-    In a Jupyter notebook, load array outputs like this:
+    In a Python, load array outputs like this:
 
     ```py
     wk = mf.Workflow("/path/to/workflow.zip")
@@ -44,52 +48,75 @@ doc:
 
     TODO: update CTF/CRC file!
     TODO: update load case task!
+    TODO: update material_parameters/phase label etc
     TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
     TODO: check random seeds
 
 name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
 
 inputs:
-  num_load_cases: <<var:num_load_cases[default=100]>>
-  num_microstructures_per_load_case: <<var:num_microstructures_per_load_case[default=5]>>
+  grid_size: [8, 8, 8]
+  num_cores_DAMASK: 1
+  time_texture: 5 # minutes to sample *all* orientations (may take ~1hr for 25_000)
+  time_load: 10 # minutes to generate *all* load cases
+  time_DAMASK: 10 # minutes per single DAMASK simulation
+  time_Dream3D: 5 # minutes per single Dream3D invocation
+  material_parameters: /rds/project/rds-bLH38hg3nf0/ir-plow1/matflow/rom-training/posterior.txt
+  max_array_size: 1000 # maximum concurrency
+  slurm_partition: ukaea-icl
+
+  # specify these in the submission command (e.g. `--var num_load_cases 100`):
+  num_load_cases: <<var:num_load_cases[default=3]>>
+  num_microstructures_per_load_case: <<var:num_microstructures_per_load_case[default=2]>>
+
+  # calculated inputs; do not change:
   num_simulations: <<calc(<<input:num_load_cases>> * <<input:num_microstructures_per_load_case>>)>>
-  num_cores_DAMASK: 1  
-  time_DAMASK: <<var:time_DAMASK[default=01:00:00]>>
+  num_stacked_elements: <<calc(<<input:num_simulations>> // <<input:max_array_size>> + 1)>>
+  time_DAMASK_all: <<calc(<<input:time_DAMASK>> * <<input:num_stacked_elements>>)>>
+  time_Dream3D_all: <<calc(<<input:time_Dream3D>> * <<input:num_stacked_elements>>)>>
 
 resources:
   any:
-    max_array_size: 1000
-    # scheduler_args:
-    #   directives:
-    #     --time: 01:00:00 # for sample_texture_... and generate_load_cases_...
+    max_array_size: <<input:max_array_size>>
+    scheduler_args:
+      directives:
+        --partition: <<input:slurm_partition>>
 
 tasks:
-
   - schema: sample_texture_from_CTF_file_mtex_python
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
     inputs:
       CTF_file_path: <<demo_data_file:texture_Al.ctf>>
       EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
-      specimen_symmetry: '1'
+      specimen_symmetry: "1"
       EBSD_phase: Al
       EBSD_rotation: null
       num_orientations: 1000
       num_orientation_sets: <<input:num_simulations>>
 
   - schema: generate_load_cases_uniaxial
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
     inputs:
       total_time: 10
       num_increments: 20
 
   - schema: generate_volume_element_from_statistics
-    # resources:
-    #   any:
-    #     scheduler_args:
-    #       directives:
-    #         --time: 00:10:00
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<input:time_Dream3D_all>>
     save_files: false # disable saving Dream3D XDMF and HDF5 files
     inputs:
-      # grid_size: [64, 64, 64]
-      grid_size: [16, 16, 16]
+      grid_size: <<input:grid_size>>
       size: [1, 1, 1]
       phase_statistics:
         - type: primary
@@ -105,9 +132,9 @@ tasks:
     resources:
       any:
         num_cores: <<input:num_cores_DAMASK>>
-        # scheduler_args:
-        #   directives:
-        #     --time: <<input:time_DAMASK>>    
+        scheduler_args:
+          directives:
+            --time: <<input:time_DAMASK_all>>
     repeats:
       number: <<input:num_microstructures_per_load_case>>
       nesting_order: 2
@@ -122,9 +149,8 @@ tasks:
           - inputs.damask_phases.Al.mechanical.plastic.h_0_sl-sl
         nesting_order: 2.5
         values::from_load_txt:
-          file_path: C:/Users/adamj/Downloads/posterior.txt
+          file_path: <<input:material_parameters>>
           num_samples: <<input:num_simulations>>
-          replace: true
     inputs:
       homogenization:
         SX:
