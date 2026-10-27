@@ -723,6 +723,53 @@
           condition:
             value.equal_to: precompiled
 
+- objective: visualise_orientations
+  doc: Plot pole figures with Python MTEX using direct orientation inputs.
+  method: pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: pole_figure_directions
+    - parameter: use_contours
+    - parameter: IPF_reference_direction
+      default_value: z
+    - parameter: colourbar_limits
+      default_value: null
+    - parameter: use_one_colourbar
+      default_value: false
+  save_files: [mtex_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_pole_figures, mtex_IPF_key]
+
+- objective: visualise_orientations
+  doc: Plot inverse pole figures with Python MTEX using direct orientation inputs.
+  method: inverse_pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: IPF_reference_directions
+      default_value: ["z"]
+    - parameter: use_contours
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+
 - objective: visualise_multi_orientations
   # Note: this should be made redundant by some sort of built-in hpcflow functionality to
   # source from a group (with some rules about how the parameters are merged?).

@@ -111,6 +111,60 @@ Use ``execution_mode: script`` or recompile with ``execution_mode: compile`` to
 use the updated MATLAB behavior. Existing precompiled executables must be rebuilt
 from the updated scripts; changing the schema does not update those binaries.
 
+Plotting orientations with Python MTEX
+=====================================
+
+The ``visualise_orientations_pole_figure_mtex_python`` and
+``visualise_orientations_inverse_pole_figure_mtex_python`` schemas are Python
+alternatives to the corresponding MATLAB ``*_mtex`` schemas. They require Python
+MTEX (``mtex>=1.0``) in ``python_env`` and pass inputs directly to the script,
+without JSON/HDF5 handoff files or an ``execution_mode`` input.
+
+For example, append these tasks after an orientation-sampling task:
+
+.. code-block:: yaml
+
+    - schema: visualise_orientations_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        pole_figure_directions: [[0, 0, 1], [1, 0, 1], [1, 1, 1]]
+        use_contours: false
+        IPF_reference_direction: z
+
+    - schema: visualise_orientations_inverse_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        IPF_reference_directions: [x, y, z]
+        use_contours: true
+
+Each task consumes a single ``orientations`` value. When a sampling task produces
+multiple orientation sets, output multiplicity creates one plotting element per
+set automatically.
+
+Both quaternion component orders are supported. MatFlow's inverse quaternions
+are converted back to MTEX's crystal-to-specimen convention, with the input
+unit-cell alignment preserved. Euler-angle inputs are not supported and raise
+an explicit error. As in the MATLAB tasks, the crystal frame is constructed from
+``crystal_symmetry`` and the alignment, using MTEX's default lattice parameters.
+
+``use_contours: false`` draws scatter plots; pole-figure markers use IPF colours
+for ``IPF_reference_direction`` (x, y or z, default z). Inverse-pole-figure markers
+are uncoloured, as in the MATLAB task, with one panel per
+``IPF_reference_directions`` entry (default ``[z]``). Both scatter tasks also save
+an IPF colour key. ``use_contours: true`` instead draws filled density contours
+and colourbars, without a colour-key image. For pole figures,
+``colourbar_limits`` optionally supplies two finite, increasing values, and
+``use_one_colourbar: true`` uses a shared colour scale and a single bar. These
+colourbar options apply only to contour plots.
+
+The files are saved as ``pole_figure.png`` or ``inverse_pole_figure.png`` and,
+for scatter plots, ``IPF_key.png``. The existing file labels
+``mtex_pole_figures``, ``mtex_inverse_pole_figures`` and ``mtex_IPF_key`` are
+retained, so the images are saved as workflow artifacts just as for MATLAB.
+Rendering is headless, uses x pointing east, and closes its figures after saving.
+``MATFLOW_RUN_NUM_THREADS`` controls MTEX's thread preference, as for Python
+texture sampling. Figure styling and density contours may differ from MATLAB.
+
 Action command strings
 ======================
 
