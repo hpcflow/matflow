@@ -188,6 +188,16 @@
         and:
           - value.is_instance: [dict]
           - key.in: ["euler_angles_deg", "keep_XY", "keep_euler"]
+- type: kernel_halfwidth_deg
+  _validation:
+    - path: []
+      doc: Orientation density kernel halfwidth in degrees; must be finite and in (0, 180].
+      condition: { value.is_instance: [int, float] }
+- type: num_orientation_sets
+  _validation:
+    - path: []
+      doc: Positive integer number of independently sampled orientation sets.
+      condition: { value.is_instance: [int] }
 - type: num_orientations
   _validation:
     - path: []

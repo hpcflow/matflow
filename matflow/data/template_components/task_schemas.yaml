@@ -204,7 +204,10 @@
           environment: damask_parse_env
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a CTF file.
+  doc: >
+    Sample an orientation density estimated from a CTF file using MATLAB MTEX.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CTF_file
   implementation: mtex
   inputs:
@@ -215,6 +218,8 @@
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
@@ -279,7 +284,11 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a channel reconstruction file.
+  doc: >
+    Sample an orientation density estimated from a CRC file using MATLAB MTEX.
+    A CPR file with the same stem must be beside the CRC file.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CRC_file
   implementation: mtex
   inputs:
@@ -290,6 +299,8 @@
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
@@ -352,6 +363,71 @@
         - path: inputs.execution_mode
           condition:
             value.equal_to: precompiled
+
+- objective: sample_texture
+  doc: >
+    Sample a density estimated from a CTF file using Python MTEX (mtex>=1.0).
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CTF_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CTF_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: 1
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: "<<input:num_orientation_sets>>"
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: sample_texture
+  doc: >
+    Sample a density estimated from a CRC file using Python MTEX (mtex>=1.0).
+    A CPR file with the same stem must be beside the CRC file.
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CRC_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CRC_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: 1
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: "<<input:num_orientation_sets>>"
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
 
 - objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
