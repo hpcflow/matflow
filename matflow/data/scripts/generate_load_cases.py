@@ -21,11 +21,11 @@ def generate_load_cases(
     return {
         "load_case": [
             generate_load_case(
-                total_time=total_time,
+                total_time=total_time + idx,
                 num_increments=num_increments,
                 direction=direction,
                 target_def_grad_rate=target_def_grad_rate,
             )["load_case"]
-            for _ in range(num_load_cases)
+            for idx in range(num_load_cases)
         ]
     }

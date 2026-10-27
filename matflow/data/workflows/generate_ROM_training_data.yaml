@@ -1,12 +1,58 @@
 doc:
   - >
-    Generate crystal plasticity training data (volume-averaged Cauchy stress and 
-    deformation gradient per time increment) for training a reduced order model.
+    Generate crystal plasticity training data for training a reduced order model. For 
+    each load case, multiple microstructures (grain morphologies using Dream3D via a 
+    specified grain size distribution, and orientations sampled from EBSD data via a 
+    CTF file using MTEX) are simulated.
 
+    Key outputs:
+      - volume-averaged Cauchy stress per time increment
+      - deformation gradient per time increment
+
+    Example submission: 
+      `matflow go demo-workflow generate_ROM_training_data --var num_load_cases 100 --var num_microstructures_per_load_case 5`
+    
+    This workflow will typically submit two jobscripts (on scheduled systems):
+      1. Non-array job to sample orientations and then generate load cases
+      2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure 
+         generation and DAMASK simulations
+
+    Once the workflow has finished, zip the workflow or consolidate the array outputs for best read performance: 
+      `matflow zip /path/to/workflow`
+      `matflow workflow /path/to/workflow consolidate-array-outputs`
+
+    In a Jupyter notebook, load array outputs like this:
+
+    ```py
+    wk = mf.Workflow("/path/to/workflow.zip")
+    arr_out = wk.get_array_outputs("VE_response.phase_data.vol_avg_def_grad.data")
+    arr_out.data # numpy array of shape (num_simulations, num_load_increments, 3, 3)
+    ```
+
+    From the CLI, export array outputs to Numpy .npy files like this:
+
+    ```bash
+    matflow workflow /path/to/workflow.zip export-array-output VE_response.phase_data.vol_avg_def_grad.data vol_avg_def_grad.npy
+    ```
+
+    TODO: update load case task!
+    TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
+    TODO: check random seeds
+
+name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
+
+inputs:
+  num_load_cases: <<var:num_load_cases[default=5000]>>
+  num_microstructures_per_load_case: <<var:num_microstructures_per_load_case[default=5]>>
+  num_simulations: <<calc(<<input:num_load_cases>> * <<input:num_microstructures_per_load_case>>)>>
+
+resources:
+  any:
+    max_array_size: 1000
 
 tasks:
 
-  - schema: sample_texture_from_CTF_file_mtex_python    
+  - schema: sample_texture_from_CTF_file_mtex_python
     inputs:
       CTF_file_path: <<demo_data_file:texture_Al.ctf>>
       EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
@@ -14,11 +60,18 @@ tasks:
       EBSD_phase: Al
       EBSD_rotation: null
       num_orientations: 1000
-      num_orientation_sets: 25000
+      num_orientation_sets: <<input:num_simulations>>
+
+  - schema: generate_load_cases_uniaxial
+    inputs:
+      total_time: 10
+      num_increments: 20
 
   - schema: generate_volume_element_from_statistics
+    save_files: null # disable saving Dream3D XDMF and HDF5 files
     inputs:
-      grid_size: [64, 64, 64]
+      # grid_size: [64, 64, 64]
+      grid_size: [16, 16, 16]
       size: [1, 1, 1]
       phase_statistics:
         - type: primary
@@ -26,17 +79,18 @@ tasks:
           crystal_structure: cubic
           volume_fraction: 1.00 # `volume_fraction` for all phases must sum to 1!
           size_distribution:
-            ESD_mean: 0.3 # Specify either `ESD_mean` or `ESD_log_mean`
-            ESD_log_stddev: 0.1
+            ESD_mean: 0.5 # 0.12 # Specify either `ESD_mean` or `ESD_log_mean`
+            ESD_log_stddev: 0.05
             num_bins: 10 # Specify either `num_bins` or `bin_step_size
 
-  - schema: generate_load_cases_uniaxial
-    inputs:
-      num_load_cases: 5000
-
   - schema: simulate_VE_loading_damask
+    resources:
+      main:
+        num_threads: 4
+    save_files:
+      - damask_load_file
     repeats:
-      number: 5
+      number: <<input:num_microstructures_per_load_case>>
       nesting_order: 2
     nesting_order:
       inputs.load_case: 1
@@ -50,8 +104,8 @@ tasks:
         nesting_order: 2.5
         values::from_load_txt:
           file_path: C:/Users/adamj/Downloads/posterior.txt
-          num_samples: 25_000
-          replace: true          
+          num_samples: <<input:num_simulations>>
+          replace: true
     inputs:
       homogenization:
         SX:
