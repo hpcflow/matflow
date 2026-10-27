@@ -385,7 +385,7 @@
       default_value: null
   outputs:
     - parameter: orientations
-      multiplicity: "<<input:num_orientation_sets>>"
+      multiplicity: <<input:num_orientation_sets>>
   actions:
     - script: <<script:mtex/sample_texture_EBSD.py>>
       script_data_in: direct
@@ -418,7 +418,7 @@
       default_value: null
   outputs:
     - parameter: orientations
-      multiplicity: "<<input:num_orientation_sets>>"
+      multiplicity: <<input:num_orientation_sets>>
   actions:
     - script: <<script:mtex/sample_texture_EBSD.py>>
       script_data_in: direct
@@ -851,7 +851,7 @@
       default_value: 1.0e-3
   outputs:
     - parameter: load_case
-      multiplicity: "<<input:num_load_cases>>"
+      multiplicity: <<input:num_load_cases>>
   actions:
     - script: <<script:generate_load_cases.py>>
       script_data_in: direct

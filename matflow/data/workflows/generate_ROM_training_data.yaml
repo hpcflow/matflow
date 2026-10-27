@@ -3,16 +3,18 @@ doc:
     Generate crystal plasticity training data (volume-averaged Cauchy stress and 
     deformation gradient per time increment) for training a reduced order model.
 
-# inputs:
-#   num_load_cases: 5000
-#   num_microstructures_per_load_case: 5
 
 tasks:
-  - schema: sample_texture_from_ODF_mat_file_mtex
-    repeats: 25_000
+
+  - schema: sample_texture_from_CTF_file_mtex_python    
     inputs:
-      ODF_mat_file_path: <<demo_data_file:ODF.mat>>
+      CTF_file_path: <<demo_data_file:texture_Al.ctf>>
+      EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
+      specimen_symmetry: '1'
+      EBSD_phase: Al
+      EBSD_rotation: null
       num_orientations: 1000
+      num_orientation_sets: 25000
 
   - schema: generate_volume_element_from_statistics
     inputs:
@@ -28,23 +30,9 @@ tasks:
             ESD_log_stddev: 0.1
             num_bins: 10 # Specify either `num_bins` or `bin_step_size
 
-  - schema: generate_load_case
-    method: uniaxial
-
-  - schema: define_load_case
-    repeats:
-      number: 5000
-      master_seed: 12345
+  - schema: generate_load_cases_uniaxial
     inputs:
-      load_case::random_polynomial:
-        seed: <<resource:random_seed>>
-        total_time: 100
-        num_steps: 10
-        coefficient_ranges:
-          - [-1.0e-3, 1.0e-3] # c_1
-          - [-1.0e-5, 1.0e-5] # c_2
-          - [-1.0e-7, 1.0e-7] # c_3
-        num_increments: 1
+      num_load_cases: 5000
 
   - schema: simulate_VE_loading_damask
     repeats:
@@ -61,8 +49,9 @@ tasks:
           - inputs.damask_phases.Al.mechanical.plastic.h_0_sl-sl
         nesting_order: 2.5
         values::from_load_txt:
-          file_path: C:/downloads/posterior.txt
+          file_path: C:/Users/adamj/Downloads/posterior.txt
           num_samples: 25_000
+          replace: true          
     inputs:
       homogenization:
         SX:
