@@ -12,10 +12,12 @@ doc:
     Example submission: 
       `matflow go demo-workflow generate_ROM_training_data --var num_load_cases 100 --var num_microstructures_per_load_case 5`
     
-    This workflow will typically submit two jobscripts (on scheduled systems):
+    This workflow will typically submit a minimum of two jobscripts (on scheduled systems):
       1. Non-array job to sample orientations and then generate load cases
       2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure 
          generation and DAMASK simulations
+
+    If specifying distinct resources for the simulations, four jobscripts in total will be submitted.
 
     Once the workflow has finished, zip the workflow or consolidate the array outputs for best read performance: 
       `matflow zip /path/to/workflow`
@@ -35,6 +37,7 @@ doc:
     matflow workflow /path/to/workflow.zip export-array-output VE_response.phase_data.vol_avg_def_grad.data vol_avg_def_grad.npy
     ```
 
+    TODO: update CTF/CRC file!
     TODO: update load case task!
     TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
     TODO: check random seeds
