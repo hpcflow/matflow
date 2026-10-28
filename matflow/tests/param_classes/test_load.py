@@ -38,13 +38,16 @@ def test_generate_load_cases(num_load_cases: int, direction: str) -> None:
     assert set(result) == {"load_case"}
     load_cases = result["load_case"]
     assert len(load_cases) == num_load_cases
-    expected = LoadCase.uniaxial(
-        total_time=10,
+    expected = lambda idx: LoadCase.uniaxial(
+        total_time=10 + idx,
         num_increments=20,
         direction=direction,
         target_def_grad_rate=2e-3,
     )
-    assert all(isinstance(case, LoadCase) and case == expected for case in load_cases)
+    assert all(
+        isinstance(case, LoadCase) and case == expected(idx)
+        for idx, case in enumerate(load_cases)
+    )
     assert len({id(case) for case in load_cases}) == num_load_cases
     assert len({id(case.steps[0]) for case in load_cases}) == num_load_cases
 
