@@ -61,7 +61,7 @@ inputs:
   time_load: 10 # minutes to generate *all* load cases
   time_DAMASK: 10 # minutes per single DAMASK simulation
   time_Dream3D: 5 # minutes per single Dream3D invocation
-  material_parameters: /rds/project/rds-bLH38hg3nf0/ir-plow1/matflow/rom-training/posterior.txt
+  material_parameters: <<demo_data_file:posterior.txt>>
   max_array_size: 1000 # maximum concurrency
   slurm_partition: ukaea-icl
 
