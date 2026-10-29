@@ -1,0 +1,189 @@
+doc:
+  - >
+    Run an OpenFOAM crystal-plasticity simulation using the Fifty Grain Cases
+    different orientations tutorial geometry and configuration.
+  - >
+    The phase-field files are copied directly from the tutorial's initial
+    directory, preserving the fifty-grain microstructure. Workflow boundary
+    conditions are applied to the copied n.* files without changing their
+    internal phase values.
+  - >
+    The tutorial's GrainProperties file is used by default. Supplying the
+    materials parameter instead generates GrainProperties from the workflow's
+    material definitions.
+
+template_components:
+  command_files:
+    - label: open_foam_phase_bool_files
+      name:
+        name: (n\.\d+)
+        is_regex: true
+      doc: >
+        Each file (named according to phase ID) contains a flattened boolean array
+        describing where that phase exists within the volume element.
+    - label: open_foam_grain_properties_file
+      name:
+        name: GrainProperties
+      doc: >
+        A file that contains grain orientations and material properties.
+    - label: open_foam_block_mesh_file
+      name:
+        name: blockMeshDict
+  task_schemas:
+    - objective: simulate_VE_loading
+      implementation: OpenFOAM
+      inputs:
+        - parameter: volume_element
+        - parameter: materials
+          default_value: null
+        - parameter: orientations
+        - parameter: VE_origin
+        - parameter: boundary
+        - parameter: boundary_field
+        - parameter: root_path
+      actions:
+        - environments:
+            - scope:
+                type: processing
+              environment: openfoam_env
+            - scope:
+                type: main
+              environment: openfoam_env
+          input_file_generators:
+            - input_file: open_foam_phase_bool_files
+              from_inputs: [root_path, boundary_field]
+              script: <<script:open_foam/copy_tutorial_phase_fields.py>>
+            - input_file: open_foam_grain_properties_file
+              from_inputs: [volume_element, orientations, materials, root_path]
+              script: <<script:open_foam/write_grain_properties.py>>
+            - input_file: open_foam_block_mesh_file
+              from_inputs: [volume_element, VE_origin, boundary]
+              script: <<script:open_foam/write_block_mesh_file.py>>
+          commands:
+            - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial .
+            - command: rm initial/n.*
+            - command: mv n.* initial/.
+            - command: cp -r initial 0
+            - command: mv GrainProperties constant/.
+            - command: mv blockMeshDict system/.
+            - command: <<executable:blockmesh>> &> blockMesh.log
+            - command: <<executable:decomposepar>> &> decomposePar.log
+            - command: <<executable:crystaldynamicsfoam>> &> crystaldynamicsfoam.log
+            - command: <<executable:reconstructpar>> -newTimes
+
+resources:
+  any:
+    scheduler_args:
+      directives:
+        --time: 00:20:00
+        --partition: serial
+
+tasks:
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      VE_grid_size: [1, 250, 250]
+      periodic: false
+      microstructure_seeds::from_random:
+        box_size: [0.1, 0.2, 0.2]
+        num_seeds: 50
+        phase_label: Fe-35Ni
+      orientations:
+        data:
+          - [1.1185292252521302, 0.10, 0.7196744993498547]
+          - [1.4447354316095231, 0.33, 1.0159068604606336]
+          - [0.4418076427205522, 1.09, 1.3400816082718228]
+          - [0.8530964632480889, 0.93, 1.3497604488394435]
+          - [0.2256736041635418, 0.54, 0.4475760676439134]
+          - [0.8778181990690479, 0.01, 0.26956518537493457]
+          - [0.28893389967680844, 1.31, 0.6122362914034659]
+          - [1.4821403271232094, 0.11, 0.0753408312737558]
+          - [0.5279850483249845, 0.90, 0.6467560339893723]
+          - [0.7335488091591938, 1.30, 1.0629196929448224]
+          - [0.0050517704947168, 0.12, 1.2971860904579235]
+          - [0.7461245501097481, 0.45, 1.070857167196232]
+          - [0.04331522899551642, 1.01, 1.0733381951959429]
+          - [0.18376453475936186, 0.09, 1.1229574317054736]
+          - [0.8737657483512539, 0.90, 0.1749214150770773]
+          - [1.0479610117133324, 0.34, 1.3433927622323587]
+          - [1.0370853794674204, 0.14, 1.3899757545347284]
+          - [1.3358536472158642, 0.66, 1.0787951531372146]
+          - [0.7270111513321988, 0.26, 0.742080590693915]
+          - [1.1231279090155373, 0.08, 0.44715655909244023]
+          - [1.0219072154061983, 0.89, 0.7562760665162016]
+          - [1.1222867227074387, 1.01, 1.44388851504748]
+          - [1.0740825046036535, 0.02, 1.3055040087248828]
+          - [1.0892504093829918, 1.25, 1.4545113818193036]
+          - [0.30615683308443, 0.11, 0.182468803822151]
+          - [1.4406599689995656, 0.31, 0.9561846830632148]
+          - [0.9616928149698312, 1.40, 0.6138604717963478]
+          - [0.5728359656881788, 0.82, 0.36226558723576546]
+          - [0.0647502644835528, 1.37, 0.43783967346252867]
+          - [0.5399595809172536, 1.05, 1.1749186158439402]
+          - [1.5260439316068108, 0.36, 0.18981152783360533]
+          - [0.7969174480605485, 0.31, 0.3105947446898946]
+          - [0.3729319572336154, 0.58, 1.5602382650396498]
+          - [0.5971306105890536, 0.86, 1.4030066523240927]
+          - [0.8360319050729306, 0.62, 1.357811599295094]
+          - [0.02204376760591027, 1.30, 1.1827707198649966]
+          - [1.175840205032166, 1.12, 0.8214048324023381]
+          - [0.05490700330997343, 1.01, 1.4349737738103219]
+          - [1.1415810980454761, 1.47, 1.2503276139473463]
+          - [1.1808700329913915, 0.62, 0.15482869220677603]
+          - [0.6446360318191175, 0.03, 1.2882320739535171]
+          - [0.59826544449569, 0.48, 0.029566788515600486]
+          - [0.2274238357518184, 0.68, 0.7521558971909416]
+          - [1.5358223895095562, 0.67, 0.7308933995596678]
+          - [1.4950043439518532, 0.84, 1.5177314082617945]
+          - [1.0074698904851485, 0.07, 0.6874398265842135]
+          - [0.5301300995294745, 0.74, 0.15512550662091523]
+          - [1.290945076295934, 0.42, 0.8338295208628755]
+          - [0.8379107884407556, 1.38, 0.9670165584910202]
+          - [0.5933049462526289, 0.55, 0.203134226610729]
+        unit_cell_alignment:
+          x: a
+          y: b
+          z: c
+        representation:
+          type: euler
+          euler_definition: bunge
+          euler_is_degrees: false
+
+  - schema: simulate_VE_loading_OpenFOAM
+    resources:
+      main:
+        scheduler_args:
+          directives:
+            --time: 04:00:00
+            --partition: multicore
+        num_cores: 12
+    inputs:
+      VE_origin: [-0.05, 0.0, 0.0]
+      boundary:
+        - patch_name: lowerWall
+          face_normals: [+x2]
+          type: wall
+        - patch_name: atmosphere
+          face_normals: [-x2]
+          type: patch
+        - patch_name: rightWall
+          face_normals: [+x1]
+          type: empty
+        - patch_name: leftWall
+          face_normals: [-x1]
+          type: empty
+        - patch_name: frontAndBack
+          face_normals: [+x3, -x3]
+          type: patch
+      boundary_field:
+        - patch_name: lowerWall
+          type: zeroGradient
+        - patch_name: atmosphere
+          type: zeroGradient
+        - patch_name: rightWall
+          type: empty
+        - patch_name: leftWall
+          type: empty
+        - patch_name: frontAndBack
+          type: zeroGradient
+      materials: null
+      root_path: /mnt/iusers01/support/mbexegc2/scratch/projects/lightform/tom_flint_eulerian_cp/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Fifty_Grain_Cases/Grains_Case_different_orientations
