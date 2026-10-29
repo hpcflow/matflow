@@ -38,6 +38,12 @@ template_components:
         A file that contains the model geometry, and includes voxel discretisation (grid
         dimensions), the model's physical dimensions, and boundary conditions. This file
         parametrises OpenFOAM's `blockMesh` mesh generation utility. See: https://www.openfoam.com/documentation/user-guide/4-mesh-generation-and-conversion/4.3-mesh-generation-with-the-blockmesh-utility.
+    - label: open_foam_initial_velocity_file
+      name:
+        name: U
+      doc: >
+        The initial velocity field. Workflow peak_velocity and velocity_radius
+        values replace the corresponding values in all coded velocity patches.
   task_schemas:
     - objective: simulate_VE_loading
       implementation: OpenFOAM
@@ -50,6 +56,8 @@ template_components:
         - parameter: boundary
         - parameter: boundary_field
         - parameter: root_path
+        - parameter: peak_velocity
+        - parameter: velocity_radius
       actions:
         - environments:
             - scope:
@@ -68,10 +76,14 @@ template_components:
             - input_file: open_foam_block_mesh_file
               from_inputs: [volume_element, VE_origin, boundary]
               script: <<script:open_foam/write_block_mesh_file.py>>
+            - input_file: open_foam_initial_velocity_file
+              from_inputs: [root_path, peak_velocity, velocity_radius]
+              script: <<script:open_foam/modify_initial_velocity.py>>
           commands:
             - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial <<parameter:root_path>>/dynamicCode .
             - command: rm initial/n.*
             - command: mv n.* initial/.
+            - command: mv U initial/.
             - command: cp -r initial 0
             - command: mv GrainProperties constant/.
             - command: mv blockMeshDict system/.
@@ -159,3 +171,5 @@ tasks:
           type: zeroGradient
       materials: null
       root_path: /mnt/iusers01/support/mbexegc2/scratch/projects/lightform/tom_flint_eulerian_cp/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Circle_Squash
+      peak_velocity: 50.0
+      velocity_radius: 0.05e-3
