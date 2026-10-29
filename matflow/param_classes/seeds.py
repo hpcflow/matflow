@@ -27,7 +27,7 @@ class MicrostructureSeeds(ParameterValue):
     #: The size of box containing the seeds.
     box_size: NDArray
     #: Label for the phase.
-    phase_label: str
+    phase_label: str | ArrayLike
     #: Orientation data.
     orientations: Orientations | None = None
     #: Seed for the random number generator, if used.

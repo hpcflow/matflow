@@ -106,9 +106,14 @@ def generate_volume_element_voronoi(
     oris = validate_orientations(oris)
 
     num_grains = len(microstructure_seeds.position)
-    const_phase_lab = np.array([microstructure_seeds.phase_label])[
-        np.zeros(num_grains, dtype=int)
-    ]
+    if isinstance(microstructure_seeds.phase_label, str):
+        const_phase_lab = np.full(num_grains, microstructure_seeds.phase_label)
+    else:
+        const_phase_lab = np.asarray(microstructure_seeds.phase_label)
+        if const_phase_lab.shape != (num_grains,):
+            raise ValueError(
+                "The number of phase labels must match the number of seed positions."
+            )
 
     ori_idx = np.arange(num_grains)
 
