@@ -1,0 +1,161 @@
+doc:
+  - >
+    Run an OpenFOAM crystal-plasticity simulation using the Circle_Squash
+    tutorial geometry and configuration.
+  - >
+    The phase-field files are copied directly from the tutorial's initial
+    directory, preserving the circle/squash microstructure. Workflow boundary
+    conditions are applied to the copied n.* files without changing their
+    internal phase values.
+  - >
+    The tutorial's GrainProperties file is used by default. Supplying the
+    materials parameter instead generates GrainProperties from the workflow's
+    material definitions.
+  - >
+    The volume-element origin and mesh boundaries are supplied separately, as
+    the tutorial volume element representation does not include a geometric
+    origin.
+
+template_components:
+  command_files:
+    - label: open_foam_phase_bool_files
+      name:
+        name: (n\.\d+)
+        is_regex: true
+      doc: >
+        Each file (named according to phase ID) contains a flattened boolean array
+        describing where that phase exists within the volume element.
+    - label: open_foam_grain_properties_file
+      name:
+        name: GrainProperties
+      doc: >
+        A file that contains grain orientations and material properties, including 
+        elasticity tensors, slip systems, and critical resolved shear stresses.
+    - label: open_foam_block_mesh_file
+      name:
+        name: blockMeshDict
+      doc: >
+        A file that contains the model geometry, and includes voxel discretisation (grid
+        dimensions), the model's physical dimensions, and boundary conditions. This file
+        parametrises OpenFOAM's `blockMesh` mesh generation utility. See: https://www.openfoam.com/documentation/user-guide/4-mesh-generation-and-conversion/4.3-mesh-generation-with-the-blockmesh-utility.
+  task_schemas:
+    - objective: simulate_VE_loading
+      implementation: OpenFOAM
+      inputs:
+        - parameter: volume_element
+        - parameter: materials
+          default_value: null
+        - parameter: orientations
+        - parameter: VE_origin
+        - parameter: boundary
+        - parameter: boundary_field
+        - parameter: root_path
+      actions:
+        - environments:
+            - scope:
+                type: processing
+              environment: openfoam_env
+            - scope:
+                type: main
+              environment: openfoam_env
+          input_file_generators:
+            - input_file: open_foam_phase_bool_files
+              from_inputs: [root_path, boundary_field]
+              script: <<script:open_foam/copy_tutorial_phase_fields.py>>
+            - input_file: open_foam_grain_properties_file
+              from_inputs: [volume_element, orientations, materials, root_path]
+              script: <<script:open_foam/write_grain_properties.py>>
+            - input_file: open_foam_block_mesh_file
+              from_inputs: [volume_element, VE_origin, boundary]
+              script: <<script:open_foam/write_block_mesh_file.py>>
+          commands:
+            - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial <<parameter:root_path>>/dynamicCode .
+            - command: rm initial/n.*
+            - command: mv n.* initial/.
+            - command: cp -r initial 0
+            - command: mv GrainProperties constant/.
+            - command: mv blockMeshDict system/.
+            - command: <<executable:blockmesh>> &> blockMesh.log
+            - command: <<executable:decomposepar>> &> decomposePar.log
+            - command: <<executable:crystaldynamicsfoam>> &> crystaldynamicsfoam.log              
+            - command: <<executable:reconstructpar>> -newTimes
+
+resources:
+  any:
+    scheduler_args:
+      directives:
+        --time: 00:20:00
+        --partition: serial
+
+tasks:
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      VE_grid_size: [1, 240, 240]
+      periodic: false
+      microstructure_seeds:
+        box_size: [0.1, 0.2, 0.2]
+        phase_label:
+          - Fe-35Ni
+          - Material-1
+        position:
+          - [0.05, 0.05, 0.1]
+          - [0.05, 0.15, 0.1]
+      orientations:
+        data:
+          - [0.26, 0.0, 0.0]
+          - [0.0, 0.0, 0.0]
+        unit_cell_alignment:
+          x: a
+          y: b
+          z: c
+        representation:
+          type: euler
+          euler_definition: bunge # WRONG! (but currently inconsequential)
+          euler_is_degrees: false
+
+  - schema: visualise_VE_VTK
+
+  - schema: simulate_VE_loading_OpenFOAM
+    resources:
+      main:
+        num_cores: 12
+        scheduler_args:
+          directives:
+            --time: 6:00:00
+            --partition: multicore
+    inputs:
+      VE_origin: [-0.05, 0.0, 0.0]
+      boundary:
+        - patch_name: lowerWall # user-specified name for the patch, use camelCase
+          face_normals: [+x2] # {+/-}{x1,x2,x3} for the normal of the face, when looking from in the middle of the block
+          type: wall # select from available patch types
+        - patch_name: atmosphere
+          face_normals: [-x2]
+          type: patch
+        - patch_name: rightWall
+          face_normals: [+x1]
+          type: empty
+        - patch_name: leftWall
+          face_normals: [-x1]
+          type: empty
+        - patch_name: Front
+          face_normals: [-x3]
+          type: patch
+        - patch_name: Back
+          face_normals: [+x3]
+          type: patch
+      boundary_field:
+        - patch_name: lowerWall
+          type: zeroGradient
+        - patch_name: atmosphere
+          type: zeroGradient
+        - patch_name: rightWall
+          type: empty
+        - patch_name: leftWall
+          type: empty
+        - patch_name: Front
+          type: zeroGradient
+        - patch_name: Back
+          type: zeroGradient
+      materials: null
+      root_path: /mnt/iusers01/support/mbexegc2/scratch/projects/lightform/tom_flint_eulerian_cp/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Circle_Squash

@@ -29,7 +29,7 @@ def write_block_mesh_file(path, volume_element, VE_origin, boundary):
         }}
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-        convertToMeters 1e-3;
+        scale 1e-3;
 
         vertices
         (
