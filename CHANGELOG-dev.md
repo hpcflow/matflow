@@ -1,4 +1,17 @@
 
+<a name="v0.5.0a5"></a>
+## [v0.5.0a5](https://github.com/hpcflow/matflow/compare/v0.5.0a4...v0.5.0a5) - 2026.10.29
+
+### 🐛 Bug Fixes
+
+* broken imports
+* generate_volume_element_from_voronoi task when seeds/orientations are read from files
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a4"></a>
 ## [v0.5.0a4](https://github.com/hpcflow/matflow/compare/v0.5.0a3...v0.5.0a4) - 2026.10.29
 
