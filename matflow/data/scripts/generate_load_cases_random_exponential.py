@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from typing import Literal
+import warnings
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -14,7 +15,7 @@ def generate_load_cases_random_exponential(
     num_steps: int,
     num_increments: int = 1,
     conserve_volume: bool = True,
-    seed: int | None | Literal["resource_value"] = "resource_value",
+    seed: int | None | Literal["resource_value"] = None,
     max_tries: int | None = None,
     k_range: ArrayLike = (0, 0.1),
     delta_f_range: ArrayLike = (-0.1, 0.1),
@@ -45,8 +46,10 @@ def generate_load_cases_random_exponential(
     conserve_volume : bool, optional
         Normalise each sampled deformation gradient to unit determinant before checking
         component-wise monotonicity. By default, True.
-    seed : int | None, optional
-        Seed for reproducible random sampling. By default, None.
+    seed : int | None | Literal["resource_value"], optional
+        Seed for reproducible random sampling. By default, None (unseeded sampling).
+        Use "resource_value" to read MATFLOW_RUN_RANDOM_SEED. If the environment
+        variable is unset, warn and use None.
     max_tries : int | None, optional
         Maximum total number of candidate paths sampled across all load cases, including
         accepted and rejected paths. Must be a positive integer if specified. By default,
@@ -69,9 +72,17 @@ def generate_load_cases_random_exponential(
     """
 
     if seed == "resource_value":
-        seed = int(os.environ["MATFLOW_RUN_RANDOM_SEED"])
-    else:
-        seed = seed
+        resource_seed = os.environ.get("MATFLOW_RUN_RANDOM_SEED")
+        if resource_seed is None:
+            seed = None
+            warnings.warn(
+                "MATFLOW_RUN_RANDOM_SEED is not set; using seed=None for unseeded "
+                "sampling.",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:
+            seed = int(resource_seed)
     rng = np.random.default_rng(seed)
 
     for name, value in (
