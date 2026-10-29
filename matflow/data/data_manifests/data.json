@@ -29,6 +29,9 @@
     "quaternions.txt": {
         "zip_file": "quaternions.zip"
     },
+    "seeds.txt": {
+        "zip_file": "seeds.zip"
+    },
     "load_cases.npz": {
         "zip_file": "load_cases_npz.zip"
     },

@@ -7,6 +7,7 @@ import copy
 import itertools
 from pathlib import Path
 import re
+from typing import Any
 import numpy as np
 import pytest
 from click.testing import CliRunner
@@ -411,3 +412,39 @@ def seeds_1(orientations_1: Orientations) -> MicrostructureSeeds:
         phase_label="phase_1",
         orientations=orientations_1,
     )
+
+
+@pytest.fixture
+def ve_1() -> dict[str, Any]:
+    """A volume element to compare the that generated in `generate_VE.yaml`."""
+    return {
+        "size": [1.0, 1.0, 0.5],
+        "grid_size": np.array([4, 4, 2]),
+        "orientations": {
+            "type": "quat",
+            "quaternions": np.array(
+                [
+                    [0.19831876, 0.97957663, -0.01169948, -0.03102275],
+                    [0.02135241, 0.05174184, 0.96447751, 0.25816657],
+                    [0.02135241, 0.05174184, 0.96447751, 0.25816657],
+                ]
+            ),
+            "quat_component_ordering": "scalar-vector",
+            "unit_cell_alignment": {"x": "a", "y": "b", "z": "c"},
+            "use_max_precision": False,
+            "P": 1,
+        },
+        "element_material_idx": np.array(
+            [
+                [[0, 0], [0, 0], [2, 2], [2, 2]],
+                [[0, 0], [0, 1], [1, 1], [2, 2]],
+                [[0, 1], [1, 1], [1, 1], [0, 1]],
+                [[2, 2], [1, 1], [2, 2], [2, 2]],
+            ]
+        ),
+        "constituent_material_idx": np.array([0, 1, 2]),
+        "constituent_material_fraction": np.array([1.0, 1.0, 1.0]),
+        "constituent_phase_label": np.array(["Cu", "Cu", "Cu"], dtype="<U2"),
+        "constituent_orientation_idx": np.array([0, 1, 2]),
+        "material_homog": np.array(["SX", "SX", "SX"], dtype="<U2"),
+    }

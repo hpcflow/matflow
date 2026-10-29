@@ -4,7 +4,7 @@ from dataclasses import dataclass, fields
 
 import numpy as np
 
-from matflow.tests.utils import _values_equal
+from matflow.tests.utils import values_equal
 
 
 def rms_jump_distances(all_x: np.ndarray) -> np.ndarray:
@@ -342,7 +342,7 @@ class MarkovChainResult:
             return False
 
         return all(
-            _values_equal(getattr(self, field.name), getattr(other, field.name))
+            values_equal(getattr(self, field.name), getattr(other, field.name))
             for field in fields(self)
         )
 
