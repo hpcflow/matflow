@@ -32,3 +32,17 @@ tasks:
           - [-1.0e-7, 1.0e-7] # c_3
         num_increments: 20
         seed: 12345
+
+  # A monotonic exponential deformation-gradient path, normalised to conserve
+  # volume, with multiple increments per load step and a fixed seed:
+  - schema: define_load_case
+    inputs:
+      load_case::random_exponential:
+        total_time: 100
+        num_steps: 100
+        num_increments: 4
+        conserve_volume: true
+        seed: 12345
+        max_tries: 200
+        k_range: [0.01, 0.08]
+        delta_f_range: [-0.05, 0.05]

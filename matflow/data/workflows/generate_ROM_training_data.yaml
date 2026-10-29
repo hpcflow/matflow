@@ -98,15 +98,17 @@ tasks:
       num_orientations: 1000
       num_orientation_sets: <<input:num_simulations>>
 
-  - schema: generate_load_cases_uniaxial
+  - schema: generate_load_cases_random_exponential
+    inputs:
+      total_time: 100
+      num_steps: 100
+      num_increments: 1 # per load step
+      conserve_volume: true            
     resources:
       any:
         scheduler_args:
           directives:
             --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
-    inputs:
-      total_time: 10
-      num_increments: 20
 
   - schema: generate_volume_element_from_statistics
     resources:

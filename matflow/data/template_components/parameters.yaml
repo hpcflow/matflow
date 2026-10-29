@@ -1,3 +1,9 @@
+- type: monotonicity
+  _validation:
+    - path: []
+      doc: Fraction of attempted load-case paths found to be component-wise monotonic.
+      condition: { value.is_instance: [float] }
+
 - type: VE_size
   _validation:
     - path: []
