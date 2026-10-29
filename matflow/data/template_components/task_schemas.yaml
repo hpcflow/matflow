@@ -367,6 +367,7 @@
 - objective: sample_texture
   doc: >
     Sample a density estimated from a CTF file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
     Inputs and outputs are passed directly to and from the Python script.
   method: from_CTF_file
   implementation: mtex_python
@@ -377,6 +378,8 @@
     - parameter: num_orientations
     - parameter: num_orientation_sets
       default_value: 1
+    - parameter: sampling_method
+      default_value: discreteSample
     - parameter: kernel_halfwidth_deg
       default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
@@ -399,6 +402,7 @@
 - objective: sample_texture
   doc: >
     Sample a density estimated from a CRC file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
     A CPR file with the same stem must be beside the CRC file.
     Inputs and outputs are passed directly to and from the Python script.
   method: from_CRC_file
@@ -410,6 +414,8 @@
     - parameter: num_orientations
     - parameter: num_orientation_sets
       default_value: 1
+    - parameter: sampling_method
+      default_value: discreteSample
     - parameter: kernel_halfwidth_deg
       default_value: 10.0
     - parameter: EBSD_reference_frame_transformation

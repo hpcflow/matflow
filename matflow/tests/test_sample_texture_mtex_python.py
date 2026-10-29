@@ -159,6 +159,7 @@ def test_sample_texture_frames_and_rotation(
     [
         ({"num_orientations": 0}, "positive integer"),
         ({"num_orientations": -1}, "positive integer"),
+        ({"sampling_method": "bad"}, "sampling_method"),
         ({"EBSD_reference_frame_transformation": "bad"}, "reference frame"),
         ({"EBSD_rotation": {"euler_angles_deg": [1, 2]}}, "three finite angles"),
         ({"EBSD_rotation": {"euler_angles_deg": [1, 2, np.nan]}}, "three finite angles"),
@@ -213,6 +214,27 @@ def test_sample_texture_sets(
     np.testing.assert_array_equal(first[0]["data"], single["data"])
 
 
+def test_sample_texture_optimal_sets(
+    ebsd_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
+    monkeypatch.setenv("MATFLOW_RUN_NUM_THREADS", "1")
+    kwargs = {"sampling_method": "optimalSample", "num_orientation_sets": 2}
+    first = sample_file(ebsd_file, **kwargs)["orientations"]
+    second = sample_file(ebsd_file, **kwargs)["orientations"]
+    assert len(first) == 2
+    for member, repeated in zip(first, second):
+        data = Orientations(**member).data
+        assert data.shape == (12, 4)
+        assert np.all(np.isfinite(data))
+        np.testing.assert_allclose(np.linalg.norm(data, axis=1), 1)
+        np.testing.assert_array_equal(member["data"], repeated["data"])
+    assert not np.allclose(first[0]["data"], first[1]["data"])
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "5678")
+    third = sample_file(ebsd_file, sampling_method="optimalSample")["orientations"][0]
+    assert not np.allclose(first[0]["data"], third["data"])
+
+
 @pytest.mark.parametrize("halfwidth", [None, 5.0, 25.0])
 def test_sample_texture_halfwidth(
     ebsd_file: Path, monkeypatch: pytest.MonkeyPatch, halfwidth: float | None
@@ -264,7 +286,8 @@ def test_sample_texture_threads(
 
 
 @pytest.mark.parametrize("file_type", ["CTF", "CRC"])
-def test_sample_texture_schema(file_type: str) -> None:
+@pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
+def test_sample_texture_schema(file_type: str, sampling_method: str) -> None:
     template = mf.WorkflowTemplate.from_YAML_string(
         "name: sample_texture_python\n"
         "tasks:\n"
@@ -274,6 +297,7 @@ def test_sample_texture_schema(file_type: str) -> None:
         "      specimen_symmetry: cubic\n"
         "      EBSD_phase: Al\n"
         "      num_orientations: 12\n"
+        f"      sampling_method: {sampling_method}\n"
     )
     assert template.tasks[0].all_schema_outputs[0].parameter.typ == "orientations"
     schema = mf.task_schemas.get(f"sample_texture_from_{file_type}_file_mtex_python")
@@ -282,6 +306,10 @@ def test_sample_texture_schema(file_type: str) -> None:
         item for item in schema.inputs if item.parameter.typ == "num_orientation_sets"
     )
     assert count_input.default_value.value == 1
+    method_input = next(
+        item for item in schema.inputs if item.parameter.typ == "sampling_method"
+    )
+    assert method_input.default_value.value == "discreteSample"
     action = schema.actions[0]
     assert set(action.script_data_in) == {
         f"inputs.{file_type}_file_path",
@@ -289,6 +317,7 @@ def test_sample_texture_schema(file_type: str) -> None:
         "inputs.EBSD_phase",
         "inputs.num_orientations",
         "inputs.num_orientation_sets",
+        "inputs.sampling_method",
         "inputs.kernel_halfwidth_deg",
         "inputs.EBSD_reference_frame_transformation",
         "inputs.EBSD_rotation",

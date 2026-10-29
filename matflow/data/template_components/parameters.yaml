@@ -204,6 +204,14 @@
     - path: []
       doc: Positive integer number of independently sampled orientation sets.
       condition: { value.is_instance: [int] }
+- type: sampling_method
+  _validation:
+    - path: []
+      doc: MTEX density sampling method; optimalSample optimizes seeded random starting orientations.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [discreteSample, optimalSample]
 - type: num_orientations
   _validation:
     - path: []

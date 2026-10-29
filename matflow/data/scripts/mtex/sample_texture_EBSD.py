@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Literal
 
 import mtex  # type: ignore[import-untyped]
 import numpy as np
@@ -32,14 +33,18 @@ def sample_texture_EBSD(
     CRC_file_path: str | Path | None = None,
     kernel_halfwidth_deg: float = 10.0,
     num_orientation_sets: int = 1,
+    sampling_method: Literal["discreteSample", "optimalSample"] = "discreteSample",
 ) -> dict:
     """Estimate one EBSD density and return a list of independently sampled sets.
 
     The list contains ``num_orientation_sets`` members, even when this is 1.
     Sampling advances a single generator seeded from the run's random seed.
+    ``optimalSample`` optimizes each seeded random sample to better match the density.
     """
     if (CTF_file_path is None) == (CRC_file_path is None):
         raise ValueError("Specify exactly one of CTF_file_path and CRC_file_path.")
+    if sampling_method not in ("discreteSample", "optimalSample"):
+        raise ValueError("sampling_method must be 'discreteSample' or 'optimalSample'.")
     if (
         not isinstance(num_orientations, (int, np.integer))
         or isinstance(num_orientations, bool)
@@ -119,7 +124,11 @@ def sample_texture_EBSD(
 
     orientation_sets = []
     for _ in range(num_orientation_sets):
+        # always use discreteSample first, to ensure the RNG is used (otherwise we'd get
+        # the same orientations for each set):
         sampled = mtex.discreteSample(density, num_orientations, rng=rng)
+        if sampling_method == "optimalSample":
+            sampled = mtex.optimalSample(density, sampled)
         # MTEX maps crystal to specimen; MatFlow stores the inverse quaternion.
         data = np.array(sampled.data, dtype=float, copy=True).reshape(num_orientations, 4)
         data[:, 1:] *= -1

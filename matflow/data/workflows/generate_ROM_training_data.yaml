@@ -93,6 +93,7 @@ tasks:
       specimen_symmetry: "1"
       EBSD_phase: Al
       EBSD_rotation: null
+      sampling_method: optimalSample
       num_orientations: 1000
       num_orientation_sets: <<input:num_simulations>>
 
