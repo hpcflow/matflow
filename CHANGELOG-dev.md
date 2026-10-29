@@ -1,4 +1,31 @@
 
+<a name="v0.5.0a4"></a>
+## [v0.5.0a4](https://github.com/hpcflow/matflow/compare/v0.5.0a3...v0.5.0a4) - 2026.10.29
+
+### ✨ Features
+
+* support optimalSample sampling methods in MTEX EBSD texture sampling
+* add random_exponential load case
+* bump hpcflow version to 0.4.0a8
+* bump hpcflow version to 0.4.0a7
+* add test task schema for generating multiple load cases to be used with new SchemaOutput.multiplicity arg
+
+### 🐛 Bug Fixes
+
+* tests
+* use resource_value random seed by default in random_exponential load case
+* load case test
+* use demo-data for posterior.txt
+* update training workflow
+* tweaks
+* TODOs in generate_ROM_training_data.yaml
+* tweaks
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a3"></a>
 ## [v0.5.0a3](https://github.com/hpcflow/matflow/compare/v0.5.0a2...v0.5.0a3) - 2026.10.29
 
