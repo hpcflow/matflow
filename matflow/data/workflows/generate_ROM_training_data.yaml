@@ -1,0 +1,194 @@
+doc:
+  - >
+    Generate crystal plasticity training data for training a reduced order model. For 
+    each load case, multiple microstructures (grain morphologies using Dream3D via a 
+    specified grain size distribution, and orientations sampled from EBSD data via a 
+    CTF file using MTEX) are simulated.
+
+    Key outputs:
+      - volume-averaged Cauchy stress per time increment
+      - deformation gradient per time increment
+
+    The following variables are available for specification on the command line:
+      - num_load_cases: number of load cases to consider
+      - num_microstructures_per_load_case: number of microstructures to simulate for each load case.
+
+    Example submission: 
+      `matflow go demo-workflow generate_ROM_training_data --var num_load_cases 100 --var num_microstructures_per_load_case 5`
+
+    Recommended resources: as specified, use a resources `any` scope for 
+    the DAMASK task, such that all actions (pre-/post-processing and the simulation 
+    itself) run in a single jobscript. Otherwise, a large number of simulation files
+    may exist on disk concurrently.
+
+    This workflow will typically submit three jobscripts (on scheduled systems):
+      1. Non-array job to sample orientations and then generate load cases
+      2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure
+         generation
+      3. Array-job (of maximum size `max_array_size`) to run the DAMASK task
+
+    Once the workflow has finished, zip the workflow or consolidate the array outputs
+    for best read performance: 
+      `matflow zip /path/to/workflow`
+      `matflow workflow /path/to/workflow consolidate-array-outputs`
+
+    In a Python, load array outputs like this:
+
+    ```py
+    wk = mf.Workflow("/path/to/workflow.zip")
+    arr_out = wk.get_array_outputs("VE_response.phase_data.vol_avg_def_grad.data")
+    arr_out.data # numpy array of shape (num_simulations, num_load_increments, 3, 3)
+    ```
+
+    From the CLI, export array outputs to Numpy .npy files like this:
+
+    ```bash
+    matflow workflow /path/to/workflow.zip export-array-output VE_response.phase_data.vol_avg_def_grad.data vol_avg_def_grad.npy
+    ```
+
+    TODO: update CTF/CRC file!
+    TODO: update material_parameters/phase label etc
+    TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
+
+name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
+
+inputs:
+  grid_size: [8, 8, 8]
+  num_cores_DAMASK: 1
+  time_texture: 5 # minutes to sample *all* orientations (may take ~1hr for 25_000)
+  time_load: 10 # minutes to generate *all* load cases
+  time_DAMASK: 10 # minutes per single DAMASK simulation
+  time_Dream3D: 5 # minutes per single Dream3D invocation
+  material_parameters: <<demo_data_file:posterior.txt>>
+  max_array_size: 1000 # maximum concurrency
+  slurm_partition: ukaea-icl
+
+  # specify these in the submission command (e.g. `--var num_load_cases 100`):
+  num_load_cases: <<var:num_load_cases[default=3]>>
+  num_microstructures_per_load_case: <<var:num_microstructures_per_load_case[default=2]>>
+
+  # calculated inputs; do not change:
+  num_simulations: <<calc(<<input:num_load_cases>> * <<input:num_microstructures_per_load_case>>)>>
+  num_stacked_elements: <<calc(<<input:num_simulations>> // <<input:max_array_size>> + 1)>>
+  time_DAMASK_all: <<calc(<<input:time_DAMASK>> * <<input:num_stacked_elements>>)>>
+  time_Dream3D_all: <<calc(<<input:time_Dream3D>> * <<input:num_stacked_elements>>)>>
+
+resources:
+  any:
+    max_array_size: <<input:max_array_size>>
+    scheduler_args:
+      directives:
+        --partition: <<input:slurm_partition>>
+
+tasks:
+  - schema: sample_texture_from_CTF_file_mtex_python
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
+    inputs:
+      CTF_file_path: <<demo_data_file:texture_Al.ctf>>
+      EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
+      specimen_symmetry: "1"
+      EBSD_phase: Al
+      EBSD_rotation: null
+      sampling_method: optimalSample
+      num_orientations: 1000
+      num_orientation_sets: <<input:num_simulations>>
+
+  - schema: generate_load_cases_random_exponential
+    inputs:
+      total_time: 100
+      num_steps: 100
+      num_increments: 1 # per load step
+      conserve_volume: true
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
+
+  - schema: generate_volume_element_from_statistics
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<input:time_Dream3D_all>>
+    save_files: false # disable saving Dream3D XDMF and HDF5 files
+    inputs:
+      grid_size: <<input:grid_size>>
+      size: [1, 1, 1]
+      phase_statistics:
+        - type: primary
+          name: Al
+          crystal_structure: cubic
+          volume_fraction: 1.00 # `volume_fraction` for all phases must sum to 1!
+          size_distribution:
+            ESD_mean: 0.5 # 0.12 # Specify either `ESD_mean` or `ESD_log_mean`
+            ESD_log_stddev: 0.05
+            num_bins: 10 # Specify either `num_bins` or `bin_step_size
+
+  - schema: simulate_VE_loading_damask
+    resources:
+      any:
+        num_cores: <<input:num_cores_DAMASK>>
+        scheduler_args:
+          directives:
+            --time: <<input:time_DAMASK_all>>
+    repeats:
+      number: <<input:num_microstructures_per_load_case>>
+      nesting_order: 2
+    nesting_order:
+      inputs.load_case: 1
+      inputs.volume_element: 2.5
+    multi_path_sequences:
+      - paths:
+          - inputs.damask_phases.Al.mechanical.plastic.a_sl
+          - inputs.damask_phases.Al.mechanical.plastic.xi_0_sl.0
+          - inputs.damask_phases.Al.mechanical.plastic.xi_inf_sl.0
+          - inputs.damask_phases.Al.mechanical.plastic.h_0_sl-sl
+        nesting_order: 2.5
+        values::from_load_txt:
+          file_path: <<input:material_parameters>>
+          num_samples: <<input:num_simulations>>
+    inputs:
+      homogenization:
+        SX:
+          mechanical: { type: "pass" }
+          N_constituents: 1
+      damask_phases:
+        Al:
+          lattice: cF
+          mechanical:
+            output: [F, P, F_e, F_p, L_p, O]
+            elastic:
+              type: Hooke
+              C_11: 106750000000
+              C_12: 60410000000
+              C_44: 28340000000
+            plastic:
+              type: phenopowerlaw
+              N_sl: [12]
+              a_sl: 2.25
+              atol_xi: 1
+              dot_gamma_0_sl: 0.001
+              h_0_sl-sl: 75.0e+6
+              h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
+              n_sl: 20
+              output: [xi_sl]
+              xi_0_sl: [31.0e+6]
+              xi_inf_sl: [63.0e+6]
+      damask_post_processing:
+        - name: add_stress_Cauchy
+          args: { P: P, F: F }
+      VE_response_data:
+        phase_data:
+          - field_name: sigma
+            phase_name: Al
+            out_name: vol_avg_stress
+            transforms: [{ mean_along_axes: 1 }]
+          - field_name: F
+            phase_name: Al
+            out_name: vol_avg_def_grad
+            transforms: [{ mean_along_axes: 1 }]

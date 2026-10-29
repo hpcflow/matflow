@@ -1,6 +1,170 @@
 Task schemas
 ------------
 
+Generating multiple load cases
+==============================
+
+The built-in ``generate_load_cases`` task generates a list of independent uniaxial
+``LoadCase`` objects with identical loading parameters:
+
+.. code-block:: yaml
+
+    name: multiple_load_cases
+    tasks:
+      - schema: generate_load_cases_uniaxial
+        inputs:
+          num_load_cases: 3
+          total_time: 100
+          num_increments: 200
+          direction: x
+          target_def_grad_rate: 1.0e-3
+
+``num_load_cases`` must be a positive integer. The ``load_case`` schema output has
+``multiplicity: "<<input:num_load_cases>>"``, allowing downstream tasks to source
+the individual load cases. With a multiplicity of one, the output remains a
+single-member list, in accordance with the framework's multiplicity semantics.
+
+Sampling EBSD textures with Python MTEX
+======================================
+
+The ``sample_texture_from_CTF_file_mtex_python`` and
+``sample_texture_from_CRC_file_mtex_python`` schemas estimate an orientation density
+from one EBSD phase and sample ``num_orientations`` orientations from it. They require
+the Python edition of MTEX (``mtex>=1.0``) in ``python_env``; MATLAB is not needed.
+The existing ``*_mtex`` schemas still use MATLAB.
+
+.. code-block:: yaml
+
+    tasks:
+      - schema: sample_texture_from_CTF_file_mtex_python
+        inputs:
+          CTF_file_path: C:\data\texture.ctf
+          specimen_symmetry: '1'
+          EBSD_phase: Al
+          num_orientations: 1000
+          num_orientation_sets: 3
+          kernel_halfwidth_deg: 10.0
+
+For CRC data, use ``sample_texture_from_CRC_file_mtex_python`` and
+``CRC_file_path`` instead. The matching ``.cpr`` file must be beside the ``.crc``
+file, with the same stem.
+
+``num_orientation_sets`` defaults to 1 and must be a positive integer. The density
+is estimated once, then independently sampled for each set using the run's seeded
+random generator. Each set contains ``num_orientations`` orientations.
+The ``orientations`` output has multiplicity ``<<input:num_orientation_sets>>``:
+its value is a list of orientation sets, including when the count is 1.
+Downstream tasks sourcing ``orientations`` receive individual sets.
+
+All inputs and the ``orientations`` output are passed directly to/from the script,
+without JSON/HDF5 handoff files. There is no ``execution_mode`` input.
+Sampling uses ``MATFLOW_RUN_RANDOM_SEED`` for reproducibility within Python MTEX;
+samples are not expected to match MATLAB bit for bit. ``kernel_halfwidth_deg``
+sets the density-estimation kernel halfwidth in degrees and defaults to ``10.0``,
+preserving the previous smoothing choice. It must be finite, greater than zero,
+and at most 180 degrees. The halfwidth is passed explicitly to MTEX, so it no
+longer warns about selecting a default for correlated EBSD pixels.
+
+``EBSD_reference_frame_transformation`` defaults to ``euler_to_spatial`` (also
+accepted as ``convertEuler2SpatialReferenceFrame``), using the reader's Oxford
+Euler correction. ``spatial_to_euler`` (or
+``convertSpatial2EulerReferenceFrame``) leaves the Euler angles unchanged, as does
+a null transformation: spatial coordinates are not part of this task's output.
+The distinction matters because passing ``None`` as the reader's correction asks
+MTEX to apply its default Oxford correction, while an explicit identity rotation
+leaves the file's Euler angles unchanged.
+
+``EBSD_rotation`` optionally applies a rigid map rotation specified by three
+``euler_angles_deg``. By default, both map positions and orientations are rotated.
+``keep_XY: true`` keeps map positions fixed and rotates orientations;
+``keep_euler: true`` keeps orientations fixed and rotates map positions. The flags
+cannot both be true. Since this task samples only orientations, ``keep_euler: true``
+does not change the sampled texture.
+
+The returned orientations use scalar-first inverse MTEX quaternions and the
+crystal frame's unit-cell alignment. A frame whose Cartesian axes cannot all be
+described by MatFlow lattice directions is rejected explicitly.
+
+MATLAB MTEX compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``sample_texture_from_CTF_file_mtex`` and
+``sample_texture_from_CRC_file_mtex`` schemas accept the same sampling inputs,
+including ``kernel_halfwidth_deg`` with the same default and valid range,
+reference-frame aliases, and rotation flags. ``spatial_to_euler`` (or
+``convertSpatial2EulerReferenceFrame``) leaves Euler angles unchanged in both
+implementations; ``euler_to_spatial`` applies the Oxford correction. They retain
+JSON input/HDF5 output and the ``script``, ``compile``, and ``precompiled``
+execution modes. Their output continues to use scalar-first inverse MTEX
+quaternions and crystal alignment. Both implementations use the run's random
+seed, but do not produce identical samples.
+
+The MATLAB schemas sample one orientation set per task. ``num_orientation_sets``
+is currently supported only by the Python MTEX schemas.
+
+Both implementations read ``MATFLOW_RUN_NUM_THREADS`` from the run's
+``num_threads`` resource (default 1). Python sets MTEX's ``threads`` preference;
+MATLAB sets its computational thread limit using ``maxNumCompThreads``. MATLAB
+MTEX's separate NFFT/MEX libraries may have their own threading limits.
+
+Use ``execution_mode: script`` or recompile with ``execution_mode: compile`` to
+use the updated MATLAB behavior. Existing precompiled executables must be rebuilt
+from the updated scripts; changing the schema does not update those binaries.
+
+Plotting orientations with Python MTEX
+=====================================
+
+The ``visualise_orientations_pole_figure_mtex_python`` and
+``visualise_orientations_inverse_pole_figure_mtex_python`` schemas are Python
+alternatives to the corresponding MATLAB ``*_mtex`` schemas. They require Python
+MTEX (``mtex>=1.0``) in ``python_env`` and pass inputs directly to the script,
+without JSON/HDF5 handoff files or an ``execution_mode`` input.
+
+For example, append these tasks after an orientation-sampling task:
+
+.. code-block:: yaml
+
+    - schema: visualise_orientations_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        pole_figure_directions: [[0, 0, 1], [1, 0, 1], [1, 1, 1]]
+        use_contours: false
+        IPF_reference_direction: z
+
+    - schema: visualise_orientations_inverse_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        IPF_reference_directions: [x, y, z]
+        use_contours: true
+
+Each task consumes a single ``orientations`` value. When a sampling task produces
+multiple orientation sets, output multiplicity creates one plotting element per
+set automatically.
+
+Both quaternion component orders are supported. MatFlow's inverse quaternions
+are converted back to MTEX's crystal-to-specimen convention, with the input
+unit-cell alignment preserved. Euler-angle inputs are not supported and raise
+an explicit error. As in the MATLAB tasks, the crystal frame is constructed from
+``crystal_symmetry`` and the alignment, using MTEX's default lattice parameters.
+
+``use_contours: false`` draws scatter plots; pole-figure markers use IPF colours
+for ``IPF_reference_direction`` (x, y or z, default z). Inverse-pole-figure markers
+are uncoloured, as in the MATLAB task, with one panel per
+``IPF_reference_directions`` entry (default ``[z]``). Both scatter tasks also save
+an IPF colour key. ``use_contours: true`` instead draws filled density contours
+and colourbars, without a colour-key image. For pole figures,
+``colourbar_limits`` optionally supplies two finite, increasing values, and
+``use_one_colourbar: true`` uses a shared colour scale and a single bar. These
+colourbar options apply only to contour plots.
+
+The files are saved as ``pole_figure.png`` or ``inverse_pole_figure.png`` and,
+for scatter plots, ``IPF_key.png``. The existing file labels
+``mtex_pole_figures``, ``mtex_inverse_pole_figures`` and ``mtex_IPF_key`` are
+retained, so the images are saved as workflow artifacts just as for MATLAB.
+Rendering is headless, uses x pointing east, and closes its figures after saving.
+``MATFLOW_RUN_NUM_THREADS`` controls MTEX's thread preference, as for Python
+texture sampling. Figure styling and density contours may differ from MATLAB.
+
 Action command strings
 ======================
 

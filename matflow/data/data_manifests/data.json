@@ -46,5 +46,8 @@
     },
     "Zr_cooling_data": {
         "zip_file": "Zr_cooling_data.zip"
-    }
+    },
+    "posterior.txt": {
+        "zip_file": "posterior.zip"
+    }    
 }

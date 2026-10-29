@@ -204,7 +204,10 @@
           environment: damask_parse_env
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a CTF file.
+  doc: >
+    Sample an orientation density estimated from a CTF file using MATLAB MTEX.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CTF_file
   implementation: mtex
   inputs:
@@ -215,6 +218,8 @@
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
@@ -279,7 +284,11 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a channel reconstruction file.
+  doc: >
+    Sample an orientation density estimated from a CRC file using MATLAB MTEX.
+    A CPR file with the same stem must be beside the CRC file.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CRC_file
   implementation: mtex
   inputs:
@@ -290,6 +299,8 @@
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
@@ -352,6 +363,77 @@
         - path: inputs.execution_mode
           condition:
             value.equal_to: precompiled
+
+- objective: sample_texture
+  doc: >
+    Sample a density estimated from a CTF file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CTF_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CTF_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: 1
+    - parameter: sampling_method
+      default_value: discreteSample
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: <<input:num_orientation_sets>>
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: sample_texture
+  doc: >
+    Sample a density estimated from a CRC file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
+    A CPR file with the same stem must be beside the CRC file.
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CRC_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CRC_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: 1
+    - parameter: sampling_method
+      default_value: discreteSample
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: <<input:num_orientation_sets>>
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
 
 - objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
@@ -647,6 +729,53 @@
           condition:
             value.equal_to: precompiled
 
+- objective: visualise_orientations
+  doc: Plot pole figures with Python MTEX using direct orientation inputs.
+  method: pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: pole_figure_directions
+    - parameter: use_contours
+    - parameter: IPF_reference_direction
+      default_value: z
+    - parameter: colourbar_limits
+      default_value: null
+    - parameter: use_one_colourbar
+      default_value: false
+  save_files: [mtex_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_pole_figures, mtex_IPF_key]
+
+- objective: visualise_orientations
+  doc: Plot inverse pole figures with Python MTEX using direct orientation inputs.
+  method: inverse_pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: IPF_reference_directions
+      default_value: ["z"]
+    - parameter: use_contours
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+
 - objective: visualise_multi_orientations
   # Note: this should be made redundant by some sort of built-in hpcflow functionality to
   # source from a group (with some rules about how the parameters are merged?).
@@ -733,6 +862,93 @@
   doc: Pseudo-task for defining a load case as a literal value in the workflow.
   inputs:
     - parameter: load_case
+
+- objective: generate_load_case
+  doc: Generate a uniaxial load case.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+  actions:
+    - script: <<script:generate_load_case.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_load_cases
+  doc: Generate a list of independent, identical uniaxial load cases.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: num_load_cases
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+      multiplicity: <<input:num_load_cases>>
+  actions:
+    - script: <<script:generate_load_cases.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_load_cases
+  doc: Generate monotonic random exponential deformation-gradient load cases.
+  method: random_exponential
+  inputs:
+    - parameter: num_load_cases
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_steps
+      default_value: 100
+    - parameter: num_increments
+      default_value: 1
+    - parameter: conserve_volume
+      default_value: true
+    - parameter: seed
+      default_value: resource_value
+    - parameter: max_tries
+      default_value: null
+    - parameter: k_range
+      default_value: [0, 0.1]
+    - parameter: delta_f_range
+      default_value: [-0.1, 0.1]
+  outputs:
+    - parameter: load_case
+      multiplicity: <<input:num_load_cases>>
+    - parameter: monotonicity
+  actions:
+    - script: <<script:generate_load_cases_random_exponential.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
 
 - objective: define_orientations
   inputs:
