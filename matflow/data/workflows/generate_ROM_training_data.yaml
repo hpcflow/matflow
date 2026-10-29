@@ -47,10 +47,8 @@ doc:
     ```
 
     TODO: update CTF/CRC file!
-    TODO: update load case task!
     TODO: update material_parameters/phase label etc
     TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
-    TODO: check random seeds
 
 name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
 
@@ -103,7 +101,7 @@ tasks:
       total_time: 100
       num_steps: 100
       num_increments: 1 # per load step
-      conserve_volume: true            
+      conserve_volume: true
     resources:
       any:
         scheduler_args:

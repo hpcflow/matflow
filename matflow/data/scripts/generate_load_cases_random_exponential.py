@@ -1,4 +1,6 @@
 from __future__ import annotations
+import os
+from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -12,7 +14,7 @@ def generate_load_cases_random_exponential(
     num_steps: int,
     num_increments: int = 1,
     conserve_volume: bool = True,
-    seed: int | None = None,
+    seed: int | None | Literal["resource_value"] = "resource_value",
     max_tries: int | None = None,
     k_range: ArrayLike = (0, 0.1),
     delta_f_range: ArrayLike = (-0.1, 0.1),
@@ -66,6 +68,12 @@ def generate_load_cases_random_exponential(
         attempts), between 0 and 1.
     """
 
+    if seed == "resource_value":
+        seed = int(os.environ["MATFLOW_RUN_RANDOM_SEED"])
+    else:
+        seed = seed
+    rng = np.random.default_rng(seed)
+
     for name, value in (
         ("num_load_cases", num_load_cases),
         ("num_steps", num_steps),
@@ -100,7 +108,6 @@ def generate_load_cases_random_exponential(
     if ranges["k_range"][0] < 0:
         raise ValueError("k_range bounds must be non-negative.")
 
-    rng = np.random.default_rng(seed)
     times = np.linspace(0, total_time, num_steps + 1)
     load_cases: list[LoadCase] = []
     for num_tries in range(1, max_tries + 1):

@@ -923,7 +923,7 @@
     - parameter: conserve_volume
       default_value: true
     - parameter: seed
-      default_value: null
+      default_value: resource_value
     - parameter: max_tries
       default_value: null
     - parameter: k_range
