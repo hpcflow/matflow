@@ -9,3 +9,5 @@ Jupyter notebooks
    fit_single_crystal_parameters.ipynb
 
    tension_DAMASK_Al.ipynb
+
+   tension_DAMASK_Al_rvalues.ipynb
