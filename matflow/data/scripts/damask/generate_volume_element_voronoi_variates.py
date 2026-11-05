@@ -149,7 +149,7 @@ def generate_volume_element_voronoi_variates(
         "size": grid_obj.size.astype(float).tolist(),
         "grid_size": grid_obj.cells.tolist(),
         "orientations": oris,
-        "element_material_idx": grid_obj.material,
+        "element_material_idx": grid_obj.material.astype(np.int32, copy=False),
         "constituent_material_idx": np.arange(num_grains),
         "constituent_material_fraction": np.ones(num_grains),
         "constituent_phase_label": const_phase_lab,
