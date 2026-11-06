@@ -135,3 +135,17 @@ jobs:
         with:
           name: pytest-temp
           path: /tmp/pytest-of-*
+          retention-days: 1
+
+  cleanup-cache:
+    needs: [cache-app-data, test-demo-workflows]
+    if: always()
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete prepared app-data cache
+        uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118 # v6.0.0
+        with:
+          name: matflow-demo-app-data-cache
+          failOnError: false
