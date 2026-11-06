@@ -30,21 +30,21 @@ def ebsd_file(tmp_path: Path, request: pytest.FixtureRequest) -> Path:
         path = tmp_path / "texture.ctf"
         header = (
             "Channel Text File\n"
-            "XCells\t4\nYCells\t1\nXStep\t1\nYStep\t1\n"
+            "XCells\t2\nYCells\t2\nXStep\t1\nYStep\t1\n"
             "Phases\t2\n"
             "4;4;4\t90;90;90\tAl\t11\t225\n"
             "3;3;5\t90;90;120\tMg\t9\t194\n"
-            "Phase\tX\tY\tEuler1\tEuler2\tEuler3\tBC\n"
+            "Phase\tX\tY\tBands\tError\tEuler1\tEuler2\tEuler3\tMAD\tBC\tBS\n"
         )
         rows = [
-            "\t".join(str(v) for v in [phase, i, 0, *euler, 100])
+            "\t".join(str(v) for v in [phase, i % 2, i // 2, 8, 0, *euler, 0.1, 100, 100])
             for i, (phase, euler) in enumerate(zip(phases, angles))
         ]
         path.write_text(header + "\n".join(rows) + "\n", encoding="utf-8", newline="\n")
     else:
         path = tmp_path / "texture.crc"
         header = (
-            "[Job]\nXCells=4\nYCells=1\nGridDistX=1\nGridDistY=1\n"
+            "[Job]\nXCells=2\nYCells=2\nGridDistX=1\nGridDistY=1\n"
             "[Fields]\nCount=3\nField1=3\nField2=4\nField3=5\n"
             "[Phases]\nCount=2\n"
             "[Phase1]\nStructureName=Al\nLaueGroup=11\n"
@@ -298,6 +298,8 @@ def test_sample_texture_schema(file_type: str, sampling_method: str) -> None:
         "      EBSD_phase: Al\n"
         "      num_orientations: 12\n"
         f"      sampling_method: {sampling_method}\n"
+        "      EBSD_euler_correction:\n"
+        "        euler_angles_deg: [0, 180, 0]\n"
     )
     assert template.tasks[0].all_schema_outputs[0].parameter.typ == "orientations"
     schema = mf.task_schemas.get(f"sample_texture_from_{file_type}_file_mtex_python")
@@ -321,9 +323,105 @@ def test_sample_texture_schema(file_type: str, sampling_method: str) -> None:
         "inputs.kernel_halfwidth_deg",
         "inputs.EBSD_reference_frame_transformation",
         "inputs.EBSD_rotation",
+        "inputs.EBSD_euler_correction",
     }
     assert all(value["format"] == "direct" for value in action.script_data_in.values())
     assert action.script_data_out == {"outputs.orientations": {"format": "direct"}}
+
+
+@pytest.mark.parametrize("angles", [[0, 0, 0], [0, 180, 0], [90, 180, 270], [15, 25, 35]])
+@pytest.mark.parametrize("transform", ["euler_to_spatial", None, "spatial_to_euler"])
+def test_explicit_import_correction(ebsd_file, monkeypatch, angles, transform):
+    """The same physical correction wins over every legacy selection, before map rotation."""
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
+    raw = mtex.rotation.byEuler(
+        np.array([10, 70]) * mtex.degree,
+        np.array([20, 80]) * mtex.degree,
+        np.array([30, 90]) * mtex.degree,
+    )
+    correction = mtex.rotation.byEuler(*(np.array(angles) * mtex.degree))
+    after = mtex.rotation.byEuler(*(np.array([17, 29, 41]) * mtex.degree))
+    with patch.object(mtex, "calcDensity", side_effect=lambda source, halfwidth: source):
+        with patch.object(
+            mtex, "discreteSample", side_effect=lambda source, n, rng: source
+        ):
+            result = sample_file(
+                ebsd_file,
+                num_orientations=2,
+                EBSD_reference_frame_transformation=transform,
+                EBSD_euler_correction={"euler_angles_deg": angles},
+                EBSD_rotation={"euler_angles_deg": [17, 29, 41], "keep_XY": True},
+            )
+    actual = result["orientations"][0]["data"]
+    expected = (after * correction * raw).inv().data
+    # q and -q describe the same rotation.
+    np.testing.assert_allclose(np.abs(np.sum(actual * expected, axis=1)), 1, atol=1e-7)
+
+
+@pytest.mark.parametrize(
+    "correction",
+    [
+        {},
+        {"euler_angles_deg": [1, 2]},
+        {"euler_angles_deg": [1, 2, np.nan]},
+        {"euler_angles_deg": "invalid"},
+        "invalid",
+    ],
+)
+def test_invalid_import_correction(ebsd_file, correction):
+    with pytest.raises(ValueError, match="EBSD_euler_correction.*three finite angles"):
+        sample_file(ebsd_file, EBSD_euler_correction=correction)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("angles", [[0, 0, 0], [0, 180, 0], [90, 180, 270]])
+def test_matlab_explicit_import_correction(ebsd_file, tmp_path, angles):
+    """A narrow sampled texture must remain near independently corrected source rotations."""
+    import yaml
+
+    file_type = ebsd_file.suffix[1:].upper()
+    inputs = {
+        f"{file_type}_file_path": str(ebsd_file),
+        "specimen_symmetry": "1",
+        "EBSD_phase": "Al",
+        "num_orientations": 64,
+        "kernel_halfwidth_deg": 2.0,
+        "EBSD_euler_correction": {"euler_angles_deg": angles},
+        "EBSD_rotation": {"euler_angles_deg": [17, 29, 41], "keep_XY": True},
+    }
+    template = mf.WorkflowTemplate.from_YAML_string(
+        yaml.safe_dump(
+            {
+                "name": "matlab_import_correction",
+                "resources": {"any": {"random_seed": 1234, "num_threads": 1}},
+                "tasks": [
+                    {
+                        "schema": f"sample_texture_from_{file_type}_file_mtex",
+                        "inputs": inputs,
+                    }
+                ],
+            }
+        )
+    )
+    workflow = mf.Workflow.from_template(template, path=tmp_path)
+    workflow.submit(wait=True, add_to_known=False)
+    reopened = mf.Workflow(workflow.path)
+    assert all(run.status.name == "success" for run in reopened.get_all_EARs())
+    value = reopened.tasks[0].elements[0].outputs.orientations.value
+    actual = value.data.copy()
+    actual[:, 1:] *= -1
+    cs = mtex.crystalFrame("cubic")
+    actual = mtex.orientation(actual, cs, mtex.specimenFrame("1"))
+    source = mtex.rotation.byEuler(
+        np.array([10, 70]) * mtex.degree,
+        np.array([20, 80]) * mtex.degree,
+        np.array([30, 90]) * mtex.degree,
+    )
+    correction = mtex.rotation.byEuler(*(np.asarray(angles) * mtex.degree))
+    after = mtex.rotation.byEuler(*(np.array([17, 29, 41]) * mtex.degree))
+    expected = mtex.orientation((after * correction * source).data, cs, actual.SS)
+    distances = np.minimum(actual.angle(expected[0]), actual.angle(expected[1]))
+    assert np.max(distances) < 15 * mtex.degree
 
 
 @pytest.mark.integration

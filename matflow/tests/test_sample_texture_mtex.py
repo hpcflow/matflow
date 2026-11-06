@@ -38,6 +38,7 @@ def test_sample_texture_matlab_schema(
     assert defaults["execution_mode"] == "script"
     assert defaults["EBSD_reference_frame_transformation"] == "euler_to_spatial"
     assert defaults["EBSD_rotation"] is None
+    assert defaults["EBSD_euler_correction"] is None
 
     expected_inputs = {f"inputs.{name}": {"format": "json"} for name in inputs}
     expected_outputs = {"outputs.orientations": {"format": "hdf5"}}

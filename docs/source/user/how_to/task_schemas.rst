@@ -65,6 +65,22 @@ preserving the previous smoothing choice. It must be finite, greater than zero,
 and at most 180 degrees. The halfwidth is passed explicitly to MTEX, so it no
 longer warns about selecting a default for correlated EBSD pixels.
 
+Use ``EBSD_euler_correction`` to specify the import correction explicitly, using
+three Bunge Euler angles in degrees. It maps the file's Euler-angle frame into
+the map frame and takes precedence over ``EBSD_reference_frame_transformation``.
+For example, to apply a 180-degree rotation about x in either implementation:
+
+.. code-block:: yaml
+
+    EBSD_euler_correction:
+      euler_angles_deg: [0, 180, 0]
+
+``[90, 180, 270]`` specifies a 180-degree rotation about y; ``[0, 0, 0]``
+explicitly disables correction. A null ``EBSD_euler_correction`` retains the
+legacy selection below. This correction happens before ``EBSD_rotation``.
+Choose it from knowledge of the acquisition and specimen reference frames;
+agreement between two libraries alone does not establish physical correctness.
+
 ``EBSD_reference_frame_transformation`` defaults to ``euler_to_spatial`` (also
 accepted as ``convertEuler2SpatialReferenceFrame``), using the reader's Oxford
 Euler correction. ``spatial_to_euler`` (or
@@ -73,6 +89,11 @@ a null transformation: spatial coordinates are not part of this task's output.
 The distinction matters because passing ``None`` as the reader's correction asks
 MTEX to apply its default Oxford correction, while an explicit identity rotation
 leaves the file's Euler angles unchanged.
+This legacy selection depends on the installed MTEX version: MATLAB MTEX 6.1.1
+uses an x-axis half-turn, whereas MATLAB 7.2 and Python MTEX 1.0 use a y-axis
+half-turn for untilted Oxford inputs. Library defaults may also interpret
+acquisition metadata differently. Use an explicit correction for reproducible
+frame alignment across implementations and versions.
 
 ``EBSD_rotation`` optionally applies a rigid map rotation specified by three
 ``euler_angles_deg``. By default, both map positions and orientations are rotated.
@@ -91,7 +112,10 @@ MATLAB MTEX compatibility
 The ``sample_texture_from_CTF_file_mtex`` and
 ``sample_texture_from_CRC_file_mtex`` schemas accept the same sampling inputs,
 including ``kernel_halfwidth_deg`` with the same default and valid range,
-reference-frame aliases, and rotation flags. ``spatial_to_euler`` (or
+reference-frame aliases, explicit ``EBSD_euler_correction``, and rotation flags.
+Explicit corrections work with both MATLAB MTEX 6.1.1 and 7.2; older readers
+apply the rotation after import, while newer readers receive ``EulerCorrection``.
+``spatial_to_euler`` (or
 ``convertSpatial2EulerReferenceFrame``) leaves Euler angles unchanged in both
 implementations; ``euler_to_spatial`` applies the Oxford correction. They retain
 JSON input/HDF5 output and the ``script``, ``compile``, and ``precompiled``
