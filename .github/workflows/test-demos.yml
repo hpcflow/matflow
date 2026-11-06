@@ -12,7 +12,49 @@ on:
     branches: [main, develop]
 
 jobs:
+  cache-app-data:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up poetry
+        uses: hpcflow/github-support/setup-poetry@main
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Cache dependencies
+        uses: hpcflow/github-support/init-cache@main
+        with:
+          name: test-demos
+          version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --without dev,pyinstaller
+
+      - name: Cache all app data and programs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: poetry run matflow manage cache-all
+
+      - name: Upload prepared app data
+        uses: actions/upload-artifact@v6
+        with:
+          name: matflow-demo-app-data-cache
+          path: ~/.cache/matflow
+          retention-days: 1
+
   test-demo-workflows:
+    needs: cache-app-data
     permissions:
       # No write permission
       contents: read
@@ -43,6 +85,19 @@ jobs:
         run: |
           poetry install --without dev,pyinstaller
 
+      - name: Download prepared app data
+        uses: actions/download-artifact@v6
+        with:
+          name: matflow-demo-app-data-cache
+          path: matflow-demo-app-data-cache
+
+      - name: Install cached app data and programs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          poetry run matflow data install-cache matflow-demo-app-data-cache/data
+          poetry run matflow program install-cache matflow-demo-app-data-cache/programs
+
       - name: Store user and group IDs
         run: |
           echo "UID=$(id -u)" >> $GITHUB_ENV
@@ -50,7 +105,14 @@ jobs:
 
       - name: Install necessary pip packages
         run: |
-          poetry run pip install damask-parse
+          poetry run pip install damask-parse "mtex[plot,io]"
+
+      - name: Run Python MTEX integration tests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUNBUFFERED: ok
+        run: |
+          poetry run matflow test --file test_sample_texture_mtex_python.py --file test_plot_orientations_mtex_python.py --integration --configure-python-env
 
       - name: Install necessary MatFlow environments
         id: configure_envs

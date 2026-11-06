@@ -375,7 +375,9 @@ def test_invalid_import_correction(ebsd_file, correction):
 
 @pytest.mark.integration
 @pytest.mark.parametrize("angles", [[0, 0, 0], [0, 180, 0], [90, 180, 270]])
-def test_matlab_explicit_import_correction(ebsd_file, tmp_path, angles):
+def test_matlab_explicit_import_correction(
+    ebsd_file, tmp_path, angles, require_matlab_env
+):
     """A narrow sampled texture must remain near independently corrected source rotations."""
     import yaml
 

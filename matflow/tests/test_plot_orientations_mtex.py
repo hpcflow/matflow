@@ -11,7 +11,9 @@ import matflow as mf
 
 @pytest.mark.integration
 @pytest.mark.parametrize("method", ["pole_figure", "inverse_pole_figure"])
-def test_matlab_plot_quaternion_component_order(tmp_path: Path, method: str):
+def test_matlab_plot_quaternion_component_order(
+    tmp_path: Path, method: str, require_matlab_env
+):
     q = np.random.default_rng(783).normal(size=(12, 4))
     q /= np.linalg.norm(q, axis=1, keepdims=True)
     tasks = []

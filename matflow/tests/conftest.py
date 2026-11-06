@@ -99,6 +99,17 @@ def isolated_app_config(tmp_path_factory, pytestconfig):
     mf.run_time_info.in_pytest = False
 
 
+@pytest.fixture
+def require_matlab_env(isolated_app_config):
+    """Run MATLAB regressions only when a real script environment was supplied."""
+    if not any(env.name == "matlab_env" for env in mf.envs):
+        pytest.skip(
+            "MATLAB MTEX requires matlab_env; configure it with --with-env-source"
+        )
+    # A configured but invalid/ambiguous environment should still fail visibly.
+    mf.envs.get("matlab_env").executables.get("run_mtex")
+
+
 @pytest.fixture()
 def modifiable_config(tmp_path: Path):
     """Pytest fixture to provide a fresh config which can be safely modified within the
