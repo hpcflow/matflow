@@ -1,4 +1,23 @@
 
+<a name="v0.5.0a6"></a>
+## [v0.5.0a6](https://github.com/hpcflow/matflow/compare/v0.5.0a5...v0.5.0a6) - 2026.11.06
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a15
+* **mtex:** add explicit EBSD corrections and MTEX 7 compatibility
+
+### 🐛 Bug Fixes
+
+* down-cast VE `element_material_idx` from int64 to int32
+* **ci:** clean demo cache and limit pytest artifact retention
+* **ci:** cache demo assets and gate MATLAB regressions
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a5"></a>
 ## [v0.5.0a5](https://github.com/hpcflow/matflow/compare/v0.5.0a4...v0.5.0a5) - 2026.10.29
 
