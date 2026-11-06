@@ -184,6 +184,17 @@
               # https://mtex-toolbox.github.io/EBSDReferenceFrame.html
               - convertEuler2SpatialReferenceFrame
               - convertSpatial2EulerReferenceFrame
+- type: EBSD_euler_correction
+  _validation:
+    - path: []
+      doc: >
+        Explicit import correction from the file Euler frame to the map frame.
+        Bunge euler_angles_deg overrides EBSD_reference_frame_transformation;
+        [0, 0, 0] disables correction, while null retains the legacy selection.
+      condition:
+        and:
+          - value.is_instance: [dict]
+          - key.in: ["euler_angles_deg"]
 - type: EBSD_rotation
   _validation:
     - path: []

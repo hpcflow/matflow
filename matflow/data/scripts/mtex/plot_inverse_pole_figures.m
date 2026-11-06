@@ -30,16 +30,15 @@ function plot_inverse_pole_figures(inputs_HDF5_path, inputs_JSON_path)
     
     data = h5read(inputs_HDF5_path, '/orientations/data');
 
-    % TODO: why?
-    data(2:end, :) = data(2:end, :) * -1;
-
-    quat_data = quaternion(data);
-    
     if strcmp(oriQuatOrder, 'vector-scalar')
-        % Swap to scalar-vector order:
-        quat_data = circshift(quat_data, 1, 2);
+        % Reorder component rows before constructing quaternion objects.
+        data = data([4, 1, 2, 3], :);
     end
-    
+    % MatFlow stores the inverse of MTEX's crystal-to-specimen rotation.
+    data(2:end, :) = -data(2:end, :);
+    % Pass components explicitly: MTEX 7 no longer accepts a single 4-by-N matrix.
+    quat_data = quaternion(data(1,:).', data(2,:).', data(3,:).', data(4,:).');
+
     orientations = orientation(quat_data, crystalSym);
     
     if useContours

@@ -7,6 +7,24 @@ cd .github/workflows
 python generate_workflows.py . vars.jsonc
 ```
 
+## Demo and MTEX tests
+
+`test-demos.yml` is maintained directly. Its `cache-app-data` job prepares data
+and programs with `matflow manage cache-all`, which downloads GitHub repository
+archives instead of making a request for each file. The test job installs the
+prepared artifact before running demos and Python MTEX integration tests.
+
+The Python MTEX checks install `mtex[plot,io]` and use `python_env`. The MATLAB
+regressions require a real MATLAB/MTEX installation and a `matlab_env` providing
+`run_mtex`; they skip when that environment is absent. To run those locally:
+
+```console
+matflow test --file test_sample_texture_mtex_python.py --file test_plot_orientations_mtex.py --integration --configure-python-env --with-env-source matlab-env.yaml -k matlab
+```
+
+The sampling test module also needs Python MTEX to check the MATLAB output.
+A configured but invalid MATLAB environment is treated as an error.
+
 ## Recovering an unpublished stable release
 
 The manually maintained `release-recovery.yml.in` template and its generated

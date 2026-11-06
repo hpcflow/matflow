@@ -23,6 +23,12 @@ class EBSDRotation(TypedDict):
     keep_euler: NotRequired[bool]
 
 
+class EBSDEulerCorrection(TypedDict):
+    """Import rotation from the file's Euler frame to the map frame (Bunge degrees)."""
+
+    euler_angles_deg: ArrayLike
+
+
 def sample_texture_EBSD(
     specimen_symmetry: str,
     EBSD_phase: str,
@@ -34,6 +40,7 @@ def sample_texture_EBSD(
     kernel_halfwidth_deg: float = 10.0,
     num_orientation_sets: int = 1,
     sampling_method: Literal["discreteSample", "optimalSample"] = "discreteSample",
+    EBSD_euler_correction: EBSDEulerCorrection | None = None,
 ) -> dict:
     """Estimate one EBSD density and return a list of independently sampled sets.
 
@@ -65,7 +72,19 @@ def sample_texture_EBSD(
         raise ValueError("kernel_halfwidth_deg must be finite and in (0, 180] degrees.")
 
     transform = EBSD_reference_frame_transformation
-    if transform in ("euler_to_spatial", "convertEuler2SpatialReferenceFrame"):
+    if EBSD_euler_correction is not None:
+        try:
+            angles = np.asarray(EBSD_euler_correction["euler_angles_deg"], dtype=float)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(
+                "EBSD_euler_correction must specify three finite angles in euler_angles_deg."
+            ) from exc
+        if angles.shape != (3,) or not np.all(np.isfinite(angles)):
+            raise ValueError(
+                "EBSD_euler_correction.euler_angles_deg must contain three finite angles."
+            )
+        correction = mtex.rotation.byEuler(*(angles * mtex.degree))
+    elif transform in ("euler_to_spatial", "convertEuler2SpatialReferenceFrame"):
         correction = None
     elif transform in (
         None,

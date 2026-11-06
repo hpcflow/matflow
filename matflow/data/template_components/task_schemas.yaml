@@ -224,6 +224,8 @@
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
       default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
   outputs:
     - parameter: orientations
   disable_array_outputs:
@@ -304,6 +306,8 @@
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
+      default_value: null
+    - parameter: EBSD_euler_correction
       default_value: null
   outputs:
     - parameter: orientations
@@ -386,6 +390,8 @@
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
       default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
   outputs:
     - parameter: orientations
       multiplicity: <<input:num_orientation_sets>>
@@ -421,6 +427,8 @@
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
+      default_value: null
+    - parameter: EBSD_euler_correction
       default_value: null
   outputs:
     - parameter: orientations
