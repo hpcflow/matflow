@@ -12,72 +12,6 @@ doc:
     materials parameter instead generates GrainProperties from the workflow's
     material definitions.
 
-template_components:
-  command_files:
-    - label: open_foam_phase_bool_files
-      name:
-        name: (n\.\d+)
-        is_regex: true
-      doc: >
-        Each file (named according to phase ID) contains a flattened boolean array
-        describing where that phase exists within the volume element.
-    - label: open_foam_grain_properties_file
-      name:
-        name: GrainProperties
-      doc: >
-        A file that contains grain orientations and material properties.
-    - label: open_foam_block_mesh_file
-      name:
-        name: blockMeshDict
-  task_schemas:
-    - objective: simulate_VE_loading
-      implementation: OpenFOAM
-      inputs:
-        - parameter: volume_element
-        - parameter: materials
-          default_value: null
-        - parameter: orientations
-        - parameter: VE_origin
-        - parameter: boundary
-        - parameter: boundary_field
-        - parameter: root_path
-      actions:
-        - environments:
-            - scope:
-                type: processing
-              environment: openfoam_env
-            - scope:
-                type: main
-              environment: openfoam_env
-          input_file_generators:
-            - input_file: open_foam_phase_bool_files
-              from_inputs: [root_path, boundary_field]
-              script: <<script:open_foam/copy_tutorial_phase_fields.py>>
-            - input_file: open_foam_grain_properties_file
-              from_inputs: [volume_element, orientations, materials, root_path]
-              script: <<script:open_foam/write_grain_properties.py>>
-            - input_file: open_foam_block_mesh_file
-              from_inputs: [volume_element, VE_origin, boundary]
-              script: <<script:open_foam/write_block_mesh_file.py>>
-          commands:
-            - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial .
-            - command: rm initial/n.*
-            - command: mv n.* initial/.
-            - command: cp -r initial 0
-            - command: mv GrainProperties constant/.
-            - command: mv blockMeshDict system/.
-            - command: <<executable:blockmesh>> &> blockMesh.log
-            - command: <<executable:decomposepar>> &> decomposePar.log
-            - command: <<executable:crystaldynamicsfoam>> &> crystaldynamicsfoam.log
-            - command: <<executable:reconstructpar>> -newTimes
-
-resources:
-  any:
-    scheduler_args:
-      directives:
-        --time: 00:20:00
-        --partition: serial
-
 tasks:
   - schema: generate_volume_element_from_voronoi
     inputs:
@@ -149,13 +83,6 @@ tasks:
           euler_is_degrees: false
 
   - schema: simulate_VE_loading_OpenFOAM
-    resources:
-      main:
-        scheduler_args:
-          directives:
-            --time: 04:00:00
-            --partition: multicore
-        num_cores: 12
     inputs:
       VE_origin: [-0.05, 0.0, 0.0]
       boundary:

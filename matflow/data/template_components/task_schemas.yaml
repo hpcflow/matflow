@@ -3306,3 +3306,44 @@
         - scope:
             type: any
           environment: damask_parse_env
+
+- objective: simulate_VE_loading
+  implementation: OpenFOAM
+  inputs:
+  - parameter: volume_element
+  - parameter: materials
+    default_value: null
+  - parameter: orientations
+  - parameter: VE_origin
+  - parameter: boundary
+  - parameter: boundary_field
+  - parameter: root_path
+  actions:
+  - environments:
+    - scope:
+        type: processing
+      environment: openfoam_env
+    - scope:
+        type: main
+      environment: openfoam_env
+    input_file_generators:
+    - input_file: open_foam_phase_bool_files
+      from_inputs: [root_path, boundary_field]
+      script: <<script:open_foam/copy_tutorial_phase_fields.py>>
+    - input_file: open_foam_grain_properties_file
+      from_inputs: [volume_element, orientations, materials, root_path]
+      script: <<script:open_foam/write_grain_properties.py>>
+    - input_file: open_foam_block_mesh_file
+      from_inputs: [volume_element, VE_origin, boundary]
+      script: <<script:open_foam/write_block_mesh_file.py>>
+    commands:
+    - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial .
+    - command: rm initial/n.*
+    - command: mv n.* initial/.
+    - command: cp -r initial 0
+    - command: mv GrainProperties constant/.
+    - command: mv blockMeshDict system/.
+    - command: <<executable:blockmesh>> &> blockMesh.log
+    - command: <<executable:decomposepar>> &> decomposePar.log
+    - command: <<executable:crystaldynamicsfoam>> &> crystaldynamicsfoam.log
+    - command: <<executable:reconstructpar>> -newTimes

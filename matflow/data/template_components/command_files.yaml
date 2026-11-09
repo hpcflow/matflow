@@ -113,3 +113,19 @@
   name:
     name: (.*\.dic2d)
     is_regex: true
+
+- label: open_foam_phase_bool_files
+  name:
+    name: (n\.\d+)
+    is_regex: true
+  doc: >
+    Each file (named according to phase ID) contains a flattened boolean array
+    describing where that phase exists within the volume element.
+- label: open_foam_grain_properties_file
+  name:
+    name: GrainProperties
+  doc: >
+    A file that contains grain orientations and material properties.
+- label: open_foam_block_mesh_file
+  name:
+    name: blockMeshDict
