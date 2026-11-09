@@ -170,6 +170,6 @@ tasks:
         - patch_name: Back
           type: zeroGradient
       materials: null
-      root_path: /mnt/iusers01/support/mbexegc2/scratch/projects/lightform/tom_flint_eulerian_cp/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Circle_Squash
+      root_path: root_path: /mnt/eps01-rds/jf01-home01/shared/software/apps/crystaldynamicsFoam/nov2026/src/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Circle_Squash
       peak_velocity: 50.0
       velocity_radius: 0.05e-3
