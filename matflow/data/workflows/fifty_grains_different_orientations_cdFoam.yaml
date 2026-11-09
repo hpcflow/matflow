@@ -186,4 +186,4 @@ tasks:
         - patch_name: frontAndBack
           type: zeroGradient
       materials: null
-      root_path: /mnt/iusers01/support/mbexegc2/scratch/projects/lightform/tom_flint_eulerian_cp/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Fifty_Grain_Cases/Grains_Case_different_orientations
+      root_path: /mnt/eps01-rds/jf01-home01/shared/software/apps/crystaldynamicsFoam/nov2026/src/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Fifty_Grain_Cases/Grains_Case_different_orientations
