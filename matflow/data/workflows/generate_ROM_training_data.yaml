@@ -48,7 +48,6 @@ doc:
 
     TODO: update CTF/CRC file!
     TODO: update material_parameters/phase label etc
-    TODO: validation: check we get similar pole figures with Python and Matlab CTF orientation sampling
 
 name: gen_ROM_data_Nl_<<input:num_load_cases>>_Nm_<<input:num_microstructures_per_load_case>>
 
@@ -61,7 +60,7 @@ inputs:
   time_Dream3D: 5 # minutes per single Dream3D invocation
   material_parameters: <<demo_data_file:posterior.txt>>
   max_array_size: 1000 # maximum concurrency
-  slurm_partition: ukaea-icl
+  slurm_partition: ukaea-spr
 
   # specify these in the submission command (e.g. `--var num_load_cases 100`):
   num_load_cases: <<var:num_load_cases[default=3]>>
@@ -69,7 +68,7 @@ inputs:
 
   # calculated inputs; do not change:
   num_simulations: <<calc(<<input:num_load_cases>> * <<input:num_microstructures_per_load_case>>)>>
-  num_stacked_elements: <<calc(<<input:num_simulations>> // <<input:max_array_size>> + 1)>>
+  num_stacked_elements: <<calc( -(<<input:num_simulations>> // -<<input:max_array_size>>) )>>
   time_DAMASK_all: <<calc(<<input:time_DAMASK>> * <<input:num_stacked_elements>>)>>
   time_Dream3D_all: <<calc(<<input:time_Dream3D>> * <<input:num_stacked_elements>>)>>
 
@@ -99,8 +98,8 @@ tasks:
 
   - schema: generate_load_cases_random_exponential
     inputs:
-      total_time: 100
-      num_steps: 100
+      total_time: 50
+      num_steps: 500
       num_increments: 1 # per load step
       conserve_volume: true
     resources:
@@ -161,7 +160,7 @@ tasks:
         Al:
           lattice: cF
           mechanical:
-            output: [F, P, F_e, F_p, L_p, O]
+            output: [F, P]
             elastic:
               type: Hooke
               C_11: 106750000000
@@ -176,7 +175,7 @@ tasks:
               h_0_sl-sl: 75.0e+6
               h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
               n_sl: 20
-              output: [xi_sl]
+              output: []
               xi_0_sl: [31.0e+6]
               xi_inf_sl: [63.0e+6]
       damask_post_processing:
