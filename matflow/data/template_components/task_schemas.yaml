@@ -3351,7 +3351,7 @@
     - command: cp -r initial 0
     - command: mv GrainProperties constant/.
     - command: mv blockMeshDict system/.
-    - command: <<executable:blockmesh>> &> blockMesh.log
-    - command: <<executable:decomposepar>> &> decomposePar.log
-    - command: <<executable:crystaldynamicsfoam>> &> crystaldynamicsfoam.log
+    - command: <<executable:blockmesh>>
+    - command: <<executable:decomposepar>>
+    - command: <<executable:crystaldynamicsfoam>>
     - command: <<executable:reconstructpar>> -newTimes
