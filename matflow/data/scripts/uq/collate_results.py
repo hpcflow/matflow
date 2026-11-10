@@ -181,7 +181,7 @@ def collate_results(
         level_cov = np.sqrt((1 - level_pf) / (num_samples * level_pf))
     all_level_cov.append(level_cov)
 
-    cov = np.sqrt(sum(np.pow(all_level_cov, 2))).item()
+    cov = np.sqrt(sum(np.power(all_level_cov, 2))).item()
 
     print(
         f"collate_results summary for level index {level_idx}\n"
