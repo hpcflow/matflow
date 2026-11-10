@@ -1,4 +1,16 @@
 
+<a name="v0.5.0a7"></a>
+## [v0.5.0a7](https://github.com/hpcflow/matflow/compare/v0.5.0a6...v0.5.0a7) - 2026.11.10
+
+### 🐛 Bug Fixes
+
+* use `np.power` instead of numpy v2 `np.pow`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a6"></a>
 ## [v0.5.0a6](https://github.com/hpcflow/matflow/compare/v0.5.0a5...v0.5.0a6) - 2026.11.06
 
