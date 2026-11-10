@@ -3318,6 +3318,10 @@
   - parameter: boundary
   - parameter: boundary_field
   - parameter: root_path
+  - parameter: peak_velocity
+    default_value: null
+  - parameter: velocity_radius
+    default_value: null
   actions:
   - environments:
     - scope:
@@ -3336,10 +3340,14 @@
     - input_file: open_foam_block_mesh_file
       from_inputs: [volume_element, VE_origin, boundary]
       script: <<script:open_foam/write_block_mesh_file.py>>
+    - input_file: open_foam_initial_velocity_file
+      from_inputs: [root_path, peak_velocity, velocity_radius]
+      script: <<script:open_foam/modify_initial_velocity.py>>
     commands:
     - command: cp -r <<parameter:root_path>>/system <<parameter:root_path>>/constant <<parameter:root_path>>/initial .
     - command: rm initial/n.*
     - command: mv n.* initial/.
+    - command: mv U initial/.
     - command: cp -r initial 0
     - command: mv GrainProperties constant/.
     - command: mv blockMeshDict system/.
