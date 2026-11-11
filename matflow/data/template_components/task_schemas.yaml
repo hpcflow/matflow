@@ -3355,3 +3355,8 @@
     - command: <<executable:decomposepar>>
     - command: <<executable:crystaldynamicsfoam>>
     - command: <<executable:reconstructpar>> -newTimes
+  save_files:
+  - "path:[0-9]*/**/*"
+  - "path:initial/**/*"
+  - "path:constant/**/*"
+  - "path:system/**/*"
