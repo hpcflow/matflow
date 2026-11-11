@@ -1,5 +1,7 @@
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from unittest.mock import patch
 import warnings
 
@@ -212,6 +214,110 @@ def test_sample_texture_sets(
         assert not np.array_equal(first[0]["data"], member["data"])
     single = sample_file(ebsd_file)["orientations"][0]
     np.testing.assert_array_equal(first[0]["data"], single["data"])
+
+
+@pytest.mark.parametrize("count", [1, 3, np.int8(127)])
+@pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
+def test_sample_texture_progress(
+    ebsd_file: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    count: int | np.integer,
+    sampling_method: Literal["discreteSample", "optimalSample"],
+) -> None:
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
+
+    class FlushTrackingStream(StringIO):
+        flushed_text = ""
+
+        def flush(self) -> None:
+            self.flushed_text = self.getvalue()
+            super().flush()
+
+    stream = FlushTrackingStream()
+    progress_before_sample: list[list[str]] = []
+
+    def progress_lines(text: str) -> list[str]:
+        return [
+            line
+            for line in text.splitlines()
+            if line.startswith("Sampling orientation sets:")
+        ]
+
+    def discrete_sample(source: Any, n: int, rng: np.random.Generator) -> Any:
+        progress_before_sample.append(progress_lines(stream.flushed_text))
+        return source
+
+    with (
+        redirect_stdout(stream),
+        patch.object(mtex, "calcDensity", side_effect=lambda source, halfwidth: source),
+        patch.object(mtex, "discreteSample", side_effect=discrete_sample),
+        patch.object(
+            mtex, "optimalSample", side_effect=lambda density, sampled: sampled
+        ) as optimize,
+    ):
+        result = sample_file(
+            ebsd_file,
+            num_orientations=2,
+            num_orientation_sets=count,
+            sampling_method=sampling_method,
+        )
+
+    assert len(result["orientations"]) == count
+    assert optimize.call_count == (count if sampling_method == "optimalSample" else 0)
+    expected_progress = [
+        f"Sampling orientation sets: {index}/{count} complete"
+        for index in range(int(count) + 1)
+    ]
+    assert progress_before_sample == [
+        expected_progress[: index + 1] for index in range(int(count))
+    ]
+    assert progress_lines(stream.flushed_text) == expected_progress
+
+
+@pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
+def test_sample_texture_progress_on_failure(
+    ebsd_file: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    sampling_method: Literal["discreteSample", "optimalSample"],
+) -> None:
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
+    sample_count = 0
+
+    def discrete_sample(source: Any, n: int, rng: np.random.Generator) -> Any:
+        nonlocal sample_count
+        sample_count += 1
+        if sampling_method == "discreteSample" and sample_count == 2:
+            raise RuntimeError("deliberate sampling failure")
+        return source
+
+    def optimal_sample(density: Any, sampled: Any) -> Any:
+        if sample_count == 2:
+            raise RuntimeError("deliberate sampling failure")
+        return sampled
+
+    with (
+        patch.object(mtex, "calcDensity", side_effect=lambda source, halfwidth: source),
+        patch.object(mtex, "discreteSample", side_effect=discrete_sample),
+        patch.object(mtex, "optimalSample", side_effect=optimal_sample),
+        pytest.raises(RuntimeError, match="deliberate sampling failure"),
+    ):
+        sample_file(
+            ebsd_file,
+            num_orientations=2,
+            num_orientation_sets=3,
+            sampling_method=sampling_method,
+        )
+
+    assert sample_count == 2
+    assert [
+        line
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("Sampling orientation sets:")
+    ] == [
+        "Sampling orientation sets: 0/3 complete",
+        "Sampling orientation sets: 1/3 complete",
+    ]
 
 
 def test_sample_texture_optimal_sets(
@@ -459,6 +565,19 @@ def test_sample_texture_workflow(
     workflow = mf.Workflow.from_template(template, path=tmp_path)
     assert workflow.tasks[1].num_elements == count
     workflow.submit(wait=True, add_to_known=False)
+    stdout_files = (Path(workflow.path) / "artifacts" / "submissions").glob(
+        "*/js_std/*/*_stdout.log"
+    )
+    progress = [
+        line
+        for path in stdout_files
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.startswith("Sampling orientation sets:")
+    ]
+    assert progress == [
+        f"Sampling orientation sets: {index}/{count} complete"
+        for index in range(count + 1)
+    ]
     output = workflow.tasks[0].elements[0].outputs.orientations.value
     assert isinstance(output, list)
     assert len(output) == count
