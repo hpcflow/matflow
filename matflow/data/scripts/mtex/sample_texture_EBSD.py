@@ -47,6 +47,7 @@ def sample_texture_EBSD(
     The list contains ``num_orientation_sets`` members, even when this is 1.
     Sampling advances a single generator seeded from the run's random seed.
     ``optimalSample`` optimizes each seeded random sample to better match the density.
+    Progress is printed to standard output as completed/total set counts.
     """
     if (CTF_file_path is None) == (CRC_file_path is None):
         raise ValueError("Specify exactly one of CTF_file_path and CRC_file_path.")
@@ -142,7 +143,8 @@ def sample_texture_EBSD(
             )
 
     orientation_sets = []
-    for _ in range(num_orientation_sets):
+    print(f"Sampling orientation sets: 0/{num_orientation_sets} complete", flush=True)
+    for set_index in range(num_orientation_sets):
         # always use discreteSample first, to ensure the RNG is used (otherwise we'd get
         # the same orientations for each set):
         sampled = mtex.discreteSample(density, num_orientations, rng=rng)
@@ -157,5 +159,9 @@ def sample_texture_EBSD(
                 "representation": {"type": "quaternion", "quat_order": "scalar_vector"},
                 "unit_cell_alignment": unit_cell_alignment,
             }
+        )
+        print(
+            f"Sampling orientation sets: {set_index + 1}/{num_orientation_sets} complete",
+            flush=True,
         )
     return {"orientations": orientation_sets}

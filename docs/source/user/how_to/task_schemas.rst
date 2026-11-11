@@ -51,7 +51,10 @@ file, with the same stem.
 
 ``num_orientation_sets`` defaults to 1 and must be a positive integer. The density
 is estimated once, then independently sampled for each set using the run's seeded
-random generator. Each set contains ``num_orientations`` orientations.
+random generator. Each set contains ``num_orientations`` orientations. Progress is
+printed to standard output as completed/total set counts, starting at zero and
+updating after each completed set. For workflow runs, it appears in the jobscript's
+output log under ``artifacts/submissions``; this log may also contain standard error.
 The ``orientations`` output has multiplicity ``<<input:num_orientation_sets>>``:
 its value is a list of orientation sets, including when the count is 1.
 Downstream tasks sourcing ``orientations`` receive individual sets.
