@@ -24,6 +24,35 @@ The built-in ``generate_load_cases`` task generates a list of independent uniaxi
 the individual load cases. With a multiplicity of one, the output remains a
 single-member list, in accordance with the framework's multiplicity semantics.
 
+Assigning orientations to Dream3D volume elements
+================================================
+
+``generate_volume_element_from_statistics`` defaults to
+``assign_orientations_directly: true``. When an ``orientations`` input is supplied,
+the returned volume element uses those orientations directly for the first phase
+in ``phase_statistics``. Rows are assigned in order of increasing grain ID, skipping
+grains of other phases. Extra rows are unused; fewer rows than first-phase grains
+raise an error. Other phases retain their Dream3D-generated orientations.
+
+Quaternion ordering, Euler-angle units and unit-cell alignment are converted to
+the volume element's conventions without resampling. Without an ``orientations``
+input, the task continues to use Dream3D-generated orientations.
+
+To restore the previous ODF-based assignment, set:
+
+.. code-block:: yaml
+
+    - schema: generate_volume_element_from_statistics
+      inputs:
+        assign_orientations_directly: false
+        # Other volume-generation inputs...
+
+Direct assignment changes only the returned volume element used by downstream
+tasks, including DAMASK simulations. Retained Dream3D and XDMF files remain the
+native Dream3D output, with Dream3D's ODF-based orientations, and are not rewritten.
+Locally specified ODFs still control those native files, but do not override the
+directly assigned orientations in the returned volume element.
+
 Sampling EBSD textures with Python MTEX
 ======================================
 

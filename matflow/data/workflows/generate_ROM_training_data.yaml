@@ -116,6 +116,7 @@ tasks:
             --time: <<input:time_Dream3D_all>>
     save_files: false # disable saving Dream3D XDMF and HDF5 files
     inputs:
+      assign_orientations_directly: true # assign input orientations in order to grains
       grid_size: <<input:grid_size>>
       size: [1, 1, 1]
       phase_statistics:
