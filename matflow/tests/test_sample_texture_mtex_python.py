@@ -75,6 +75,39 @@ def sample_file(path: Path, **kwargs) -> dict:
     )
 
 
+def read_sampling_progress(workflow_path: Path) -> list[str]:
+    submissions = workflow_path / "artifacts" / "submissions"
+    return [
+        line
+        for log_type in ("std", "stdout")
+        for path in submissions.glob(f"*/js_std/*/*_{log_type}.log")
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.startswith("Sampling orientation sets:")
+    ]
+
+
+@pytest.mark.unit
+@pytest.mark.integration
+@pytest.mark.parametrize("log_name", ["js_0_std.log", "js_0_stdout.log"])
+def test_read_sampling_progress(tmp_path: Path, log_name: str) -> None:
+    log_dir = tmp_path / "artifacts" / "submissions" / "0" / "js_std" / "0"
+    log_dir.mkdir(parents=True)
+    (log_dir / log_name).write_text(
+        "Other output\n"
+        "Sampling orientation sets: 0/1 complete\n"
+        "Sampling orientation sets: 1/1 complete\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    (log_dir / "js_0_stderr.log").write_text(
+        "Sampling orientation sets: not stdout\n", encoding="utf-8", newline="\n"
+    )
+    assert read_sampling_progress(tmp_path) == [
+        "Sampling orientation sets: 0/1 complete",
+        "Sampling orientation sets: 1/1 complete",
+    ]
+
+
 @pytest.mark.parametrize("phase", ["Al", "Mg"])
 def test_sample_texture_real_readers(
     ebsd_file: Path, monkeypatch: pytest.MonkeyPatch, phase: str
@@ -565,16 +598,7 @@ def test_sample_texture_workflow(
     workflow = mf.Workflow.from_template(template, path=tmp_path)
     assert workflow.tasks[1].num_elements == count
     workflow.submit(wait=True, add_to_known=False)
-    stdout_files = (Path(workflow.path) / "artifacts" / "submissions").glob(
-        "*/js_std/*/*_stdout.log"
-    )
-    progress = [
-        line
-        for path in stdout_files
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.startswith("Sampling orientation sets:")
-    ]
-    assert progress == [
+    assert read_sampling_progress(Path(workflow.path)) == [
         f"Sampling orientation sets: {index}/{count} complete"
         for index in range(count + 1)
     ]
