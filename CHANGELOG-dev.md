@@ -1,4 +1,24 @@
 
+<a name="v0.5.0a8"></a>
+## [v0.5.0a8](https://github.com/hpcflow/matflow/compare/v0.5.0a7...v0.5.0a8) - 2026.11.11
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a17
+* use provided orientations directly rather than via a ODF in Dream3D VE generation
+* print progress in sampling multiple orientation sets from EBSD
+
+### 🐛 Bug Fixes
+
+* tests and docs for sample_texture_EBSD.py
+* use repeats in orientation sampling of ROM-training data workflow
+* tweaks to ROM-training data generation workflow
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a7"></a>
 ## [v0.5.0a7](https://github.com/hpcflow/matflow/compare/v0.5.0a6...v0.5.0a7) - 2026.11.10
 
