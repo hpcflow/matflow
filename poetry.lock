@@ -1546,14 +1546,14 @@ numpy = ">=1.21.2"
 
 [[package]]
 name = "hpcflow"
-version = "0.4.0a15"
+version = "0.4.0a17"
 description = "Computational workflow management"
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["main"]
 files = [
-    {file = "hpcflow-0.4.0a15-py3-none-any.whl", hash = "sha256:1001337570e5d4005c27387d3cb04071172f2936a0f2033cb108eb79fb725be1"},
-    {file = "hpcflow-0.4.0a15.tar.gz", hash = "sha256:c50ca6be995dce98df9e88f8fbb35aff4b8dc4d76cd4cd0b024381c460d5eb94"},
+    {file = "hpcflow-0.4.0a17-py3-none-any.whl", hash = "sha256:c1d8b0eda2d9127ca590bcdffde803e3adbb152b042296019eafac4f1f395b5e"},
+    {file = "hpcflow-0.4.0a17.tar.gz", hash = "sha256:418ce61eed78b8828264eadfbafcd74e39af833c31e660ad7961cfb006d9c088"},
 ]
 
 [package.dependencies]
@@ -1584,6 +1584,8 @@ ruamel-yaml = ">=0.18.17,<0.19.0"
 scipy = {version = ">=1.15.2,<2.0.0", markers = "python_version >= \"3.10\""}
 termcolor = ">=1.1,<4.0"
 typing-extensions = ">=4.12.2,<5.0.0"
+tzdata = ">=2025.2"
+tzlocal = ">=5.3,<6"
 valida = ">=0.7.5,<0.8.0"
 watchdog = ">=6.0.0,<7.0.0"
 zarr = "2.17.2"
@@ -5173,6 +5175,37 @@ files = [
 markers = {test = "python_version < \"3.13\""}
 
 [[package]]
+name = "tzdata"
+version = "2026.6"
+description = "Provider of IANA time zone data"
+optional = false
+python-versions = ">=2"
+groups = ["main"]
+files = [
+    {file = "tzdata-2026.6-py2.py3-none-any.whl", hash = "sha256:0a10eec6e13ef16b627fabed9a5f2ba61a62b1c67f327305f4e7e412a70b4aec"},
+    {file = "tzdata-2026.6.tar.gz", hash = "sha256:85d2cd9c09f81f0bb29db27759fc83af4f1e620efb814f8c5bf8b4cc4feece6d"},
+]
+
+[[package]]
+name = "tzlocal"
+version = "5.4.5"
+description = "tzinfo object for the local timezone"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "tzlocal-5.4.5-py3-none-any.whl", hash = "sha256:ecab534f6d65d9deb4c4ea52c121ab6dd5958e9b878e71dcb102578269752454"},
+    {file = "tzlocal-5.4.5.tar.gz", hash = "sha256:ba976898bad27945178c9ca25c222c19e322b30c10342b9f40b46714f70d2d5f"},
+]
+
+[package.dependencies]
+tzdata = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+devenv = ["zest.releaser"]
+testing = ["check_manifest", "pyroma", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)", "ruff"]
+
+[[package]]
 name = "urllib3"
 version = "2.5.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -5706,4 +5739,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "4cc029f74ff665aefd9c9659ed4fafa74285005792b9bdd1f3d65d867eceb426"
+content-hash = "ae6e6d188e57393c441d6ec8166168c9e2f7da84e929aeff46e5fd360cf08000"
