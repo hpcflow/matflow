@@ -38,7 +38,7 @@ def sample_texture_EBSD(
     CTF_file_path: str | Path | None = None,
     CRC_file_path: str | Path | None = None,
     kernel_halfwidth_deg: float = 10.0,
-    num_orientation_sets: int = 1,
+    num_orientation_sets: int | None = None,
     sampling_method: Literal["discreteSample", "optimalSample"] = "discreteSample",
     EBSD_euler_correction: EBSDEulerCorrection | None = None,
 ) -> dict:
@@ -59,12 +59,8 @@ def sample_texture_EBSD(
         or num_orientations <= 0
     ):
         raise ValueError("num_orientations must be a positive integer.")
-    if (
-        not isinstance(num_orientation_sets, (int, np.integer))
-        or isinstance(num_orientation_sets, bool)
-        or num_orientation_sets <= 0
-    ):
-        raise ValueError("num_orientation_sets must be a positive integer.")
+    if not isinstance(num_orientation_sets, (int, np.integer, type(None))):
+        raise ValueError("num_orientation_sets must be a positive integer or None.")
     if (
         isinstance(kernel_halfwidth_deg, bool)
         or not np.isfinite(kernel_halfwidth_deg)
@@ -143,8 +139,10 @@ def sample_texture_EBSD(
             )
 
     orientation_sets = []
-    print(f"Sampling orientation sets: 0/{num_orientation_sets} complete", flush=True)
-    for set_index in range(num_orientation_sets):
+    if num_orientation_sets is not None:
+        print(f"Sampling orientation sets: 0/{num_orientation_sets} complete", flush=True)
+
+    for set_index in range(num_orientation_sets or 1):
         # always use discreteSample first, to ensure the RNG is used (otherwise we'd get
         # the same orientations for each set):
         sampled = mtex.discreteSample(density, num_orientations, rng=rng)
@@ -160,8 +158,11 @@ def sample_texture_EBSD(
                 "unit_cell_alignment": unit_cell_alignment,
             }
         )
-        print(
-            f"Sampling orientation sets: {set_index + 1}/{num_orientation_sets} complete",
-            flush=True,
-        )
-    return {"orientations": orientation_sets}
+        if num_orientation_sets is not None:
+            print(
+                f"Sampling orientation sets: {set_index + 1}/{num_orientation_sets} "
+                f"complete",
+                flush=True,
+            )
+    orientations_out = orientation_sets if num_orientation_sets else orientation_sets[0]
+    return {"orientations": orientations_out}

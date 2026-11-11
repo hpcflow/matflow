@@ -381,7 +381,7 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: num_orientation_sets
-      default_value: 1
+      default_value: null
     - parameter: sampling_method
       default_value: discreteSample
     - parameter: kernel_halfwidth_deg
