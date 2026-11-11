@@ -381,7 +381,7 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: num_orientation_sets
-      default_value: 1
+      default_value: null
     - parameter: sampling_method
       default_value: discreteSample
     - parameter: kernel_halfwidth_deg
@@ -419,7 +419,7 @@
     - parameter: EBSD_phase
     - parameter: num_orientations
     - parameter: num_orientation_sets
-      default_value: 1
+      default_value: null
     - parameter: sampling_method
       default_value: discreteSample
     - parameter: kernel_halfwidth_deg
@@ -1532,7 +1532,11 @@
 #         - command: DAMASK_grid --load <<input_file:damask_load_file>> --geom <<input_file:damask_geom_file>>
 
 - objective: generate_volume_element
-  doc: Generate a volume element from phase statistics.
+  doc: >
+    Generate a volume element from phase statistics. By default, supplied
+    orientations are assigned in order to grains of the first phase in the
+    returned volume element. Set assign_orientations_directly to false to use
+    Dream3D's ODF-based orientations instead. Retained Dream3D files are unchanged.
   method: from_statistics
   inputs:
     - parameter: grid_size
@@ -1549,6 +1553,8 @@
       default_value: null
     - parameter: orientations
       default_value: null
+    - parameter: assign_orientations_directly
+      default_value: true
   outputs:
     - parameter: volume_element
   save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
@@ -1575,6 +1581,7 @@
       output_file_parsers:
         volume_element:
           from_files: [dream_3D_hdf5_file]
+          inputs: [orientations, assign_orientations_directly]
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
 
 - objective: generate_volume_element

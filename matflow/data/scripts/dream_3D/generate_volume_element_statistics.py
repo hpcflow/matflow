@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import warnings
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import numpy as np
 from numpy.typing import NDArray
 
@@ -454,26 +454,7 @@ def generate_volume_element_statistics(
                     degrees=True,
                 )
 
-            oris = validate_orientations(ODF["orientations"])  # now as quaternions
-
-            # Convert unit-cell alignment to x//a, as used by Dream.3D:
-            if phase_i_CS == "hexagonal":
-                if oris["unit_cell_alignment"].get("y") == "b":
-                    hex_transform_quat = axang2quat(
-                        oris["P"] * np.array([0, 0, 1]), np.pi / 6
-                    )
-                    for ori_idx, ori_i in enumerate(oris["quaternions"]):
-                        oris["quaternions"][ori_idx] = multiply_quaternions(
-                            q1=hex_transform_quat,
-                            q2=ori_i,
-                            P=oris["P"],
-                        )
-                elif oris["unit_cell_alignment"].get("x") != "a":
-                    NotImplementedError(
-                        f"Cannot convert from the following specified unit cell "
-                        f"alignment to Dream3D-compatible unit cell alignment (x//a): "
-                        f'{oris["unit_cell_alignment"]}'
-                    )
+            oris = _orientations_in_dream3d_frame(ODF["orientations"], phase_i_CS)
 
             num_oris = oris["quaternions"].shape[0]
 
@@ -1030,7 +1011,29 @@ def generate_volume_element_statistics(
         json.dump(pipeline, fh, indent=4)
 
 
-def _convert_orientations_to_old_matflow_format(orientations: Orientations):
+def _orientations_in_dream3d_frame(
+    orientations: dict[str, Any], crystal_structure: str
+) -> dict[str, Any]:
+    oris = validate_orientations(orientations)
+    if crystal_structure == "hexagonal":
+        if oris["unit_cell_alignment"].get("y") == "b":
+            hex_transform_quat = axang2quat(oris["P"] * np.array([0, 0, 1]), np.pi / 6)
+            for idx, quat in enumerate(oris["quaternions"]):
+                oris["quaternions"][idx] = multiply_quaternions(
+                    q1=hex_transform_quat, q2=quat, P=oris["P"]
+                )
+        elif oris["unit_cell_alignment"].get("x") != "a":
+            raise NotImplementedError(
+                "Cannot convert the specified unit cell alignment to "
+                f"Dream3D-compatible alignment (x//a): {oris['unit_cell_alignment']}"
+            )
+    oris["unit_cell_alignment"] = {"x": "a"}
+    return oris
+
+
+def _convert_orientations_to_old_matflow_format(
+    orientations: Orientations,
+) -> dict[str, Any]:
     # see `LatticeDirection` enum:
     align_lookup = {
         "A": "a",
@@ -1041,22 +1044,29 @@ def _convert_orientations_to_old_matflow_format(orientations: Orientations):
         "C_STAR": "c*",
     }
     unit_cell_alignment = {
-        "x": align_lookup[orientations.unit_cell_alignment.x.name],
-        "y": align_lookup[orientations.unit_cell_alignment.y.name],
-        "z": align_lookup[orientations.unit_cell_alignment.z.name],
+        axis: align_lookup[direction.name]
+        for axis, direction in (
+            ("x", orientations.unit_cell_alignment.x),
+            ("y", orientations.unit_cell_alignment.y),
+            ("z", orientations.unit_cell_alignment.z),
+        )
+        if direction is not None
     }
     type_lookup = {
         "QUATERNION": "quat",
         "EULER": "euler",
     }
     type_ = type_lookup[orientations.representation.type.name]
-    oris = {
+    oris: dict[str, Any] = {
         "type": type_,
         "unit_cell_alignment": unit_cell_alignment,
     }
 
     if type_ == "quat":
-        quat_order = orientations.representation.quat_order.name.lower().replace("_", "-")
+        order = orientations.representation.quat_order
+        if order is None:
+            raise ValueError("Quaternion orientations must specify quat_order.")
+        quat_order = order.name.lower().replace("_", "-")
         oris["quaternions"] = np.array(orientations.data)
         oris["quat_component_ordering"] = quat_order
     elif type_ == "euler":

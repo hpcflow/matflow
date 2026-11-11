@@ -22,9 +22,9 @@ doc:
     may exist on disk concurrently.
 
     This workflow will typically submit three jobscripts (on scheduled systems):
-      1. Non-array job to sample orientations and then generate load cases
-      2. Array-job (of maximum size `max_array_size`) to run the Dream3D microstructure
-         generation
+      1. Non-array job to generate load cases
+      2. Array-job (of maximum size `max_array_size`) to sample orientations and then run
+         the Dream3D microstructure generation
       3. Array-job (of maximum size `max_array_size`) to run the DAMASK task
 
     Once the workflow has finished, zip the workflow or consolidate the array outputs
@@ -80,22 +80,6 @@ resources:
         --partition: <<input:slurm_partition>>
 
 tasks:
-  - schema: sample_texture_from_CTF_file_mtex_python
-    resources:
-      any:
-        scheduler_args:
-          directives:
-            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
-    inputs:
-      CTF_file_path: <<demo_data_file:texture_Al.ctf>>
-      EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
-      specimen_symmetry: "1"
-      EBSD_phase: Al
-      EBSD_rotation: null
-      sampling_method: optimalSample
-      num_orientations: 1000
-      num_orientation_sets: <<input:num_simulations>>
-
   - schema: generate_load_cases_random_exponential
     inputs:
       total_time: 50
@@ -108,6 +92,22 @@ tasks:
           directives:
             --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
 
+  - schema: sample_texture_from_CTF_file_mtex_python
+    resources:
+      any:
+        scheduler_args:
+          directives:
+            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
+    repeats: <<input:num_simulations>>
+    inputs:
+      CTF_file_path: <<demo_data_file:texture_Al.ctf>>
+      EBSD_reference_frame_transformation: convertEuler2SpatialReferenceFrame
+      specimen_symmetry: "1"
+      EBSD_phase: Al
+      EBSD_rotation: null
+      sampling_method: optimalSample
+      num_orientations: 1000
+
   - schema: generate_volume_element_from_statistics
     resources:
       any:
@@ -116,6 +116,7 @@ tasks:
             --time: <<input:time_Dream3D_all>>
     save_files: false # disable saving Dream3D XDMF and HDF5 files
     inputs:
+      assign_orientations_directly: true # assign input orientations in order to grains
       grid_size: <<input:grid_size>>
       size: [1, 1, 1]
       phase_statistics:
@@ -175,7 +176,6 @@ tasks:
               h_0_sl-sl: 75.0e+6
               h_sl-sl: [1, 1, 1.4, 1.4, 1.4, 1.4, 1.4]
               n_sl: 20
-              output: []
               xi_0_sl: [31.0e+6]
               xi_inf_sl: [63.0e+6]
       damask_post_processing:

@@ -113,8 +113,8 @@ def test_sample_texture_real_readers(
     ebsd_file: Path, monkeypatch: pytest.MonkeyPatch, phase: str
 ) -> None:
     monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
-    first = sample_file(ebsd_file, EBSD_phase=phase)["orientations"][0]
-    second = sample_file(ebsd_file, EBSD_phase=phase)["orientations"][0]
+    first = sample_file(ebsd_file, EBSD_phase=phase)["orientations"]
+    second = sample_file(ebsd_file, EBSD_phase=phase)["orientations"]
     ori = Orientations(**first)
     assert ori.data.shape == (12, 4)
     assert np.all(np.isfinite(ori.data))
@@ -132,7 +132,7 @@ def test_sample_texture_real_readers(
     )
     assert ori.unit_cell_alignment == alignment
     monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "5678")
-    third = sample_file(ebsd_file, EBSD_phase=phase)["orientations"][0]
+    third = sample_file(ebsd_file, EBSD_phase=phase)["orientations"]
     assert not np.allclose(first["data"], third["data"])
 
 
@@ -185,7 +185,7 @@ def test_sample_texture_frames_and_rotation(
     np.testing.assert_allclose(source.data, expected.data, atol=1e-7)
     assert source.SS.sym.name == mtex.specimenFrame("cubic").sym.name
     np.testing.assert_allclose(
-        result["orientations"][0]["data"], expected.inv().data, atol=1e-7
+        result["orientations"]["data"], expected.inv().data, atol=1e-7
     )
 
 
@@ -222,7 +222,11 @@ def test_sample_texture_invalid_halfwidth(ebsd_file: Path, halfwidth: float) -> 
         sample_file(ebsd_file, kernel_halfwidth_deg=halfwidth)
 
 
-@pytest.mark.parametrize("count", [0, -1, True, 1.5, None])
+@pytest.mark.unit
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "count", [0, -1, True, False, 1.5, "1", np.int64(0), np.int64(-1), np.bool_(True)]
+)
 def test_sample_texture_invalid_set_count(ebsd_file: Path, count: object) -> None:
     with pytest.raises(
         ValueError, match="num_orientation_sets must be a positive integer"
@@ -245,10 +249,46 @@ def test_sample_texture_sets(
         np.testing.assert_array_equal(member["data"], repeated["data"])
     for member in first[1:]:
         assert not np.array_equal(first[0]["data"], member["data"])
-    single = sample_file(ebsd_file)["orientations"][0]
+    single = sample_file(ebsd_file)["orientations"]
     np.testing.assert_array_equal(first[0]["data"], single["data"])
 
 
+@pytest.mark.unit
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "kwargs", [{}, {"num_orientation_sets": None}], ids=["omitted", "none"]
+)
+@pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
+def test_sample_texture_single_set_without_progress(
+    ebsd_file: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    kwargs: dict[str, None],
+    sampling_method: Literal["discreteSample", "optimalSample"],
+) -> None:
+    monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "1234")
+    with (
+        patch.object(mtex, "calcDensity", side_effect=lambda source, halfwidth: source),
+        patch.object(
+            mtex, "discreteSample", side_effect=lambda source, n, rng: source
+        ) as sample,
+        patch.object(
+            mtex, "optimalSample", side_effect=lambda density, sampled: sampled
+        ) as optimize,
+    ):
+        result = sample_file(
+            ebsd_file, num_orientations=2, sampling_method=sampling_method, **kwargs
+        )
+
+    sample.assert_called_once()
+    assert optimize.call_count == (1 if sampling_method == "optimalSample" else 0)
+    assert isinstance(result["orientations"], dict)
+    assert Orientations(**result["orientations"]).data.shape == (2, 4)
+    assert "Sampling orientation sets:" not in capsys.readouterr().out
+
+
+@pytest.mark.unit
+@pytest.mark.integration
 @pytest.mark.parametrize("count", [1, 3, np.int8(127)])
 @pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
 def test_sample_texture_progress(
@@ -307,6 +347,8 @@ def test_sample_texture_progress(
     assert progress_lines(stream.flushed_text) == expected_progress
 
 
+@pytest.mark.unit
+@pytest.mark.integration
 @pytest.mark.parametrize("sampling_method", ["discreteSample", "optimalSample"])
 def test_sample_texture_progress_on_failure(
     ebsd_file: Path,
@@ -370,7 +412,7 @@ def test_sample_texture_optimal_sets(
         np.testing.assert_array_equal(member["data"], repeated["data"])
     assert not np.allclose(first[0]["data"], first[1]["data"])
     monkeypatch.setenv("MATFLOW_RUN_RANDOM_SEED", "5678")
-    third = sample_file(ebsd_file, sampling_method="optimalSample")["orientations"][0]
+    third = sample_file(ebsd_file, sampling_method="optimalSample")["orientations"]
     assert not np.allclose(first[0]["data"], third["data"])
 
 
@@ -446,7 +488,7 @@ def test_sample_texture_schema(file_type: str, sampling_method: str) -> None:
     count_input = next(
         item for item in schema.inputs if item.parameter.typ == "num_orientation_sets"
     )
-    assert count_input.default_value.value == 1
+    assert count_input.default_value.value is None
     method_input = next(
         item for item in schema.inputs if item.parameter.typ == "sampling_method"
     )
@@ -491,7 +533,7 @@ def test_explicit_import_correction(ebsd_file, monkeypatch, angles, transform):
                 EBSD_euler_correction={"euler_angles_deg": angles},
                 EBSD_rotation={"euler_angles_deg": [17, 29, 41], "keep_XY": True},
             )
-    actual = result["orientations"][0]["data"]
+    actual = result["orientations"]["data"]
     expected = (after * correction * raw).inv().data
     # q and -q describe the same rotation.
     np.testing.assert_allclose(np.abs(np.sum(actual * expected, axis=1)), 1, atol=1e-7)
@@ -567,9 +609,17 @@ def test_matlab_explicit_import_correction(
 
 @pytest.mark.integration
 @pytest.mark.parametrize("halfwidth", [None, 25.0])
-@pytest.mark.parametrize("count", [1, 3])
+@pytest.mark.parametrize(
+    "count, explicit_count",
+    [(None, False), (None, True), (1, True), (3, True)],
+    ids=["default", "none", "one", "three"],
+)
 def test_sample_texture_workflow(
-    ebsd_file: Path, tmp_path: Path, halfwidth: float | None, count: int
+    ebsd_file: Path,
+    tmp_path: Path,
+    halfwidth: float | None,
+    count: int | None,
+    explicit_count: bool,
 ) -> None:
     file_type = ebsd_file.suffix[1:].upper()
     template = mf.WorkflowTemplate.from_YAML_string(
@@ -584,7 +634,11 @@ def test_sample_texture_workflow(
         "      specimen_symmetry: '1'\n"
         "      EBSD_phase: Al\n"
         "      num_orientations: 12\n"
-        + ("" if count == 1 else f"      num_orientation_sets: {count}\n")
+        + (
+            f"      num_orientation_sets: {count if count is not None else 'null'}\n"
+            if explicit_count
+            else ""
+        )
         + ("" if halfwidth is None else f"      kernel_halfwidth_deg: {halfwidth}\n")
     )
     template.tasks.append(
@@ -596,22 +650,33 @@ def test_sample_texture_workflow(
         )
     )
     workflow = mf.Workflow.from_template(template, path=tmp_path)
-    assert workflow.tasks[1].num_elements == count
+    assert workflow.tasks[1].num_elements == (count or 1)
     workflow.submit(wait=True, add_to_known=False)
-    assert read_sampling_progress(Path(workflow.path)) == [
-        f"Sampling orientation sets: {index}/{count} complete"
-        for index in range(count + 1)
-    ]
+    expected_progress = (
+        []
+        if count is None
+        else [
+            f"Sampling orientation sets: {index}/{count} complete"
+            for index in range(count + 1)
+        ]
+    )
+    assert read_sampling_progress(Path(workflow.path)) == expected_progress
     output = workflow.tasks[0].elements[0].outputs.orientations.value
-    assert isinstance(output, list)
-    assert len(output) == count
-    for data in output:
-        member = Orientations(**data)
-        assert member.data.shape == (12, 4)
-        np.testing.assert_allclose(np.linalg.norm(member.data, axis=1), 1)
     reopened = mf.Workflow(workflow.path)
     persisted = reopened.tasks[0].elements[0].outputs.orientations.value
-    for member, data in zip(persisted, output):
-        assert Orientations(**member) == Orientations(**data)
+    if count is None:
+        assert isinstance(output, Orientations)
+        assert isinstance(persisted, Orientations)
+        assert persisted == output
+        members = [output]
+    else:
+        assert isinstance(output, list)
+        assert isinstance(persisted, list)
+        assert len(output) == len(persisted) == count
+        members = [Orientations(**data) for data in output]
+        assert [Orientations(**data) for data in persisted] == members
+    for member in members:
+        assert member.data.shape == (12, 4)
+        np.testing.assert_allclose(np.linalg.norm(member.data, axis=1), 1)
     for idx, element in enumerate(reopened.tasks[1].elements):
-        assert element.inputs.orientations.value == Orientations(**output[idx])
+        assert element.inputs.orientations.value == members[idx]

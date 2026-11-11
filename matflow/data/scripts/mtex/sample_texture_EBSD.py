@@ -38,16 +38,16 @@ def sample_texture_EBSD(
     CTF_file_path: str | Path | None = None,
     CRC_file_path: str | Path | None = None,
     kernel_halfwidth_deg: float = 10.0,
-    num_orientation_sets: int = 1,
+    num_orientation_sets: int | None = None,
     sampling_method: Literal["discreteSample", "optimalSample"] = "discreteSample",
     EBSD_euler_correction: EBSDEulerCorrection | None = None,
 ) -> dict:
-    """Estimate one EBSD density and return a list of independently sampled sets.
+    """Estimate one EBSD density and sample one or more orientation sets.
 
-    The list contains ``num_orientation_sets`` members, even when this is 1.
+    With ``num_orientation_sets=None``, return one set without printing progress.
+    Otherwise, return a list of that many sets and print completed/total counts.
     Sampling advances a single generator seeded from the run's random seed.
     ``optimalSample`` optimizes each seeded random sample to better match the density.
-    Progress is printed to standard output as completed/total set counts.
     """
     if (CTF_file_path is None) == (CRC_file_path is None):
         raise ValueError("Specify exactly one of CTF_file_path and CRC_file_path.")
@@ -59,12 +59,12 @@ def sample_texture_EBSD(
         or num_orientations <= 0
     ):
         raise ValueError("num_orientations must be a positive integer.")
-    if (
+    if num_orientation_sets is not None and (
         not isinstance(num_orientation_sets, (int, np.integer))
         or isinstance(num_orientation_sets, bool)
         or num_orientation_sets <= 0
     ):
-        raise ValueError("num_orientation_sets must be a positive integer.")
+        raise ValueError("num_orientation_sets must be a positive integer or None.")
     if (
         isinstance(kernel_halfwidth_deg, bool)
         or not np.isfinite(kernel_halfwidth_deg)
@@ -143,8 +143,10 @@ def sample_texture_EBSD(
             )
 
     orientation_sets = []
-    print(f"Sampling orientation sets: 0/{num_orientation_sets} complete", flush=True)
-    for set_index in range(num_orientation_sets):
+    if num_orientation_sets is not None:
+        print(f"Sampling orientation sets: 0/{num_orientation_sets} complete", flush=True)
+
+    for set_index in range(1 if num_orientation_sets is None else num_orientation_sets):
         # always use discreteSample first, to ensure the RNG is used (otherwise we'd get
         # the same orientations for each set):
         sampled = mtex.discreteSample(density, num_orientations, rng=rng)
@@ -160,8 +162,13 @@ def sample_texture_EBSD(
                 "unit_cell_alignment": unit_cell_alignment,
             }
         )
-        print(
-            f"Sampling orientation sets: {set_index + 1}/{num_orientation_sets} complete",
-            flush=True,
-        )
-    return {"orientations": orientation_sets}
+        if num_orientation_sets is not None:
+            print(
+                f"Sampling orientation sets: {set_index + 1}/{num_orientation_sets} "
+                f"complete",
+                flush=True,
+            )
+    orientations_out = (
+        orientation_sets[0] if num_orientation_sets is None else orientation_sets
+    )
+    return {"orientations": orientations_out}

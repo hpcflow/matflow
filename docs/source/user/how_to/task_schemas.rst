@@ -24,6 +24,35 @@ The built-in ``generate_load_cases`` task generates a list of independent uniaxi
 the individual load cases. With a multiplicity of one, the output remains a
 single-member list, in accordance with the framework's multiplicity semantics.
 
+Assigning orientations to Dream3D volume elements
+================================================
+
+``generate_volume_element_from_statistics`` defaults to
+``assign_orientations_directly: true``. When an ``orientations`` input is supplied,
+the returned volume element uses those orientations directly for the first phase
+in ``phase_statistics``. Rows are assigned in order of increasing grain ID, skipping
+grains of other phases. Extra rows are unused; fewer rows than first-phase grains
+raise an error. Other phases retain their Dream3D-generated orientations.
+
+Quaternion ordering, Euler-angle units and unit-cell alignment are converted to
+the volume element's conventions without resampling. Without an ``orientations``
+input, the task continues to use Dream3D-generated orientations.
+
+To restore the previous ODF-based assignment, set:
+
+.. code-block:: yaml
+
+    - schema: generate_volume_element_from_statistics
+      inputs:
+        assign_orientations_directly: false
+        # Other volume-generation inputs...
+
+Direct assignment changes only the returned volume element used by downstream
+tasks, including DAMASK simulations. Retained Dream3D and XDMF files remain the
+native Dream3D output, with Dream3D's ODF-based orientations, and are not rewritten.
+Locally specified ODFs still control those native files, but do not override the
+directly assigned orientations in the returned volume element.
+
 Sampling EBSD textures with Python MTEX
 ======================================
 
@@ -49,15 +78,18 @@ For CRC data, use ``sample_texture_from_CRC_file_mtex_python`` and
 ``CRC_file_path`` instead. The matching ``.cpr`` file must be beside the ``.crc``
 file, with the same stem.
 
-``num_orientation_sets`` defaults to 1 and must be a positive integer. The density
-is estimated once, then independently sampled for each set using the run's seeded
-random generator. Each set contains ``num_orientations`` orientations. Progress is
-printed to standard output as completed/total set counts, starting at zero and
-updating after each completed set. For workflow runs, it appears in the jobscript's
-output log under ``artifacts/submissions``; this log may also contain standard error.
+``num_orientation_sets`` defaults to null for both CTF and CRC files. It can be
+null or a positive integer. The density is estimated once, then independently
+sampled for each set using the run's seeded random generator. Each set contains
+``num_orientations`` orientations. When the count is null, one set is returned
+without printing progress. Otherwise, progress is printed to standard output as
+completed/total set counts, starting at zero and updating after each completed set.
+For workflow runs, it appears in the jobscript's output log under
+``artifacts/submissions``; this log may also contain standard error.
 The ``orientations`` output has multiplicity ``<<input:num_orientation_sets>>``:
-its value is a list of orientation sets, including when the count is 1.
-Downstream tasks sourcing ``orientations`` receive individual sets.
+its value is a single orientation set when the count is null, or a list of sets
+otherwise, including when the count is 1. Downstream tasks sourcing ``orientations``
+receive individual sets.
 
 All inputs and the ``orientations`` output are passed directly to/from the script,
 without JSON/HDF5 handoff files. There is no ``execution_mode`` input.

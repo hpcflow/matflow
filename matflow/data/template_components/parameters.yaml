@@ -67,6 +67,15 @@
   _validation:
     - path: []
       condition: { value.is_instance: [bool] }
+- type: assign_orientations_directly
+  _validation:
+    - path: []
+      doc: >
+        Assign input orientations in order to grains of the first phase in the
+        returned volume element, rather than using Dream3D's sampled orientations.
+        Extra input orientations are unused; insufficient orientations raise an error.
+        Retained Dream3D files are not modified.
+      condition: { value.is_instance: [bool] }
 - type: new_grid_size
   _validation:
     - path: []
