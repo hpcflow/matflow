@@ -19,8 +19,8 @@ class Perturbation(TypedDict):
     path: list[str | int]
     #: The multiplicative perturbation to apply.
     multiplicative: float
-    #: Optional inclusive (lower, upper) bounds, in physical units, enforced when the
-    #: perturbed parameter is fit. Use null/None for an unbounded end.
+    #: Optional inclusive (lower, upper) bounds, in physical units, applied to
+    #: perturbations and fitting updates. Use null/None for an unbounded end.
     bounds: NotRequired[list[float | None] | None]
 
 
@@ -33,7 +33,9 @@ class SingleCrystalParameters(ParameterValue):
     phases
         The data used to create the bulk phases.
     perturbations
-        The perturbations to apply to the phases.
+        The perturbations to apply to the phases. Multipliers such as 1.05 request
+        a 5% increase. Optional bounds clip the perturbed value; at a bound, the
+        direction is reversed if clipping would leave the value unchanged.
     """
 
     _typ = "single_crystal_parameters"
@@ -90,7 +92,36 @@ class SingleCrystalParameters(ParameterValue):
                 if not pert_i:
                     continue
                 scale = pert_i["multiplicative"]
-                new_val = get_in_container(phases, pert_i["path"]) * scale
+                value = get_in_container(phases, pert_i["path"])
+                new_val = value * scale
+                if (bounds := pert_i.get("bounds")) is not None:
+                    lower, upper = bounds
+                    if lower is not None and upper is not None and lower >= upper:
+                        raise ValueError(
+                            "The lower bound must be less than the upper bound."
+                        )
+                    if lower is not None and value < lower:
+                        raise ValueError(
+                            f"Parameter at {pert_i['path']!r} is below its lower bound."
+                        )
+                    if upper is not None and value > upper:
+                        raise ValueError(
+                            f"Parameter at {pert_i['path']!r} is above its upper bound."
+                        )
+                    requested = value * (scale - 1.0)
+                    for direction in (1, -1):
+                        new_val = value + direction * requested
+                        if lower is not None:
+                            new_val = max(new_val, lower)
+                        if upper is not None:
+                            new_val = min(new_val, upper)
+                        if new_val != value:
+                            break
+                    else:
+                        raise ValueError(
+                            f"Cannot perturb parameter at {pert_i['path']!r} "
+                            "within its bounds."
+                        )
                 set_in_container(phases, pert_i["path"], new_val)
             self._phases = phases
         return self._phases

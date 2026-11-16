@@ -1,3 +1,6 @@
+import numpy as np
+import pytest
+
 from matflow.param_classes import SingleCrystalParameters
 
 
@@ -26,3 +29,107 @@ def test_perturbation_init_to_dict():
         perturbations={"path": ["Al", "xi_0_sl", 0], "multiplicative": 1.05},
     )
     SingleCrystalParameters(**params.to_dict())
+
+
+@pytest.mark.parametrize(
+    ("value", "multiplier", "bounds", "expected"),
+    [
+        (10.0, 1.05, [None, 10.25], 10.25),
+        (10.0, 1.05, [5.0, 10.0], 9.5),
+        (10.0, 0.95, [10.0, None], 10.5),
+    ],
+)
+def test_bounded_perturbation(
+    value: float, multiplier: float, bounds: list[float | None], expected: float
+) -> None:
+    params = SingleCrystalParameters(
+        phases={"Al": {"xi_0_sl": [value]}},
+        perturbations={
+            "path": ["Al", "xi_0_sl", 0],
+            "multiplicative": multiplier,
+            "bounds": bounds,
+        },
+    )
+
+    assert params.phases["Al"]["xi_0_sl"][0] == pytest.approx(expected)
+    assert params.base["Al"]["xi_0_sl"] == [value]
+
+
+@pytest.mark.parametrize(
+    ("value", "multiplier", "bounds", "message"),
+    [
+        (10.0, 1.05, [11.0, 20.0], "below its lower bound"),
+        (10.0, 1.05, [1.0, 9.0], "above its upper bound"),
+        (10.0, 1.05, [10.0, 10.0], "lower bound must be less"),
+        (10.0, 1.0, [5.0, 20.0], "Cannot perturb"),
+    ],
+)
+def test_invalid_bounded_perturbation(
+    value: float, multiplier: float, bounds: list[float | None], message: str
+) -> None:
+    params = SingleCrystalParameters(
+        phases={"Al": {"xi_0_sl": [value]}},
+        perturbations={
+            "path": ["Al", "xi_0_sl", 0],
+            "multiplicative": multiplier,
+            "bounds": bounds,
+        },
+    )
+
+    with pytest.raises(ValueError, match=message):
+        _ = params.phases
+
+
+@pytest.mark.parametrize("bounds", [None, [20e6, 30.75e6], [20e6, 30e6]])
+def test_fitting_jacobian_uses_simulated_perturbation(
+    bounds: list[float | None] | None,
+) -> None:
+    pytest.importorskip("formable")
+    from formable.levenberg_marquardt import LMFitter
+
+    from matflow.data.scripts.formable.fit_single_crystal_parameters import (
+        fit_single_crystal_parameters,
+    )
+
+    base = {"Al": {"xi_0_sl": [30e6]}}
+    params = [
+        SingleCrystalParameters(phases=base),
+        SingleCrystalParameters(
+            phases=base,
+            perturbations={
+                "path": ["Al", "xi_0_sl", 0],
+                "multiplicative": 1.05,
+                "bounds": bounds,
+            },
+        ),
+    ]
+    strain = np.array([0.0, 0.01, 0.02, 0.03, 0.04])
+    responses = []
+    for param in params:
+        strain_tensor = np.zeros((len(strain), 3, 3))
+        strain_tensor[:, 0, 0] = strain
+        responses.append(
+            {
+                "volume_data": {
+                    "vol_avg_strain": {"data": strain_tensor},
+                    "vol_avg_stress": {
+                        "data": strain_tensor * param.phases["Al"]["xi_0_sl"][0]
+                    },
+                }
+            }
+        )
+
+    result = fit_single_crystal_parameters(
+        VE_response={"iteration_0": {"value": responses}},
+        single_crystal_parameters={"iteration_0": {"value": params}},
+        tensile_test={
+            "true_strain": strain,
+            "true_stress": strain * 31e6,
+            "plastic_range": [0.01, 0.04],
+        },
+    )
+
+    fitter = LMFitter.from_dict(result["levenberg_marquardt_fitter"])
+    assert fitter.fitting_params[0].perturbation == pytest.approx(0.05)
+    opt = fitter.optimisations[0]
+    np.testing.assert_allclose(opt.jacobian[:, 0], 30e6 * opt.get_sim_strain(0))

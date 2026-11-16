@@ -85,6 +85,7 @@ tasks:
             transforms: [{ mean_along_axes: 1 }]
     sequences:
       - path: inputs.single_crystal_parameters.perturbations
+        # 1.05 requests a 5% increase; bounds clip or reverse that perturbation.
         values:
           - null
           - multiplicative: 1.05
