@@ -89,10 +89,13 @@ tasks:
           - null
           - multiplicative: 1.05
             path: [Al, h_0_sl-sl]
+            bounds: [100e6, 1000e6]
           - multiplicative: 1.05
             path: [Al, xi_0_sl, 0]
+            bounds: [10e6, 100e6]
           - multiplicative: 1.05
             path: [Al, xi_inf_sl, 0]
+            bounds: [50e6, 300e6]
     groups:
       - name: fit_single_crystal_parameters
 

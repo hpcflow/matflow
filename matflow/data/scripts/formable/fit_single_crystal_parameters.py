@@ -37,6 +37,7 @@ def fit_single_crystal_parameters(
                 values=[value],
                 address=path,
                 perturbation=perturb["multiplicative"],
+                bounds=perturb.get("bounds"),
             )
             fitting_params.append(fitting_param_i)
         else:

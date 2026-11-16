@@ -3,7 +3,7 @@ Parameters for a single crystal.
 """
 from __future__ import annotations
 import copy
-from typing_extensions import Self, TypedDict
+from typing_extensions import NotRequired, Self, TypedDict
 
 from hpcflow.sdk.core.parameters import ParameterValue
 from hpcflow.sdk.core.utils import get_in_container, set_in_container
@@ -19,6 +19,9 @@ class Perturbation(TypedDict):
     path: list[str | int]
     #: The multiplicative perturbation to apply.
     multiplicative: float
+    #: Optional inclusive (lower, upper) bounds, in physical units, enforced when the
+    #: perturbed parameter is fit. Use null/None for an unbounded end.
+    bounds: NotRequired[list[float | None] | None]
 
 
 class SingleCrystalParameters(ParameterValue):
