@@ -1194,8 +1194,10 @@
   doc: >
     Fit crystal parameters to the tensile test under a volume element model. The
     single_crystal_parameters output is the next trial proposal; the best measured
-    parameters are printed in diagnostics, and the fitting history is returned in
-    levenberg_marquardt_fitter. The best measured parameters are also returned as
+    parameters are printed in diagnostics. fitting_history contains one record per
+    simulated iteration, including acceptance, measured error, trial and best
+    parameters, next proposal, and damping. The last record's next proposal has not
+    been simulated. The best measured parameters are also returned as
     best_single_crystal_parameters.
     is_converged is true when the best accepted simulation's measured mean absolute
     stress error is at most fitting_error_tolerance (in Pa); null disables this check.
@@ -1212,6 +1214,7 @@
     - parameter: single_crystal_parameters
     - parameter: best_single_crystal_parameters
     - parameter: levenberg_marquardt_fitter
+    - parameter: fitting_history
     - parameter: is_converged
   actions:
     - environments:

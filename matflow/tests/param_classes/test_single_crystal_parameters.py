@@ -141,11 +141,19 @@ def test_fitting_jacobian_uses_simulated_perturbation(
     )
 
     assert result["is_converged"] is converged
+    history = result["fitting_history"]
+    assert len(history) == 1
+    assert history[0]["accepted"] is True
     fitter = LMFitter.from_dict(result["levenberg_marquardt_fitter"])
     assert fitter.fitting_params[0].perturbation == pytest.approx(0.05)
     opt = fitter.optimisations[0]
     np.testing.assert_allclose(opt.jacobian[:, 0], 30e6 * opt.get_sim_strain(0))
     next_trial_value = result["single_crystal_parameters"]["phases"]["Al"]["xi_0_sl"][0]
+    assert history[0]["measured_error"] == pytest.approx(opt.actual_error)
+    assert history[0]["trial_parameters"] == opt.fitting_params
+    assert history[0]["next_trial_parameters"]["Al__xi_0_sl__0"] == pytest.approx(
+        next_trial_value
+    )
     best_parameter_value = BestSingleCrystalParameters(
         **result["best_single_crystal_parameters"]
     )
@@ -261,6 +269,16 @@ def test_fitting_reports_rejected_trial_separately_from_best_parameters(
     assert next_trial_value != pytest.approx(best_value)
     assert len(fitter_data["optimisations"]) == 1
     assert result["is_converged"] is True
+    history = result["fitting_history"]
+    assert [iteration["accepted"] for iteration in history] == [True, False]
+    assert history[1]["measured_error"] > history[0]["measured_error"]
+    assert history[1]["best_measured_error"] == history[0]["measured_error"]
+    assert history[1]["trial_parameters"]["Al__xi_0_sl__0"] == pytest.approx(
+        history[0]["next_trial_parameters"]["Al__xi_0_sl__0"]
+    )
+    assert history[-1]["next_trial_parameters"]["Al__xi_0_sl__0"] == pytest.approx(
+        next_trial_value
+    )
 
     diagnostics = capsys.readouterr().out
     assert "Fitting iteration 1:" in diagnostics
@@ -297,6 +315,7 @@ def test_fitting_demo_terminates_on_measured_convergence() -> None:
     assert loop.termination._valida_check(True)
     assert not loop.termination._valida_check(False)
     assert "is_converged" in template.tasks[-1].all_schema_output_types
+    assert "fitting_history" in template.tasks[-1].all_schema_output_types
     tolerance = next(
         inp.value
         for inp in template.tasks[-1].element_sets[0].inputs

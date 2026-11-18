@@ -518,6 +518,10 @@
         or:
           - value.equal_to: null
           - value.is_instance: [int, float]
+- type: fitting_history
+  _validation:
+    - path: []
+      condition: { value.is_instance: [list] }
 - type: microstructure_image
   _validation:
     - path: []

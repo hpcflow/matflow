@@ -95,6 +95,7 @@ def fit_single_crystal_parameters(
     )
 
     # Add simulated tests:
+    fitting_history = []
     for iteration_idx, tensile_tests in enumerate(tensile_tests_by_iteration, 1):
         trial_parameters = _get_fitting_parameter_values(lm_fitter.fitting_params, -1)
         trial_opt = LMFitterOptimisation(lm_fitter, tensile_tests)
@@ -113,6 +114,19 @@ def fit_single_crystal_parameters(
         next_trial_parameters = _get_fitting_parameter_values(
             lm_fitter.fitting_params, -1
         )
+        next_damping = float(lm_fitter.optimisations[-1].damping_factor)
+        fitting_history.append(
+            {
+                "iteration": iteration_idx,
+                "accepted": bool(accepted),
+                "trial_parameters": trial_parameters,
+                "measured_error": measured_error,
+                "best_parameters": best_parameters,
+                "best_measured_error": float(best_opt.actual_error),
+                "next_trial_parameters": next_trial_parameters,
+                "next_damping": next_damping,
+            }
+        )
         print(
             f"Fitting iteration {iteration_idx}: "
             f"measured baseline MAE={measured_error / 1e6:.3f} MPa; "
@@ -123,7 +137,7 @@ def fit_single_crystal_parameters(
             f"best measured MAE={best_opt.actual_error / 1e6:.3f} MPa; "
             f"next trial parameters="
             f"{json.dumps(next_trial_parameters, sort_keys=True)}; "
-            f"next damping={lm_fitter.optimisations[-1].damping_factor:g}",
+            f"next damping={next_damping:g}",
             flush=True,
         )
 
@@ -155,6 +169,7 @@ def fit_single_crystal_parameters(
         "single_crystal_parameters": {"phases": optimised_single_crystal_parameters},
         "best_single_crystal_parameters": {"phases": best_single_crystal_parameters},
         "levenberg_marquardt_fitter": lm_fitter.to_dict(),
+        "fitting_history": fitting_history,
         "is_converged": is_converged,
     }
     return outputs
