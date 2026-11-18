@@ -508,6 +508,16 @@
   _validation:
     - path: []
       condition: { value.is_instance: [list] }
+- type: fitting_error_tolerance
+  _validation:
+    - path: []
+      doc: >
+        Acceptable measured mean absolute stress error in Pa, inclusive. Use null
+        to disable convergence checking.
+      condition:
+        or:
+          - value.equal_to: null
+          - value.is_instance: [int, float]
 - type: microstructure_image
   _validation:
     - path: []
@@ -842,6 +852,7 @@
 - type: load_case
 - type: microstructure_seeds
 - type: orientations
+- type: best_single_crystal_parameters
 - type: single_crystal_parameters
 - type: tensile_test
 - type: yield_point_criteria

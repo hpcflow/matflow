@@ -132,3 +132,9 @@ class SingleCrystalParameters(ParameterValue):
         The perturbations to apply to the phases.
         """
         return self._perturbations
+
+
+class BestSingleCrystalParameters(SingleCrystalParameters):
+    """Best measured crystal parameters from a fitting history."""
+
+    _typ = "best_single_crystal_parameters"

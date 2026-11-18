@@ -1191,7 +1191,14 @@
       script_exe: python_script
 
 - objective: fit_single_crystal_parameters
-  doc: Fit crystal parameters to the tensile test under a volume element model.
+  doc: >
+    Fit crystal parameters to the tensile test under a volume element model. The
+    single_crystal_parameters output is the next trial proposal; the best measured
+    parameters are printed in diagnostics, and the fitting history is returned in
+    levenberg_marquardt_fitter. The best measured parameters are also returned as
+    best_single_crystal_parameters.
+    is_converged is true when the best accepted simulation's measured mean absolute
+    stress error is at most fitting_error_tolerance (in Pa); null disables this check.
   inputs:
     - parameter: VE_response
       group: fit_single_crystal_parameters
@@ -1199,9 +1206,13 @@
       group: fit_single_crystal_parameters
     - parameter: tensile_test
     - parameter: initial_damping
+    - parameter: fitting_error_tolerance
+      default_value: null
   outputs:
     - parameter: single_crystal_parameters
+    - parameter: best_single_crystal_parameters
     - parameter: levenberg_marquardt_fitter
+    - parameter: is_converged
   actions:
     - environments:
         - scope:

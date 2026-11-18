@@ -9,7 +9,10 @@ defined in this sub-package are sub-classes of `ParameterValue`.
 from matflow.param_classes.load import LoadCase, LoadStep
 from matflow.param_classes.orientations import Orientations
 from matflow.param_classes.seeds import MicrostructureSeeds
-from matflow.param_classes.single_crystal_parameters import SingleCrystalParameters
+from matflow.param_classes.single_crystal_parameters import (
+    BestSingleCrystalParameters,
+    SingleCrystalParameters,
+)
 from matflow.param_classes.surrogate import Surrogate
 from matflow.param_classes.moose import MooseInputDeck
 
@@ -18,6 +21,7 @@ __all__ = [
     "LoadStep",
     "Orientations",
     "MicrostructureSeeds",
+    "BestSingleCrystalParameters",
     "SingleCrystalParameters",
     "Surrogate",
     "MooseInputDeck",
