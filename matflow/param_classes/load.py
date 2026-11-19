@@ -1345,6 +1345,46 @@ class LoadCase(ParameterValue):
         return cls(steps=[LoadStep.random_3D(**kwargs)])
 
     @classmethod
+    def random_exponential(
+        cls,
+        total_time: int | float,
+        num_steps: int,
+        num_increments: int = 1,
+        conserve_volume: bool = True,
+        seed: int | None = None,
+        max_tries: int | None = None,
+        k_range: ArrayLike = (0, 0.1),
+        delta_f_range: ArrayLike = (-0.1, 0.1),
+    ) -> Self:
+        """A monotonic random exponential deformation-gradient load case.
+
+        Sample ``F(t) = I + deltaF * (1 - exp(-k*t))``, with independent
+        components sampled uniformly from ``k_range`` (default (0, 0.1)) and
+        ``delta_f_range`` (default (-0.1, 0.1)). Bounds must be finite and ordered;
+        ``k_range`` must be non-negative. Equal bounds fix the sampled value.
+        Optionally conserve volume, then reject paths with non-monotonic
+        components. Generate ``num_steps`` load steps over ``total_time``, each
+        with ``num_increments`` increments. Use ``seed`` for reproducible sampling.
+        ``max_tries`` limits candidate paths and defaults to 100 for this single case.
+        """
+        from matflow.data.scripts.generate_load_cases_random_exponential import (
+            generate_load_cases_random_exponential,
+        )
+
+        case = generate_load_cases_random_exponential(
+            num_load_cases=1,
+            total_time=total_time,
+            num_steps=num_steps,
+            num_increments=num_increments,
+            conserve_volume=conserve_volume,
+            seed=seed,
+            max_tries=max_tries,
+            k_range=k_range,
+            delta_f_range=delta_f_range,
+        )["load_case"][0]
+        return cls(steps=case.steps)
+
+    @classmethod
     def random_polynomial(cls, **kwargs) -> Self:
         """A multi-step load case in which each deformation gradient component follows
         a random polynomial in time.

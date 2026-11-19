@@ -1,4 +1,167 @@
 
+<a name="v0.5.0a10"></a>
+## [v0.5.0a10](https://github.com/hpcflow/matflow/compare/v0.5.0a9...v0.5.0a10) - 2026.11.19
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a21
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a9"></a>
+## [v0.5.0a9](https://github.com/hpcflow/matflow/compare/v0.5.0a8...v0.5.0a9) - 2026.11.19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a8"></a>
+## [v0.5.0a8](https://github.com/hpcflow/matflow/compare/v0.5.0a7...v0.5.0a8) - 2026.11.11
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a17
+* use provided orientations directly rather than via a ODF in Dream3D VE generation
+* print progress in sampling multiple orientation sets from EBSD
+
+### 🐛 Bug Fixes
+
+* tests and docs for sample_texture_EBSD.py
+* use repeats in orientation sampling of ROM-training data workflow
+* tweaks to ROM-training data generation workflow
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a7"></a>
+## [v0.5.0a7](https://github.com/hpcflow/matflow/compare/v0.5.0a6...v0.5.0a7) - 2026.11.10
+
+### 🐛 Bug Fixes
+
+* use `np.power` instead of numpy v2 `np.pow`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a6"></a>
+## [v0.5.0a6](https://github.com/hpcflow/matflow/compare/v0.5.0a5...v0.5.0a6) - 2026.11.06
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a15
+* **mtex:** add explicit EBSD corrections and MTEX 7 compatibility
+
+### 🐛 Bug Fixes
+
+* down-cast VE `element_material_idx` from int64 to int32
+* **ci:** clean demo cache and limit pytest artifact retention
+* **ci:** cache demo assets and gate MATLAB regressions
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a5"></a>
+## [v0.5.0a5](https://github.com/hpcflow/matflow/compare/v0.5.0a4...v0.5.0a5) - 2026.10.29
+
+### 🐛 Bug Fixes
+
+* broken imports
+* generate_volume_element_from_voronoi task when seeds/orientations are read from files
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a4"></a>
+## [v0.5.0a4](https://github.com/hpcflow/matflow/compare/v0.5.0a3...v0.5.0a4) - 2026.10.29
+
+### ✨ Features
+
+* support optimalSample sampling methods in MTEX EBSD texture sampling
+* add random_exponential load case
+* bump hpcflow version to 0.4.0a8
+* bump hpcflow version to 0.4.0a7
+* add test task schema for generating multiple load cases to be used with new SchemaOutput.multiplicity arg
+
+### 🐛 Bug Fixes
+
+* tests
+* use resource_value random seed by default in random_exponential load case
+* load case test
+* use demo-data for posterior.txt
+* update training workflow
+* tweaks
+* TODOs in generate_ROM_training_data.yaml
+* tweaks
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a3"></a>
+## [v0.5.0a3](https://github.com/hpcflow/matflow/compare/v0.5.0a2...v0.5.0a3) - 2026.10.29
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a9
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a2"></a>
+## [v0.5.0a2](https://github.com/hpcflow/matflow/compare/v0.5.0a1...v0.5.0a2) - 2026.10.27
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a6
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a1"></a>
+## [v0.5.0a1](https://github.com/hpcflow/matflow/compare/v0.5.0a0...v0.5.0a1) - 2026.10.27
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a5
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a0"></a>
+## [v0.5.0a0](https://github.com/hpcflow/matflow/compare/v0.4.0...v0.5.0a0) - 2026.10.22
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a0
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/hpcflow/matflow/compare/v0.4.0a18...v0.4.0) - 2026.10.21
+
+
 <a name="v0.4.0a18"></a>
 ## [v0.4.0a18](https://github.com/hpcflow/matflow/compare/v0.4.0a17...v0.4.0a18) - 2026.10.21
 

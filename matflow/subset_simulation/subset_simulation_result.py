@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 from hpcflow.sdk.core.parameters import ParameterValue
 
-from matflow.tests.utils import _values_equal
+from matflow.tests.utils import values_equal
 
 if TYPE_CHECKING:
     from matflow.subset_simulation.subset_simulation import MarkovChainResult
@@ -297,7 +297,7 @@ class SubsetSimulationResult(ParameterValue):
             return False
 
         return all(
-            _values_equal(
+            values_equal(
                 getattr(self, field.name),
                 getattr(other, field.name),
             )
