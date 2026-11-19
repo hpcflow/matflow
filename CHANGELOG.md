@@ -1,4 +1,62 @@
 
+<a name="v0.5.0"></a>
+## [v0.5.0](https://github.com/hpcflow/matflow/compare/v0.4.0...v0.5.0) - 2026.11.19
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0
+* bump hpcflow version to 0.4.0a21
+* bump hpcflow version to 0.4.0a17
+* use provided orientations directly rather than via a ODF in Dream3D VE generation
+* print progress in sampling multiple orientation sets from EBSD
+* bump hpcflow version to 0.4.0a15
+* add test task schema for generating multiple load cases to be used with new SchemaOutput.multiplicity arg
+* bump hpcflow version to 0.4.0a9
+* support optimalSample sampling methods in MTEX EBSD texture sampling
+* add random_exponential load case
+* bump hpcflow version to 0.4.0a8
+* bump hpcflow version to 0.4.0a7
+* bump hpcflow version to 0.4.0a6
+* bump hpcflow version to 0.4.0a5
+* bump hpcflow version to 0.4.0a0
+* **mtex:** add explicit EBSD corrections and MTEX 7 compatibility
+
+### 🐛 Bug Fixes
+
+* tests and docs for sample_texture_EBSD.py
+* use repeats in orientation sampling of ROM-training data workflow
+* tweaks to ROM-training data generation workflow
+* use `np.power` instead of numpy v2 `np.pow`
+* TODOs in generate_ROM_training_data.yaml
+* tweaks
+* down-cast VE `element_material_idx` from int64 to int32
+* broken imports
+* generate_volume_element_from_voronoi task when seeds/orientations are read from files
+* tests
+* use resource_value random seed by default in random_exponential load case
+* load case test
+* use demo-data for posterior.txt
+* update training workflow
+* tweaks
+* **ci:** cache demo assets and gate MATLAB regressions
+* **ci:** clean demo cache and limit pytest artifact retention
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+* update binary download links file [skip ci]
+
+
 <a name="v0.4.0"></a>
 ## [v0.4.0](https://github.com/hpcflow/matflow/compare/v0.3.0...v0.4.0) - 2026.10.21
 
