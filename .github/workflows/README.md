@@ -7,6 +7,13 @@ cd .github/workflows
 python generate_workflows.py . vars.jsonc
 ```
 
+`doc-build.yml.in` and its generated caller use the shared
+`github-support` documentation workflow, as do release builds. The standalone
+workflow keeps its push trigger and prepares a temporary app-data/program cache;
+the shared workflow deletes it after the build, including on failure. Releases
+reuse their existing cache and delete it after all executable and docs consumers
+finish. Merge the shared implementation before deploying these callers.
+
 ## Demo and MTEX tests
 
 `test-demos.yml` is maintained directly. Its `cache-app-data` job prepares data
