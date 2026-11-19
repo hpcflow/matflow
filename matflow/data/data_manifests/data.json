@@ -53,5 +53,6 @@
     "posterior.txt": {
         "zip_file": "posterior.zip"
     },
-    "fifty_grain_phase_fields.npz": {}
+    "fifty_grain_phase_fields.npz": {},
+    "circle_squash_phase_fields.npz": {}
 }

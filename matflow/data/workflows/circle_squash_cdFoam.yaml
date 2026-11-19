@@ -43,6 +43,7 @@ tasks:
 
   - schema: simulate_VE_loading_openfoam_circle_squash
     inputs:
+      phase_field_data: <<demo_data_file:circle_squash_phase_fields.npz>>
       VE_origin: [-0.05, 0.0, 0.0]
       boundary:
         - patch_name: lowerWall # user-specified name for the patch, use camelCase

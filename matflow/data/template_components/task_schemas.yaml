@@ -3330,6 +3330,7 @@
   doc: Generate and run the Circle Squash OpenFOAM case.
   inputs:
     - parameter: volume_element
+    - parameter: phase_field_data
     - parameter: materials
       default_value: null
     - parameter: orientations
@@ -3348,8 +3349,8 @@
           environment: openfoam_env
       input_file_generators:
         - input_file: open_foam_phase_bool_files
-          from_inputs: [volume_element, boundary_field]
-          script: <<script:openfoam/write_phase_ID_files.py>>
+          from_inputs: [phase_field_data, boundary_field]
+          script: <<script:openfoam/write_circle_squash_phase_fields.py>>
         - input_file: open_foam_grain_properties_file
           from_inputs: [volume_element, orientations, materials]
           script: <<script:openfoam/write_grain_properties_circle_squash.py>>
