@@ -55,7 +55,7 @@ inputs:
   grid_size: [8, 8, 8]
   num_cores_DAMASK: 1
   time_texture: 5 # minutes to sample *all* orientations (may take ~1hr for 25_000)
-  time_load: 10 # minutes to generate *all* load cases
+  time_load: 15 # minutes to generate *all* load cases
   time_DAMASK: 10 # minutes per single DAMASK simulation
   time_Dream3D: 5 # minutes per single Dream3D invocation
   material_parameters: <<demo_data_file:posterior.txt>>
@@ -71,6 +71,8 @@ inputs:
   num_stacked_elements: <<calc( -(<<input:num_simulations>> // -<<input:max_array_size>>) )>>
   time_DAMASK_all: <<calc(<<input:time_DAMASK>> * <<input:num_stacked_elements>>)>>
   time_Dream3D_all: <<calc(<<input:time_Dream3D>> * <<input:num_stacked_elements>>)>>
+  time_texture_all: <<calc(<<input:time_texture>> * <<input:num_stacked_elements>>)>>
+  load_case_num_cores: <<calc( -(<<input:num_simulations>> // -5000) )>> # 1 core's memory per 5_000 load cases
 
 resources:
   any:
@@ -88,16 +90,18 @@ tasks:
       conserve_volume: true
     resources:
       any:
+        num_cores: <<input:load_case_num_cores>> # for sufficient memory
+        num_nodes: 1
         scheduler_args:
           directives:
-            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
+            --time: <<input:time_load>>
 
   - schema: sample_texture_from_CTF_file_mtex_python
     resources:
       any:
         scheduler_args:
           directives:
-            --time: <<calc(<<input:time_texture>> + <<input:time_load>>)>>
+            --time: <<calc(<<input:time_texture_all>> + <<input:time_Dream3D_all>>)>>
     repeats: <<input:num_simulations>>
     inputs:
       CTF_file_path: <<demo_data_file:texture_Al.ctf>>
@@ -106,14 +110,14 @@ tasks:
       EBSD_phase: Al
       EBSD_rotation: null
       sampling_method: optimalSample
-      num_orientations: 1000
+      num_orientations: 1200
 
   - schema: generate_volume_element_from_statistics
     resources:
       any:
         scheduler_args:
           directives:
-            --time: <<input:time_Dream3D_all>>
+            --time: <<calc(<<input:time_texture_all>> + <<input:time_Dream3D_all>>)>>
     save_files: false # disable saving Dream3D XDMF and HDF5 files
     inputs:
       assign_orientations_directly: true # assign input orientations in order to grains
@@ -132,10 +136,17 @@ tasks:
   - schema: simulate_VE_loading_damask
     resources:
       any:
+        # use these resources when using ramdisks:
+        # num_cores: <<calc(<<input:num_cores_DAMASK>> + 2)>> # extra RAM headroom given we are using RAM disks; i.e. max of 6 concurrent jobs per node
+        # num_MPI_ranks: <<input:num_cores_DAMASK>> # must pass in the DAMASK environment: for srun: --ntasks="$MATFLOW_RUN_NUM_MPI_RANKS"; for mpirun: mpirun -np $MATFLOW_RUN_NUM_MPI_RANKS
+        # num_nodes: 1 # required when using RAM disks
+        # scratch: /ramdisks
         num_cores: <<input:num_cores_DAMASK>>
         scheduler_args:
           directives:
             --time: <<input:time_DAMASK_all>>
+            --stepmgr: null # required if using srun to launch DAMASK
+            --exclude: cpu-r-53 # srun doesn't work
     repeats:
       number: <<input:num_microstructures_per_load_case>>
       nesting_order: 2
