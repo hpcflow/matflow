@@ -1,9 +1,31 @@
+import os
 import pprint
 
 import numpy as np
 
 
-def increment_chain(x, g, all_x, all_g, all_accept, threshold):
+def increment_chain(
+    x,
+    g,
+    all_x,
+    all_g,
+    all_accept,
+    threshold,
+    fine_eval_count,
+    coarse_eval_count,
+):
+
+    loop_idx = {
+        loop_name: int(loop_idx)
+        for loop_name, loop_idx in (
+            item.split("=")
+            for item in os.environ["MATFLOW_ELEMENT_ITER_LOOP_IDX"].split(";")
+        )
+    }
+    if loop_idx["markov_chain_state"] == 0:
+        fine_eval_count = 0
+
+    fine_eval_count += 1
 
     if g is None:
         # failed system analysis, reject the state:
@@ -31,4 +53,6 @@ def increment_chain(x, g, all_x, all_g, all_accept, threshold):
         "all_x": all_x,
         "all_g": all_g,
         "all_accept": all_accept,
+        "fine_eval_count": fine_eval_count,
+        "coarse_eval_count": coarse_eval_count,
     }

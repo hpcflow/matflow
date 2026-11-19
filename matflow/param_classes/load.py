@@ -121,7 +121,7 @@ class LoadStep(ParameterValue):
         #: Rotation matrix.
         self.rotation = rotation
 
-        # assigned if constructed via a helper class method:
+        # assigned if constructed via a class method:
         self._method_name: str | None = None
         self._method_args: dict[str, Any] | None = None
 
@@ -131,7 +131,13 @@ class LoadStep(ParameterValue):
     def __cmp_tensors(mine: ArrayLike | None, theirs: ArrayLike | None):
         if mine is None:
             return theirs is None
-        return theirs is not None and np.allclose(mine, theirs)
+        if theirs is None:
+            return False
+        # `np.allclose` is False for fully-masked arrays, so compare masks and data
+        # separately:
+        return np.array_equal(
+            np.ma.getmaskarray(mine), np.ma.getmaskarray(theirs)
+        ) and bool(np.ma.allclose(mine, theirs, masked_equal=True))
 
     def __eq__(self, other: object) -> bool:
         # check type and scalars
@@ -274,6 +280,52 @@ class LoadStep(ParameterValue):
             num_increments=incs,
             direction=direction,
             target_def_grad_rate=rate,
+        )
+
+    @classmethod
+    def zero_deformation(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+    ) -> Self:
+        """A zero deformation load step"""
+
+        target_def_grad = np.eye(3)
+
+        _method_name = "zero_deformation"
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+        }
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=target_def_grad,
+        )
+
+    @classmethod
+    def zero_normal_stress(
+        cls,
+        total_time: float | int,
+        num_increments: int,
+    ) -> Self:
+        """A zero normal stress load step"""
+
+        target_def_grad = np.ma.masked_array(np.zeros((3, 3)), mask=np.eye(3))
+        stress = np.ma.masked_array(np.zeros((3, 3)), mask=np.logical_not(np.eye(3)))
+
+        _method_name = "zero_normal_stress"
+        _method_args = {
+            "total_time": total_time,
+            "num_increments": num_increments,
+        }
+
+        return cls(
+            total_time=total_time,
+            num_increments=num_increments,
+            target_def_grad=target_def_grad,
+            stress=stress,
         )
 
     @classmethod
@@ -862,6 +914,110 @@ class LoadStep(ParameterValue):
         return obj._remember_name_args(_method_name, _method_args)
 
     @classmethod
+    def random_polynomial(
+        cls,
+        total_time: int | float,
+        num_steps: int,
+        coefficient_ranges: ArrayLike,
+        num_increments: int = 1,
+        dump_frequency: int = 1,
+        seed: int | None = None,
+    ) -> list[Self]:
+        """
+        Generate a sequence of load steps in which each component of the deformation
+        gradient follows a random polynomial in time.
+
+        Each of the nine components of the deformation gradient is modelled as:
+
+            F_ij(t) = δ_ij + c_1 t + c_2 t² + c_3 t³ + ...
+
+        where the polynomial coefficients are sampled independently (for each component
+        and each coefficient) and uniformly from the given ranges. The polynomial is then
+        sampled at `num_steps` fixed time intervals spanning `total_time`, and a load
+        step is generated for each interval, where the target deformation gradient is
+        that at the end of the interval. Each sampled deformation gradient is normalised
+        to have a unit determinant.
+
+        Parameters
+        ----------
+        total_time
+            Total simulation time.
+        num_steps
+            Number of load steps (i.e. the number of fixed time intervals) to generate.
+        coefficient_ranges
+            Sequence of `(min, max)` pairs, one for each polynomial coefficient in
+            increasing order of the power of time, starting from the linear term `c_1`.
+            Typically three pairs are given, for `c_1`, `c_2` and `c_3`. The same ranges
+            are used for all nine components of the deformation gradient, but each
+            component is sampled independently.
+        num_increments
+            Number of simulation increments per load step. By default, 1.
+        dump_frequency
+            By default, 1, meaning results are written out every increment.
+        seed
+            Optional seed for the random number generator, for reproducible sampling.
+        """
+        coeff_ranges = np.asarray(coefficient_ranges, dtype=float)
+        if coeff_ranges.ndim != 2 or coeff_ranges.shape[1] != 2 or not coeff_ranges.size:
+            raise ValueError(
+                "`coefficient_ranges` must be a sequence of (min, max) pairs, one for "
+                f"each polynomial coefficient, but received: {coefficient_ranges!r}."
+            )
+        if np.any(coeff_ranges[:, 0] > coeff_ranges[:, 1]):
+            raise ValueError(
+                "Each (min, max) pair in `coefficient_ranges` must satisfy min <= max, "
+                f"but received: {coefficient_ranges!r}."
+            )
+        if num_steps < 1:
+            raise ValueError(
+                f"`num_steps` must be at least 1, but received: {num_steps}."
+            )
+
+        rng = np.random.default_rng(seed)
+        num_coeffs = coeff_ranges.shape[0]
+
+        # Independently sample each coefficient of each of the nine components:
+        coeffs = rng.uniform(
+            coeff_ranges[:, 0], coeff_ranges[:, 1], size=(3, 3, num_coeffs)
+        )
+
+        time_interval = total_time / num_steps
+        times = np.arange(1, num_steps + 1) * time_interval
+        powers = np.arange(1, num_coeffs + 1)
+        time_powers = times[:, np.newaxis] ** powers[np.newaxis, :]
+
+        # Evaluate the polynomial at the end of each time interval; shape (num_steps, 3, 3):
+        def_grads = np.eye(3)[np.newaxis] + np.einsum("ijk,nk->nij", coeffs, time_powers)
+
+        dets = np.linalg.det(def_grads)
+        if np.any(dets <= 0):
+            raise ValueError(
+                "One or more sampled deformation gradients has a non-positive "
+                "determinant and so cannot be normalised to a unit determinant. Consider "
+                "narrowing `coefficient_ranges` or reducing `total_time`."
+            )
+        def_grads /= np.cbrt(dets)[:, np.newaxis, np.newaxis]
+
+        stress_arr = np.ma.masked_array(
+            np.zeros((3, 3)), mask=np.ones((3, 3), dtype=bool)
+        )
+        load_steps: list[dict[str, Any]] = []
+        for def_grad in def_grads:
+            load_steps.append(
+                {
+                    "total_time": time_interval,
+                    "num_increments": num_increments,
+                    "target_def_grad": np.ma.masked_array(
+                        def_grad, mask=np.zeros((3, 3), dtype=bool)
+                    ),
+                    "stress": stress_arr,
+                    "dump_frequency": dump_frequency,
+                }
+            )
+
+        return [cls(**i)._remember_name_args(None, i) for i in load_steps]
+
+    @classmethod
     def random_inc(
         cls,
         total_time: Union[int, float],
@@ -999,25 +1155,31 @@ class LoadStep(ParameterValue):
         idx: int,
     ) -> list[Self]:
         """
-        Construct a list of load steps using data from a Numpy .npz file. This is designed for running large arrays of simulations from the data in this file, where each uses a loadcase specified by a given index (`idx`).
+        Construct a list of load steps using data from a Numpy .npz file. This is designed
+        for running large arrays of simulations from the data in this file, where each
+        uses a load case specified by a given index (`idx`).
 
         Parameters
         ----------
         npz_file_path: str
-            Filepath to the npz file, which must be dict-like with at least the following keys:
-            num_incs: 1D numpy array
-                Array of the total number of increments to use for each loadcase.
-                (total number of increments the damask simulation should undergo)
-            inc_size: 2D numpy array
-                Array of the amount of strain each loadstep of each loadcase should undergo in the damask simulation.
-                (1st D is loadstep, 2nd is principle components of strain.)
-            inc_size_final: 2D numpy array
-                Array of amount of strain of final loadsteps.
-                (1st D is loadstep, 2nd is principle components of strain.)
-            u_sampled_split: 4D numpy array
-                Array of strain matrices (loadcase 1st D, loadstep 2nd D, strain matrix 3rd, 4th Ds). Sampled from the elements of an FE model.
-            strain_rate: 1D numpy array of one float
-                Scalar strain rate to be used for every simulation
+            Filepath to the npz file, which must be dict-like with at least the following
+            keys:
+                num_incs: 1D numpy array
+                    Array of the total number of increments to use for each loadcase.
+                    (total number of increments the damask simulation should undergo)
+                inc_size: 2D numpy array
+                    Array of the amount of strain each loadstep of each loadcase should
+                    undergo in the damask simulation. First dimension is loadstep; second
+                    is principle components of strain.
+                inc_size_final: 2D numpy array
+                    Array of amount of strain of final loadsteps. First dimension is
+                    loadstep; second is principle components of strain.
+                u_sampled_split: 4D numpy array
+                    Array of strain matrices. First dimension is loadcase; second
+                    dimension is loadstep; third and fourth dimensions are strain matrix.
+                    Sampled from the elements of an FE model.
+                strain_rate: 1D numpy array of one float
+                    Scalar strain rate to be used for every simulation
         idx: int
             int index of desired loadcase to use.
         """
@@ -1120,6 +1282,16 @@ class LoadCase(ParameterValue):
         return load_steps
 
     @classmethod
+    def zero_deformation(cls, **kwargs) -> Self:
+        """A zero deformation load case"""
+        return cls(steps=[LoadStep.zero_deformation(**kwargs)])
+
+    @classmethod
+    def zero_normal_stress(cls, **kwargs) -> Self:
+        """A zero normal stress load case"""
+        return cls(steps=[LoadStep.zero_normal_stress(**kwargs)])
+
+    @classmethod
     def uniaxial(cls, **kwargs) -> Self:
         """A single-step uniaxial load case.
 
@@ -1171,6 +1343,55 @@ class LoadCase(ParameterValue):
         See :py:meth:`~LoadStep.random_3D` for argument documentation.
         """
         return cls(steps=[LoadStep.random_3D(**kwargs)])
+
+    @classmethod
+    def random_exponential(
+        cls,
+        total_time: int | float,
+        num_steps: int,
+        num_increments: int = 1,
+        conserve_volume: bool = True,
+        seed: int | None = None,
+        max_tries: int | None = None,
+        k_range: ArrayLike = (0, 0.1),
+        delta_f_range: ArrayLike = (-0.1, 0.1),
+    ) -> Self:
+        """A monotonic random exponential deformation-gradient load case.
+
+        Sample ``F(t) = I + deltaF * (1 - exp(-k*t))``, with independent
+        components sampled uniformly from ``k_range`` (default (0, 0.1)) and
+        ``delta_f_range`` (default (-0.1, 0.1)). Bounds must be finite and ordered;
+        ``k_range`` must be non-negative. Equal bounds fix the sampled value.
+        Optionally conserve volume, then reject paths with non-monotonic
+        components. Generate ``num_steps`` load steps over ``total_time``, each
+        with ``num_increments`` increments. Use ``seed`` for reproducible sampling.
+        ``max_tries`` limits candidate paths and defaults to 100 for this single case.
+        """
+        from matflow.data.scripts.generate_load_cases_random_exponential import (
+            generate_load_cases_random_exponential,
+        )
+
+        case = generate_load_cases_random_exponential(
+            num_load_cases=1,
+            total_time=total_time,
+            num_steps=num_steps,
+            num_increments=num_increments,
+            conserve_volume=conserve_volume,
+            seed=seed,
+            max_tries=max_tries,
+            k_range=k_range,
+            delta_f_range=delta_f_range,
+        )["load_case"][0]
+        return cls(steps=case.steps)
+
+    @classmethod
+    def random_polynomial(cls, **kwargs) -> Self:
+        """A multi-step load case in which each deformation gradient component follows
+        a random polynomial in time.
+
+        See :py:meth:`~LoadStep.random_polynomial` for argument documentation.
+        """
+        return cls(steps=LoadStep.random_polynomial(**kwargs))
 
     @classmethod
     def uniaxial_cyclic(cls, **kwargs) -> Self:

@@ -1,0 +1,72 @@
+name: Recover stable release
+{% raw %}run-name: Recover stable release ${{ inputs.recovery-tag }}{% endraw %}
+concurrency: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      recovery-tag:
+        description: Existing unpublished stable release tag
+        required: true
+        type: string
+        default: v0.4.0
+      recovery-previous-tag:
+        description: Previous stable release tag (exclusive release notes boundary)
+        required: true
+        type: string
+        default: v0.3.0
+      confirm-publication:
+        description: Publish the selected version to GitHub, PyPI, and the documentation website
+        required: true
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  confirm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit publication confirmation from {{ release_branch }}
+        env:
+          {% raw %}CONFIRMED: ${{ inputs.confirm-publication }}
+          TAG: ${{ inputs.recovery-tag }}
+          PREVIOUS_TAG: ${{ inputs.recovery-previous-tag }}
+          REF: ${{ github.ref }}{% endraw %}
+        run: |
+          if [[ "$CONFIRMED" != true || "$REF" != refs/heads/{{ release_branch }} || -z "$TAG" || -z "$PREVIOUS_TAG" ]]; then
+            echo "::error::Select {{ release_branch }}, supply both tags, and confirm publication before dispatching recovery."
+            exit 1
+          fi
+
+  release:
+    needs: confirm
+    uses: hpcflow/github-support/.github/workflows/release-impl.yml@main
+    with:
+      {% raw %}recovery-tag: ${{ inputs.recovery-tag }}
+      recovery-previous-tag: ${{ inputs.recovery-previous-tag }}
+      gh-run-attempt: ${{ github.run_attempt }}{% endraw %}
+      pr-merged: "false"
+      pr-title: Recover stable release
+      pr-base-ref: {{ release_branch }}
+      pr-head-ref: {{ pre_release_branch }}
+      pre_release_branch: {{ pre_release_branch }}
+      release_branch: {{ release_branch }}
+      app_name: {{ app_name }}
+      benchmark_make_workflow: {{ benchmark_make_workflow }}
+      docs_url_prefix: {{ docs_url_prefix }}
+      executable_name: {{ executable_name }}
+      pyinstaller_dir: {{ pyinstaller_dir }}
+      pypi-url: {{ PYPI_URL }}
+      repository: {{ org }}/{{ repo }}
+      version_file: {{ version_file }}
+      website_source_org: {{ website_source_org }}
+      website_source_repo: {{ website_source_repo }}
+    secrets:
+      {% raw %}general-token: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
+      commit-token: {{ '${{' }} secrets.{{ token_name }} {{ '}}' }}
+      pypi-token: {{ '${{' }} secrets.{{ PYPI_token_name }} {{ '}}' }}
+      website-token: {{ '${{' }} secrets.{{ website_source_token_name }} {{ '}}' }}
+    permissions:
+      id-token: write
+      contents: write

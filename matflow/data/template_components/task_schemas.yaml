@@ -142,6 +142,8 @@
     - parameter: VE_size
     - parameter: num_grains
     - parameter: phase_label
+    - parameter: random_seed
+      default_value: resource_value
   outputs:
     - parameter: microstructure_seeds
   actions:
@@ -189,35 +191,45 @@
     - parameter: volume_element
     - parameter: path
       default_value: geom.vti
+  save_files: [damask_geom_file]
   actions:
     - requires_dir: true
       script: <<script:damask/write_geom.py>>
       script_data_in: direct
       script_exe: python_script
-      save_files: [damask_geom_file]
+      output_files: [damask_geom_file]
       environments:
         - scope:
             type: any
           environment: damask_parse_env
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a CTF file.
+  doc: >
+    Sample an orientation density estimated from a CTF file using MATLAB MTEX.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CTF_file
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
       default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_CTF.m>>
@@ -274,23 +286,33 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
-  doc: Extract the crystal orientations from a channel reconstruction file.
+  doc: >
+    Sample an orientation density estimated from a CRC file using MATLAB MTEX.
+    A CPR file with the same stem must be beside the CRC file.
+    The kernel halfwidth defaults to 10 degrees; the run's num_threads resource
+    sets the MATLAB computation thread limit.
   method: from_CRC_file
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | script | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
     - parameter: EBSD_phase
     - parameter: num_orientations
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
     - parameter: EBSD_reference_frame_transformation
       default_value: euler_to_spatial
     - parameter: EBSD_rotation
       default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_CRC.m>>
@@ -347,17 +369,94 @@
             value.equal_to: precompiled
 
 - objective: sample_texture
+  doc: >
+    Sample a density estimated from a CTF file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CTF_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CTF_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: null
+    - parameter: sampling_method
+      default_value: discreteSample
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: <<input:num_orientation_sets>>
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: sample_texture
+  doc: >
+    Sample a density estimated from a CRC file using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
+    A CPR file with the same stem must be beside the CRC file.
+    Inputs and outputs are passed directly to and from the Python script.
+  method: from_CRC_file
+  implementation: mtex_python
+  inputs:
+    - parameter: CRC_file_path
+    - parameter: specimen_symmetry
+    - parameter: EBSD_phase
+    - parameter: num_orientations
+    - parameter: num_orientation_sets
+      default_value: null
+    - parameter: sampling_method
+      default_value: discreteSample
+    - parameter: kernel_halfwidth_deg
+      default_value: 10.0
+    - parameter: EBSD_reference_frame_transformation
+      default_value: euler_to_spatial
+    - parameter: EBSD_rotation
+      default_value: null
+    - parameter: EBSD_euler_correction
+      default_value: null
+  outputs:
+    - parameter: orientations
+      multiplicity: <<input:num_orientation_sets>>
+  actions:
+    - script: <<script:mtex/sample_texture_EBSD.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
+- objective: sample_texture
   doc: Extract the crystal orientations from an ODF material file.
   method: from_ODF_mat_file
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: ODF_mat_file_path
     - parameter: num_orientations
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_ODF_mat.m>>
@@ -423,10 +522,12 @@
     - parameter: specimen_symmetry
     - parameter: ODF_components
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_model_ODF.m>>
@@ -498,8 +599,9 @@
     - parameter: use_one_colourbar
       default_value: False
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
+  save_files: [mtex_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_pole_figures.m>>
@@ -523,7 +625,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -539,7 +641,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -555,7 +657,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_pole_figures, mtex_IPF_key]
+      output_files: [mtex_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -571,8 +673,9 @@
       default_value: ["z"]
     - parameter: use_contours
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -596,7 +699,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -612,7 +715,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
@@ -628,11 +731,58 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.execution_mode
           condition:
             value.equal_to: precompiled
+
+- objective: visualise_orientations
+  doc: Plot pole figures with Python MTEX using direct orientation inputs.
+  method: pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: pole_figure_directions
+    - parameter: use_contours
+    - parameter: IPF_reference_direction
+      default_value: z
+    - parameter: colourbar_limits
+      default_value: null
+    - parameter: use_one_colourbar
+      default_value: false
+  save_files: [mtex_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_pole_figures, mtex_IPF_key]
+
+- objective: visualise_orientations
+  doc: Plot inverse pole figures with Python MTEX using direct orientation inputs.
+  method: inverse_pole_figure
+  implementation: mtex_python
+  inputs:
+    - parameter: orientations
+    - parameter: crystal_symmetry
+    - parameter: IPF_reference_directions
+      default_value: ["z"]
+    - parameter: use_contours
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+  actions:
+    - script: <<script:mtex/plot_orientations.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
 
 - objective: visualise_multi_orientations
   # Note: this should be made redundant by some sort of built-in hpcflow functionality to
@@ -648,6 +798,7 @@
     - parameter: use_contours
     - parameter: compile
       default_value: false
+  save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
   actions:
     - requires_dir: true
       script: <<script:mtex/plot_inverse_pole_figures.m>>
@@ -671,7 +822,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.compile
           condition:
@@ -687,7 +838,7 @@
         - scope:
             type: any
           environment: matlab_env
-      save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
+      output_files: [mtex_inverse_pole_figures, mtex_IPF_key]
       rules:
         - path: inputs.compile
           condition:
@@ -719,6 +870,93 @@
   doc: Pseudo-task for defining a load case as a literal value in the workflow.
   inputs:
     - parameter: load_case
+
+- objective: generate_load_case
+  doc: Generate a uniaxial load case.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+  actions:
+    - script: <<script:generate_load_case.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_load_cases
+  doc: Generate a list of independent, identical uniaxial load cases.
+  web_doc: false
+  method: uniaxial
+  inputs:
+    - parameter: num_load_cases
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_increments
+      default_value: 200
+    - parameter: direction
+      default_value: x
+    - parameter: target_def_grad_rate
+      default_value: 1.0e-3
+  outputs:
+    - parameter: load_case
+      multiplicity: <<input:num_load_cases>>
+  actions:
+    - script: <<script:generate_load_cases.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: generate_load_cases
+  doc: Generate monotonic random exponential deformation-gradient load cases.
+  method: random_exponential
+  inputs:
+    - parameter: num_load_cases
+    - parameter: total_time
+      default_value: 100
+    - parameter: num_steps
+      default_value: 100
+    - parameter: num_increments
+      default_value: 1
+    - parameter: conserve_volume
+      default_value: true
+    - parameter: seed
+      default_value: resource_value
+    - parameter: max_tries
+      default_value: null
+    - parameter: k_range
+      default_value: [0, 0.1]
+    - parameter: delta_f_range
+      default_value: [-0.1, 0.1]
+  outputs:
+    - parameter: load_case
+      multiplicity: <<input:num_load_cases>>
+    - parameter: monotonicity
+  actions:
+    - script: <<script:generate_load_cases_random_exponential.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
 
 - objective: define_orientations
   inputs:
@@ -766,6 +1004,7 @@
     - parameter: VE_response
     - parameter: damask_viz_result
     - parameter: yield_stress
+  save_files: [damask_viz_files]
   actions:
     - environments:
         - scope:
@@ -827,18 +1066,15 @@
           script: <<script:damask/read_log.py>>
         damask_post_processing_result:
           from_files: [damask_hdf5_file]
-          save_files: false
           script: <<script:damask/process_damask_HDF5.py>>
           inputs: [damask_post_processing]
         VE_response:
           from_files: [damask_hdf5_file]
-          save_files: false
           script: <<script:damask/extract_damask_HDF5.py>>
           inputs: [VE_response_data]
         damask_viz_result:
           from_files: [damask_hdf5_file]
-          save_files: [damask_viz_files]
-          clean_up: [damask_viz_files]
+          generates_files: [damask_viz_files]
           inputs: [damask_viz]
           outputs: [VE_response]
           script: <<script:damask/viz_damask_HDF5.py>>
@@ -847,7 +1083,6 @@
               condition: { value.not_equal_to: null }
         yield_stress:
           from_files: [damask_hdf5_file]
-          save_files: false
           inputs: [calculate_yield_stress, remove_damask_hdf5]
           outputs: [VE_response]
           script: <<script:damask/get_yield_stress.py>>
@@ -879,6 +1114,7 @@
       default_value: null
   outputs:
     - parameter: VE_response
+  save_files: [damask_viz_files]
   actions:
     - environments:
         - scope:
@@ -916,8 +1152,7 @@
       output_file_parsers:
         VE_response: # this generates VTK files as well if requested
           from_files: [damask_hdf5_file]
-          save_files: [damask_viz_files]
-          clean_up: [damask_viz_files]
+          generates_files: [damask_viz_files]
           script: <<script:damask/high_concurrency/process_HDF5.py>>
           inputs:
             - damask_post_processing
@@ -1297,7 +1532,11 @@
 #         - command: DAMASK_grid --load <<input_file:damask_load_file>> --geom <<input_file:damask_geom_file>>
 
 - objective: generate_volume_element
-  doc: Generate a volume element from phase statistics.
+  doc: >
+    Generate a volume element from phase statistics. By default, supplied
+    orientations are assigned in order to grains of the first phase in the
+    returned volume element. Set assign_orientations_directly to false to use
+    Dream3D's ODF-based orientations instead. Retained Dream3D files are unchanged.
   method: from_statistics
   inputs:
     - parameter: grid_size
@@ -1314,8 +1553,11 @@
       default_value: null
     - parameter: orientations
       default_value: null
+    - parameter: assign_orientations_directly
+      default_value: true
   outputs:
     - parameter: volume_element
+  save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
   actions:
     - environments:
         - scope:
@@ -1335,66 +1577,66 @@
           script: <<script:dream_3D/generate_volume_element_statistics.py>>
       commands:
         - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
+      output_files: [dream_3D_XDMF_file]
       output_file_parsers:
         volume_element:
           from_files: [dream_3D_hdf5_file]
-          save_files: [dream_3D_hdf5_file, dream_3D_XDMF_file]
+          inputs: [orientations, assign_orientations_directly]
           script: <<script:dream_3D/parse_dream_3D_volume_element.py>>
 
 - objective: generate_volume_element
   method: from_statistics_dual_phase_orientations
   implementation: Dream3D
   inputs:
-  - parameter: grid_size
-  - parameter: resolution # Define either resolution or size as task input
-    default_value: null
-  - parameter: size # Define either resolution or size as task input
-    default_value: null
-  - parameter: origin
-    default_value: null
-  - parameter: periodic
-    default_value: true
-  - parameter: orientations
-    multiple: true
-    labels:
-      phase_1: {}
-      phase_2: {}
-  - parameter: phase_statistics
-  - parameter: precipitates
-    default_value: null
-  - parameter: RNG_seed
+    - parameter: grid_size
+    - parameter: resolution # Define either resolution or size as task input
+      default_value: null
+    - parameter: size # Define either resolution or size as task input
+      default_value: null
+    - parameter: origin
+      default_value: null
+    - parameter: periodic
+      default_value: true
+    - parameter: orientations
+      multiple: true
+      labels:
+        phase_1: {}
+        phase_2: {}
+    - parameter: phase_statistics
+    - parameter: precipitates
+      default_value: null
+    - parameter: RNG_seed
   outputs:
-  - parameter: volume_element
+    - parameter: volume_element
+  save_files: [dream_3D_hdf5_file]
   actions:
-  - environments:
-    - scope: any
-      environment: dream_3D_env
-    input_file_generators:
-    - input_file: precipitates_file
-      from_inputs: [precipitates]
-      script: <<script:cipher/write_precipitates_file.py>>
-    - input_file: dream_3D_pipeline
-      from_inputs:
-      - grid_size
-      - resolution
-      - size
-      - origin
-      - periodic
-      - phase_statistics
-      - precipitates
-      script: <<script:cipher/generate_RVE_from_statistics_dual_phase_pipeline_writer.py>>
-    commands:
-    - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
-    output_file_parsers:
-      volume_element:
-        from_files: [dream_3D_hdf5_file]
-        script: <<script:cipher/parse_dream_3D_volume_element_from_stats.py>>
-        inputs:
-        - phase_statistics
-        - orientations
-        - RNG_seed
-
-
+    - environments:
+        - scope: any
+          environment: dream_3D_env
+      input_file_generators:
+        - input_file: precipitates_file
+          from_inputs: [precipitates]
+          script: <<script:cipher/write_precipitates_file.py>>
+        - input_file: dream_3D_pipeline
+          from_inputs:
+            - grid_size
+            - resolution
+            - size
+            - origin
+            - periodic
+            - phase_statistics
+            - precipitates
+          script: <<script:cipher/generate_RVE_from_statistics_dual_phase_pipeline_writer.py>>
+      commands:
+        - command: <<executable:dream_3D_runner>> --pipeline ${PWD}/pipeline.json
+      output_file_parsers:
+        volume_element:
+          from_files: [dream_3D_hdf5_file]
+          script: <<script:cipher/parse_dream_3D_volume_element_from_stats.py>>
+          inputs:
+            - phase_statistics
+            - orientations
+            - RNG_seed
 
 - objective: generate_volume_element
   doc: Generate a volume element by extrusion of a 2D model.
@@ -1506,13 +1748,31 @@
       script_data_out: direct
       script_exe: python_script
 
+- objective: modify_VE
+  method: spread_orientations
+  inputs:
+    - parameter: volume_element
+    - parameter: phases
+    - parameter: stddev_degrees
+  outputs:
+    - parameter: volume_element
+  actions:
+    - environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+      script: <<script:damask/modify_VE_spread_orientations.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+
 - objective: sample_orientations
   doc: Get sample of crystal orientations from a contrast transfer function file.
   method: from_CTF_file
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: CTF_file_path
     - parameter: specimen_symmetry
@@ -1524,6 +1784,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CTF.m>>
@@ -1585,7 +1847,7 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: CRC_file_path
     - parameter: specimen_symmetry
@@ -1597,6 +1859,8 @@
       default_value: null
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_orientations_CRC.m>>
@@ -1658,13 +1922,15 @@
   implementation: mtex
   inputs:
     - parameter: execution_mode
-      default_value: precompiled # script | compile
+      default_value: script # precompiled | compile
       propagation_mode: explicit
     - parameter: specimen_symmetry
     - parameter: num_orientations
     - parameter: crystal_symmetry
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/sample_texture_random.m>>
@@ -1786,7 +2052,27 @@
     - parameter: all_accept
       group: all
       default_value: null
+    - parameter: level_cov
+      default_value: null
     - parameter: p_0
+    - parameter: total_fine_eval_count
+      default_value: 0
+    - parameter: total_coarse_eval_count
+      default_value: 0
+    - parameter: fine_eval_count
+      default_value: null
+      group: all
+    - parameter: coarse_eval_count
+      default_value: null
+      group: all
+    - parameter: num_components_accepted
+      group: all
+      default_value: null
+    - parameter: num_components_proposed
+      group: all
+      default_value: null
+    - parameter: fine_eval_rates
+      default_value: null
   outputs:
     - parameter: chain_seeds
     - parameter: chain_g
@@ -1795,13 +2081,24 @@
     - parameter: num_failed
     - parameter: level_pf
     - parameter: level_cov
+    - parameter: level_fine_eval_count
+    - parameter: level_fine_eval_rate
+    - parameter: level_coarse_eval_count
+    - parameter: total_fine_eval_count
+    - parameter: total_coarse_eval_count
     - parameter: pf
     - parameter: is_finished
-    - parameter: accept_rate
+    - parameter: outer_move_rate
+    - parameter: cov
+    - parameter: fine_eval_rates
+    - parameter: component_acceptance_rate
+    - parameter: mean_jump_distance
   actions:
     - script: <<script:uq/collate_results.py>>
       script_data_in:
         g: { format: direct, all_iterations: true }
+        level_cov: { format: direct, all_iterations: true }
+        all_accept: { format: direct, all_iterations: true }
         "*": direct
       script_data_out: direct
       script_exe: python_script
@@ -1821,6 +2118,8 @@
     - parameter: all_x
     - parameter: all_g
     - parameter: all_accept
+    - parameter: num_components_accepted
+    - parameter: num_components_proposed
   actions:
     - script: <<script:uq/initialise_markov_chains.py>>
       script_data_in: direct
@@ -1862,9 +2161,19 @@
 - objective: generate_next_state
   inputs:
     - parameter: x
-    - parameter: prop_std
+    - parameter: proposal
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null
+    - parameter: num_components_accepted
+      default_value: 0
+    - parameter: num_components_proposed
+      default_value: 1
   outputs:
     - parameter: x
+    - parameter: rng
+    - parameter: num_components_accepted
+    - parameter: num_components_proposed
   actions:
     - script: <<script:uq/generate_next_state.py>>
       script_data_in: direct
@@ -1880,8 +2189,12 @@
   inputs:
     - parameter: x
     - parameter: prop_std
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state_CS.py>>
       script_data_in: direct
@@ -1898,8 +2211,12 @@
     - parameter: x
     - parameter: prop_std
     - parameter: lambda_
+    - parameter: chain_index
+    - parameter: rng
+      default_value: null
   outputs:
     - parameter: x
+    - parameter: rng
   actions:
     - script: <<script:uq/generate_next_state_ACS.py>>
       script_data_in: direct
@@ -1919,12 +2236,18 @@
     - parameter: all_g
     - parameter: all_accept
     - parameter: threshold
+    - parameter: fine_eval_count
+      default_value: null
+    - parameter: coarse_eval_count
+      default_value: null
   outputs:
     - parameter: x
     - parameter: g
     - parameter: all_x
     - parameter: all_g
     - parameter: all_accept
+    - parameter: fine_eval_count
+    - parameter: coarse_eval_count
   actions:
     - script: <<script:uq/increment_chain.py>>
       script_data_in: direct
@@ -2084,6 +2407,152 @@
             type: any
           environment: damask_parse_env
 
+- objective: system_analysis_toy_model_max_random_walk
+  inputs:
+    - parameter: x
+    - parameter: target_pf
+    - parameter: dimension
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/system_analysis_toy_model_max_random_walk.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: system_analysis_toy_model_max_random_walk_coarse
+  inputs:
+    - parameter: x
+    - parameter: target_pf
+    - parameter: dimension
+    - parameter: block_size
+  outputs:
+    - parameter: g
+  actions:
+    - script: <<script:uq/system_analysis_toy_model_max_random_walk_coarse.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: increment_sub_chain
+  inputs:
+    - parameter: x
+    - parameter: g
+      multiple: true
+      labels:
+        coarse: { allow_failed_dependencies: true }
+        coarse_initial: {}
+    - parameter: all_x
+    - parameter: all_gc
+      default_value: null
+    - parameter: sub_chain_x
+      default_value: null
+    - parameter: sub_chain_g_coarse
+      default_value: null
+    - parameter: sub_chain_accept
+      default_value: null
+    - parameter: threshold
+    - parameter: temperature
+    - parameter: num_inner_accepts
+      default_value: 0
+    - parameter: rng
+  outputs:
+    - parameter: x
+    - parameter: g
+    - parameter: sub_chain_x
+    - parameter: sub_chain_g_coarse
+    - parameter: sub_chain_accept
+    - parameter: num_inner_accepts
+    - parameter: rng
+    - parameter: all_x # workaround to ensure all_x iterated in increment_chain_RST
+    - parameter: all_gc # workaround to ensure all_gc iterated in increment_chain_RST
+  actions:
+    - script: <<script:uq/increment_sub_chain.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: check_sub_chain
+  inputs:
+    - parameter: all_x
+    - parameter: sub_chain_x
+    - parameter: sub_chain_g_coarse
+    - parameter: num_inner_accepts
+    - parameter: num_inner_states
+    - parameter: threshold
+  outputs:
+    - parameter: x
+    - parameter: gc
+    - parameter: endpoint_moved
+    - parameter: endpoint_coarse_subset_pass
+    - parameter: inner_accept_count
+    - parameter: inner_accept_rate
+  actions:
+    - script: <<script:uq/check_sub_chain.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
+- objective: increment_chain_RST
+  inputs:
+    - parameter: endpoint_moved
+    - parameter: x
+    - parameter: g
+      multiple: true
+      labels:
+        fine: { allow_failed_dependencies: true }
+        coarse_initial: {}
+    - parameter: gc
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_gc
+      default_value: null
+    - parameter: all_accept
+    - parameter: threshold
+    - parameter: temperature
+    - parameter: rng
+    - parameter: num_inner_states
+    - parameter: fine_eval_count
+      default_value: null
+    - parameter: coarse_eval_count
+      default_value: null
+  outputs:
+    - parameter: x
+    - parameter: g
+    - parameter: gc
+    - parameter: all_x
+    - parameter: all_g
+    - parameter: all_gc
+    - parameter: all_accept
+    - parameter: rng
+    - parameter: fine_eval_count
+    - parameter: coarse_eval_count
+  actions:
+    - script: <<script:uq/increment_chain_RST.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
 - objective: system_analysis_DA_fine
   inputs:
     - parameter: x
@@ -2123,200 +2592,202 @@
 - objective: generate_phase_field_input
   method: from_random_voronoi
   inputs:
-  - parameter: num_phases
-  - parameter: grid_size
-  - parameter: size
-  - parameter: materials
-  - parameter: interfaces
-  - parameter: components
-  - parameter: outputs
-  - parameter: solution_parameters
-  - parameter: random_seed
-    default_value: null
-  - parameter: is_periodic
-    default_value: false
-  - parameter: combine_phases
-    default_value: null
+    - parameter: num_phases
+    - parameter: grid_size
+    - parameter: size
+    - parameter: materials
+    - parameter: interfaces
+    - parameter: components
+    - parameter: outputs
+    - parameter: solution_parameters
+    - parameter: random_seed
+      default_value: null
+    - parameter: is_periodic
+      default_value: false
+    - parameter: combine_phases
+      default_value: null
   outputs:
-  - parameter: phase_field_input
+    - parameter: phase_field_input
   actions:
-  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
-    environments:
-    - scope: { type: any }
-      environment: cipher_processing_env
+    - script: <<script:cipher/generate_phase_field_input_from_random_voronoi.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      environments:
+        - scope: { type: any }
+          environment: cipher_processing_env
 
 - objective: generate_phase_field_input
   method: from_random_voronoi_with_orientations
   inputs:
-  - parameter: materials
-  - parameter: interfaces
-  - parameter: num_phases
-  - parameter: grid_size
-  - parameter: size
-  - parameter: components
-  - parameter: outputs
-  - parameter: solution_parameters
-  - parameter: random_seed
-    default_value: null
-  - parameter: is_periodic
-    default_value: false
-  - parameter: orientations
-  - parameter: interface_binning
-    default_value: null
-    # A dict that, if not None, is passed as keyword arguments to
-    # `CIPHERInput.bin_interfaces_by_misorientation_angle`
-  - parameter: combine_phases
-    default_value: null
+    - parameter: materials
+    - parameter: interfaces
+    - parameter: num_phases
+    - parameter: grid_size
+    - parameter: size
+    - parameter: components
+    - parameter: outputs
+    - parameter: solution_parameters
+    - parameter: random_seed
+      default_value: null
+    - parameter: is_periodic
+      default_value: false
+    - parameter: orientations
+    - parameter: interface_binning
+      default_value: null
+      # A dict that, if not None, is passed as keyword arguments to
+      # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+    - parameter: combine_phases
+      default_value: null
   outputs:
     - parameter: phase_field_input
   actions:
-  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
-    environments:
-    - scope: { type: any }
-      environment: cipher_processing_env
+    - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      environments:
+        - scope: { type: any }
+          environment: cipher_processing_env
 
 - objective: generate_phase_field_input
   method: from_volume_element
   inputs:
-  - parameter: volume_element
-  - parameter: materials
-  - parameter: interfaces
-  - parameter: phase_type_map
-    default_value: null
-  - parameter: size
-    default_value: null
-  - parameter: components
-  - parameter: outputs
-  - parameter: solution_parameters
-  - parameter: random_seed
-    default_value: null
-  - parameter: interface_binning
-    default_value: null
-    # A dict that, if not None, is passed as keyword arguments to
-    # `CIPHERInput.bin_interfaces_by_misorientation_angle`
-  - parameter: keep_3D
-    default_value: false
-  - parameter: combine_phases
-    default_value: null
+    - parameter: volume_element
+    - parameter: materials
+    - parameter: interfaces
+    - parameter: phase_type_map
+      default_value: null
+    - parameter: size
+      default_value: null
+    - parameter: components
+    - parameter: outputs
+    - parameter: solution_parameters
+    - parameter: random_seed
+      default_value: null
+    - parameter: interface_binning
+      default_value: null
+      # A dict that, if not None, is passed as keyword arguments to
+      # `CIPHERInput.bin_interfaces_by_misorientation_angle`
+    - parameter: keep_3D
+      default_value: false
+    - parameter: combine_phases
+      default_value: null
   outputs:
-  - parameter: phase_field_input
+    - parameter: phase_field_input
   actions:
-  - script: <<script:cipher/generate_phase_field_input_from_volume_element.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
-    environments:
-    - scope: { type: any }
-      environment: cipher_processing_env
+    - script: <<script:cipher/generate_phase_field_input_from_volume_element.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      environments:
+        - scope: { type: any }
+          environment: cipher_processing_env
 
 - objective: generate_phase_field_input
   method: from_random_voronoi_with_orientations_gradient
   inputs:
-  - parameter: materials
-  - parameter: interfaces
-  - parameter: num_phases
-  - parameter: grid_size
-  - parameter: size
-  - parameter: components
-  - parameter: outputs
-  - parameter: solution_parameters
-  - parameter: orientation_gradient
-  - parameter: random_seed
-    default_value: null
-  - parameter: is_periodic
-  - parameter: interface_binning
-    default_value: null
-    # A dict that, if not None, is passed as keyword arguments to
+    - parameter: materials
+    - parameter: interfaces
+    - parameter: num_phases
+    - parameter: grid_size
+    - parameter: size
+    - parameter: components
+    - parameter: outputs
+    - parameter: solution_parameters
+    - parameter: orientation_gradient
+    - parameter: random_seed
+      default_value: null
+    - parameter: is_periodic
+    - parameter: interface_binning
+      default_value: null
+      # A dict that, if not None, is passed as keyword arguments to
       # `CIPHERInput.bin_interfaces_by_misorientation_angle`
-  - parameter: combine_phases
-    default_value: null
+    - parameter: combine_phases
+      default_value: null
   outputs:
-  - parameter: phase_field_input
+    - parameter: phase_field_input
   actions:
-  - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations_gradient.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
-    environments:
-    - scope: { type: any }
-      environment: cipher_processing_env
+    - script: <<script:cipher/generate_phase_field_input_from_random_voronoi_orientations_gradient.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      environments:
+        - scope: { type: any }
+          environment: cipher_processing_env
 
 - objective: simulate_grain_growth
   inputs:
-  - parameter: phase_field_input
-  - parameter: num_VTU_files # how many VTU files to archive; mutually exclusive with `VTU_files_time_interval`
-    default_value: 2 # i.e. initial and final
-  - parameter: VTU_files_time_interval # time interval of VTU files to keep; mutually exclusive with `num_VTU_files`
-    default_value: null
-  - parameter: derive_outputs # list of derived outputs to generate; available: ["num_voxels_per_phase"]
-    default_value: null
-  - parameter: save_outputs # list of outputs to save to MatFlow
-    default_value: null
-  - parameter: delete_VTIs # delete intermediate VTI files used to save data?
-    default_value: true
-  - parameter: delete_VTUs # delete original VTU outputs from CIPHER?
-    default_value: false
-  - parameter: separate_mapping_files
-    default_value: false
+    - parameter: phase_field_input
+    - parameter: num_VTU_files # how many VTU files to archive; mutually exclusive with `VTU_files_time_interval`
+      default_value: 2 # i.e. initial and final
+    - parameter: VTU_files_time_interval # time interval of VTU files to keep; mutually exclusive with `num_VTU_files`
+      default_value: null
+    - parameter: derive_outputs # list of derived outputs to generate; available: ["num_voxels_per_phase"]
+      default_value: null
+    - parameter: save_outputs # list of outputs to save to MatFlow
+      default_value: null
+    - parameter: delete_VTIs # delete intermediate VTI files used to save data?
+      default_value: true
+    - parameter: delete_VTUs # delete original VTU outputs from CIPHER?
+      default_value: false
+    - parameter: separate_mapping_files
+      default_value: false
   outputs:
-  - parameter: phase_field_output
+    - parameter: phase_field_output
+  save_files: [cipher_VTU_files]
   actions:
-  - environments:
-    - scope:
-        type: main
-      environment: cipher_env
-    - scope:
-        type: processing
-      environment: cipher_processing_env
-    input_file_generators:
-    - input_file: cipher_input_file
-      from_inputs: [phase_field_input, separate_mapping_files]
-      script: <<script:cipher/write_cipher_input.py>>
-    commands:
-    - command: <<executable:cipher>>
-      stdout: stdout.log
-      stderr: stderr.log
-    output_file_parsers:
-      phase_field_output:
-        from_files: [cipher_VTU_files]
-        inputs:
-        - num_VTU_files
-        - VTU_files_time_interval
-        - derive_outputs
-        - save_outputs
-        - delete_VTIs
-        - delete_VTUs
-        script: <<script:cipher/parse_cipher_outputs.py>>
+    - environments:
+        - scope:
+            type: main
+          environment: cipher_env
+        - scope:
+            type: processing
+          environment: cipher_processing_env
+      input_file_generators:
+        - input_file: cipher_input_file
+          from_inputs: [phase_field_input, separate_mapping_files]
+          script: <<script:cipher/write_cipher_input.py>>
+      commands:
+        - command: <<executable:cipher>>
+          stdout: stdout.log
+          stderr: stderr.log
+      output_file_parsers:
+        phase_field_output:
+          from_files: [cipher_VTU_files]
+          inputs:
+            - num_VTU_files
+            - VTU_files_time_interval
+            - derive_outputs
+            - save_outputs
+            - delete_VTIs
+            - delete_VTUs
+          script: <<script:cipher/parse_cipher_outputs.py>>
 
 - objective: cluster_orientations
   inputs:
-  - parameter: volume_element
-  - parameter: alpha_file_path
-  - parameter: gamma_file_path
-  - parameter: n_iterations
-  - parameter: alpha_start_index
-  - parameter: alpha_stop_index
-  - parameter: gamma_start_index
-  - parameter: gamma_stop_index
+    - parameter: volume_element
+    - parameter: alpha_file_path
+    - parameter: gamma_file_path
+    - parameter: n_iterations
+    - parameter: alpha_start_index
+    - parameter: alpha_stop_index
+    - parameter: gamma_start_index
+    - parameter: gamma_stop_index
   outputs:
-  - parameter: volume_element
+    - parameter: volume_element
+  save_files: [misorientation_plot]
   actions:
-  - script: <<script:cluster_orientations.py>>
-    script_exe: python_script
-    script_data_in: direct
-    script_data_out: direct
-    save_files: [misorientation_plot]
-    requires_dir: true
-    environments:
-    - scope:
-        type: any
-      environment: damask_parse_env
+    - script: <<script:cluster_orientations.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      output_files: [misorientation_plot]
+      requires_dir: true
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
 
 - objective: build_surrogate
   inputs:
@@ -2538,7 +3009,6 @@
       output_file_parsers:
         FE_response:
           from_files: [moose_exodus_file]
-          save_files: false
           script: <<script:moose/parse_exodus.py>>
           inputs: [FE_response_data]
           rules:
@@ -2749,3 +3219,97 @@
       script_pass_workflow: true
       environments:
         any: python_env
+
+- objective: create_DIC_ROI
+  implementation: pyvale
+  method: from_rect_boundary
+  inputs:
+    - parameter: reference_image_path
+    - parameter: crop_dists
+      default_value: null
+  outputs:
+    - parameter: DIC_mask
+  actions:
+    - script: <<script:pyvale/create_dic_roi_from_rect_boundary.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: pyvale_env
+
+- objective: run_DIC
+  doc: Run digital image correlation on two images
+  implementation: pyvale
+  inputs:
+    - parameter: reference_image_path
+    - parameter: deformed_image_path
+    - parameter: DIC_mask
+      default_value: null
+    - parameter: DIC_seed
+      default_value: null
+    - parameter: subset_size
+      default_value: null
+    - parameter: subset_step
+      default_value: null
+    - parameter: correlation_criteria
+      default_value: null
+    - parameter: shape_function
+      default_value: null
+    - parameter: interpolation_routine
+      default_value: null
+    - parameter: max_iterations
+      default_value: null
+    - parameter: precision
+      default_value: null
+    - parameter: threshold
+      default_value: null
+    - parameter: bf_threshold
+      default_value: null
+    - parameter: max_displacement
+      default_value: null
+    - parameter: method
+      default_value: null
+    - parameter: fft_mad
+      default_value: null
+    - parameter: fft_mad_scale
+      default_value: null
+    - parameter: output_delimiter
+      default_value: null
+    - parameter: output_below_threshold
+      default_value: null
+    - parameter: debug_level
+      default_value: 0
+  outputs:
+    - parameter: DIC_results
+  save_files: [pyvale_dic_result_files]
+  actions:
+    - script: <<script:pyvale/run_dic.py>>
+      script_data_in: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: pyvale_env
+      output_file_parsers:
+        DIC_results:
+          from_files: [pyvale_dic_result_files]
+          script: <<script:pyvale/extract_dic_result.py>>
+
+- objective: damask_geom_file_from_dream3D
+  inputs:
+    - parameter: dream_3D_hdf5_file_path
+  outputs:
+    - parameter: geom_path
+  save_files: [damask_geom_file]
+  actions:
+    - script: <<script:damask/write_geom_from_dream_3D.py>>
+      script_exe: python_script
+      script_data_in: direct
+      script_data_out: direct
+      output_files: [damask_geom_file]
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env

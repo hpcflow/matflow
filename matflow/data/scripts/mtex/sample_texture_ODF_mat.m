@@ -1,5 +1,7 @@
 function sample_texture_ODF_mat(inputs_JSON_path, outputs_HDF5_path)
 
+    rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
+
     all_args = jsondecode(fileread(inputs_JSON_path));
 
     ODFMatFilePath = all_args.ODF_mat_file_path;

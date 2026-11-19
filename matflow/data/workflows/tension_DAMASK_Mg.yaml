@@ -19,7 +19,7 @@ tasks:
     inputs:
       load_case::uniaxial:
         total_time: 100
-        num_increments: 1000
+        num_increments: 1500
         direction: x
         target_def_grad_rate: 1.0e-3
         dump_frequency: 5

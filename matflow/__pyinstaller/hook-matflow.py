@@ -1,4 +1,4 @@
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 hiddenimports = [
     "matflow.data.data_manifests",
@@ -10,6 +10,7 @@ hiddenimports = [
     "matflow.tests.data",
     "matflow.pytest_plugin",
 ]
+hiddenimports += collect_submodules("matflow.subset_simulation")
 
 py_include_kwargs = dict(include_py_files=True, excludes=("**/__pycache__",))
 datas = (

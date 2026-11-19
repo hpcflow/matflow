@@ -1,4 +1,659 @@
 
+<a name="v0.5.0a9"></a>
+## [v0.5.0a9](https://github.com/hpcflow/matflow/compare/v0.5.0a8...v0.5.0a9) - 2026.11.19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a8"></a>
+## [v0.5.0a8](https://github.com/hpcflow/matflow/compare/v0.5.0a7...v0.5.0a8) - 2026.11.11
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a17
+* use provided orientations directly rather than via a ODF in Dream3D VE generation
+* print progress in sampling multiple orientation sets from EBSD
+
+### 🐛 Bug Fixes
+
+* tests and docs for sample_texture_EBSD.py
+* use repeats in orientation sampling of ROM-training data workflow
+* tweaks to ROM-training data generation workflow
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a7"></a>
+## [v0.5.0a7](https://github.com/hpcflow/matflow/compare/v0.5.0a6...v0.5.0a7) - 2026.11.10
+
+### 🐛 Bug Fixes
+
+* use `np.power` instead of numpy v2 `np.pow`
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a6"></a>
+## [v0.5.0a6](https://github.com/hpcflow/matflow/compare/v0.5.0a5...v0.5.0a6) - 2026.11.06
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a15
+* **mtex:** add explicit EBSD corrections and MTEX 7 compatibility
+
+### 🐛 Bug Fixes
+
+* down-cast VE `element_material_idx` from int64 to int32
+* **ci:** clean demo cache and limit pytest artifact retention
+* **ci:** cache demo assets and gate MATLAB regressions
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a5"></a>
+## [v0.5.0a5](https://github.com/hpcflow/matflow/compare/v0.5.0a4...v0.5.0a5) - 2026.10.29
+
+### 🐛 Bug Fixes
+
+* broken imports
+* generate_volume_element_from_voronoi task when seeds/orientations are read from files
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a4"></a>
+## [v0.5.0a4](https://github.com/hpcflow/matflow/compare/v0.5.0a3...v0.5.0a4) - 2026.10.29
+
+### ✨ Features
+
+* support optimalSample sampling methods in MTEX EBSD texture sampling
+* add random_exponential load case
+* bump hpcflow version to 0.4.0a8
+* bump hpcflow version to 0.4.0a7
+* add test task schema for generating multiple load cases to be used with new SchemaOutput.multiplicity arg
+
+### 🐛 Bug Fixes
+
+* tests
+* use resource_value random seed by default in random_exponential load case
+* load case test
+* use demo-data for posterior.txt
+* update training workflow
+* tweaks
+* TODOs in generate_ROM_training_data.yaml
+* tweaks
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a3"></a>
+## [v0.5.0a3](https://github.com/hpcflow/matflow/compare/v0.5.0a2...v0.5.0a3) - 2026.10.29
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a9
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a2"></a>
+## [v0.5.0a2](https://github.com/hpcflow/matflow/compare/v0.5.0a1...v0.5.0a2) - 2026.10.27
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a6
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a1"></a>
+## [v0.5.0a1](https://github.com/hpcflow/matflow/compare/v0.5.0a0...v0.5.0a1) - 2026.10.27
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a5
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0a0"></a>
+## [v0.5.0a0](https://github.com/hpcflow/matflow/compare/v0.4.0...v0.5.0a0) - 2026.10.22
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0a0
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/hpcflow/matflow/compare/v0.4.0a18...v0.4.0) - 2026.10.21
+
+
+<a name="v0.4.0a18"></a>
+## [v0.4.0a18](https://github.com/hpcflow/matflow/compare/v0.4.0a17...v0.4.0a18) - 2026.10.21
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a17"></a>
+## [v0.4.0a17](https://github.com/hpcflow/matflow/compare/v0.4.0a16...v0.4.0a17) - 2026.10.21
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a20
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a16"></a>
+## [v0.4.0a16](https://github.com/hpcflow/matflow/compare/v0.4.0a15...v0.4.0a16) - 2026.10.21
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a15"></a>
+## [v0.4.0a15](https://github.com/hpcflow/matflow/compare/v0.4.0a14...v0.4.0a15) - 2026.10.20
+
+### ♻ Code Refactoring
+
+* do not store damask_stdout_file by default
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a18
+
+### 🐛 Bug Fixes
+
+* fix mtex tasks that assume orientations are stored in Zarr groups
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a14"></a>
+## [v0.4.0a14](https://github.com/hpcflow/matflow/compare/v0.4.0a13...v0.4.0a14) - 2026.10.20
+
+### ✨ Features
+
+* add `random_polynomial` load case method
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a13"></a>
+## [v0.4.0a13](https://github.com/hpcflow/matflow/compare/v0.4.0a12...v0.4.0a13) - 2026.10.19
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a12"></a>
+## [v0.4.0a12](https://github.com/hpcflow/matflow/compare/v0.4.0a11...v0.4.0a12) - 2026.10.19
+
+### ♻ Code Refactoring
+
+* migrate task schemas to task-schema-level `save_files`
+
+### ✨ Features
+
+* bump hpcflow version to 0.3.0a15
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a11"></a>
+## [v0.4.0a11](https://github.com/hpcflow/matflow/compare/v0.4.0a10...v0.4.0a11) - 2026.09.24
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a10"></a>
+## [v0.4.0a10](https://github.com/hpcflow/matflow/compare/v0.4.0a9...v0.4.0a10) - 2026.09.15
+
+### 🐛 Bug Fixes
+
+* tests
+
+
+<a name="v0.4.0a9"></a>
+## [v0.4.0a9](https://github.com/hpcflow/matflow/compare/v0.4.0a8...v0.4.0a9) - 2026.09.15
+
+### ♻ Code Refactoring
+
+* encapsulate some behaviour in subset simulation related objects
+* define a `SubsetSimulationResult` object
+* remove initial attempts at SuS-DA
+
+### ✨ Features
+
+* return mean MMH component acceptance rate and mean jump distance
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a8"></a>
+## [v0.4.0a8](https://github.com/hpcflow/matflow/compare/v0.4.0a7...v0.4.0a8) - 2026.09.14
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a7"></a>
+## [v0.4.0a7](https://github.com/hpcflow/matflow/compare/v0.4.0a6...v0.4.0a7) - 2026.09.11
+
+### ✨ Features
+
+* add printed summary to collate results
+* initial delayed acceptance SuS DAMASK demo
+
+### 🐛 Bug Fixes
+
+* tests
+* SuS collate_results vanilla
+* improve numerical stability in SuS-DA, and note that temperature should have an appropriate scale
+* handle simulation failures in the coarse subchain in SuS-DA
+* num dimensions in DA SuS DAMASK demo
+* various improvements and implementation of a more-correct delayed-acceptance SuS variant
+* add multi-level delayed acceptance toy model subset simulation workflow
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a6"></a>
+## [v0.4.0a6](https://github.com/hpcflow/matflow/compare/v0.4.0a5...v0.4.0a6) - 2026.09.10
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a5"></a>
+## [v0.4.0a5](https://github.com/hpcflow/matflow/compare/v0.4.0a4...v0.4.0a5) - 2026.08.21
+
+### 🐛 Bug Fixes
+
+* increase number of load incs in Mg DAMASK example
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a4"></a>
+## [v0.4.0a4](https://github.com/hpcflow/matflow/compare/v0.4.0a3...v0.4.0a4) - 2026.08.21
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a3"></a>
+## [v0.4.0a3](https://github.com/hpcflow/matflow/compare/v0.4.0a2...v0.4.0a3) - 2026.08.04
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a2"></a>
+## [v0.4.0a2](https://github.com/hpcflow/matflow/compare/v0.4.0a1...v0.4.0a2) - 2026.07.30
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a1"></a>
+## [v0.4.0a1](https://github.com/hpcflow/matflow/compare/v0.4.0a0...v0.4.0a1) - 2026.06.17
+
+### ✨ Features
+
+* Add task for defining DIC region with cropped edges
+* Add task for running DIC with pyvale
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.4.0a0"></a>
+## [v0.4.0a0](https://github.com/hpcflow/matflow/compare/v0.3.1a1...v0.4.0a0) - 2026.06.15
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.1a1"></a>
+## [v0.3.1a1](https://github.com/hpcflow/matflow/compare/v0.3.1a0...v0.3.1a1) - 2026.06.15
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.1a0"></a>
+## [v0.3.1a0](https://github.com/hpcflow/matflow/compare/v0.3.0...v0.3.1a0) - 2026.06.15
+
+### 👷 Build changes
+
+* set PATCH level bumps for other commit types including build
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0"></a>
+## [v0.3.0](https://github.com/hpcflow/matflow/compare/v0.3.0a248...v0.3.0) - 2026.05.05
+
+### ✨ Features
+
+* test-pre-python workflow to allow dispatch from dev branch
+
+### 🐛 Bug Fixes
+
+* docs link in README
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a248"></a>
+## [v0.3.0a248](https://github.com/hpcflow/matflow/compare/v0.3.0a247...v0.3.0a248) - 2026.05.05
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a247"></a>
+## [v0.3.0a247](https://github.com/hpcflow/matflow/compare/v0.3.0a246...v0.3.0a247) - 2026.05.04
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a246"></a>
+## [v0.3.0a246](https://github.com/hpcflow/matflow/compare/v0.3.0a245...v0.3.0a246) - 2026.04.27
+
+### 🐛 Bug Fixes
+
+* import error
+
+
+<a name="v0.3.0a245"></a>
+## [v0.3.0a245](https://github.com/hpcflow/matflow/compare/v0.3.0a244...v0.3.0a245) - 2026.04.21
+
+### ♻ Code Refactoring
+
+* toy model sus
+
+### ✨ Features
+
+* record SuS acceptance rate for each level
+* support arbitrary proposal distributions in `generate_next_state`
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a244"></a>
+## [v0.3.0a244](https://github.com/hpcflow/matflow/compare/v0.3.0a243...v0.3.0a244) - 2026.04.13
+
+### 👷 Build changes
+
+* sync updates from docs repo
+* sync updates from CI and docs repos
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a243"></a>
+## [v0.3.0a243](https://github.com/hpcflow/matflow/compare/v0.3.0a242...v0.3.0a243) - 2026.04.10
+
+### 🐛 Bug Fixes
+
+* add random seed to toy model subset simulation demo
+* tweaks to subset simulation to make reproducible via random seed
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a242"></a>
+## [v0.3.0a242](https://github.com/hpcflow/matflow/compare/v0.3.0a241...v0.3.0a242) - 2026.04.10
+
+### ✨ Features
+
+* support random seed in `seeds_from_random`
+
+### 🐛 Bug Fixes
+
+* variables in test-demos for PR-triggered run
+* docker run command in damask env setup
+* pass permissions to damask docker image command in test-demos
+* missing pip dep
+* test-demos
+* test-demos
+* disable DAMASKs parallel VTK writing on Windows
+* respect config overrides in `isolated_app_config` fixture
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a241"></a>
+## [v0.3.0a241](https://github.com/hpcflow/matflow/compare/v0.3.0a240...v0.3.0a241) - 2026.04.10
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a240"></a>
+## [v0.3.0a240](https://github.com/hpcflow/matflow/compare/v0.3.0a239...v0.3.0a240) - 2026.04.09
+
+### 🐛 Bug Fixes
+
+* script `modify_VE_spread_orientations` so Zarr arrays are cast to numpy
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a239"></a>
+## [v0.3.0a239](https://github.com/hpcflow/matflow/compare/v0.3.0a238...v0.3.0a239) - 2026.04.09
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a238"></a>
+## [v0.3.0a238](https://github.com/hpcflow/matflow/compare/v0.3.0a237...v0.3.0a238) - 2026.04.05
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a237"></a>
+## [v0.3.0a237](https://github.com/hpcflow/matflow/compare/v0.3.0a236...v0.3.0a237) - 2026.03.26
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a236"></a>
+## [v0.3.0a236](https://github.com/hpcflow/matflow/compare/v0.3.0a235...v0.3.0a236) - 2026.03.26
+
+### ✨ Features
+
+* bump hpcflow version
+
+### 🐛 Bug Fixes
+
+* **subset-sim:** update toy model prop std to 1.0; works much better
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a235"></a>
+## [v0.3.0a235](https://github.com/hpcflow/matflow/compare/v0.3.0a234...v0.3.0a235) - 2026.03.25
+
+### 🐛 Bug Fixes
+
+* estimation of CoV in subset sim collate_results
+* **subset-sim:** missing modifications to `collate_results` task schema
+* **subset-sim:** maintain structure of g for indicator functon
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a234"></a>
+## [v0.3.0a234](https://github.com/hpcflow/matflow/compare/v0.3.0a233...v0.3.0a234) - 2026.03.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a233"></a>
+## [v0.3.0a233](https://github.com/hpcflow/matflow/compare/v0.3.0a232...v0.3.0a233) - 2026.03.23
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a232"></a>
+## [v0.3.0a232](https://github.com/hpcflow/matflow/compare/v0.3.0a231...v0.3.0a232) - 2026.03.20
+
+### ✨ Features
+
+* set matlab RNG in MTEX scripts
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.3.0a231"></a>
+## [v0.3.0a231](https://github.com/hpcflow/matflow/compare/v0.3.0a230...v0.3.0a231) - 2026.03.20
+
+### ✨ Features
+
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+* bump hpcflow version
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.3.0a230"></a>
 ## [v0.3.0a230](https://github.com/hpcflow/matflow/compare/v0.3.0a229...v0.3.0a230) - 2026.03.19
 

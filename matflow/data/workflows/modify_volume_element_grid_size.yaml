@@ -14,11 +14,11 @@ tasks:
     inputs:
       homog_label: SX
       VE_grid_size: [8, 8, 8]
-  
+
   - schema: visualise_VE_VTK
 
   - schema: modify_VE_grid_size
     inputs:
       new_grid_size: [16, 16, 16]
-  
+
   - schema: visualise_VE_VTK

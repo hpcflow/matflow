@@ -1,11 +1,19 @@
-import pprint
+import os
 
 import numpy as np
 
 
 def increment_chain_inner(x, g, all_x, all_g, all_x_inner, all_g_inner, threshold):
 
-    if all_x_inner is None:
+    loop_idx = {
+        loop_name: int(loop_idx)
+        for loop_name, loop_idx in (
+            item.split("=")
+            for item in os.environ["MATFLOW_ELEMENT_ITER_LOOP_IDX"].split(";")
+        )
+    }
+
+    if loop_idx["inner_markov_chain"] == 0:
         # first "inner" iteration, need to set initial value:
         all_x_inner = np.array(all_x[-1])[None]
         all_g_inner = np.array([all_g[-1]])
