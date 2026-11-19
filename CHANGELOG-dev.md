@@ -1,4 +1,29 @@
 
+<a name="v0.6.0a0"></a>
+## [v0.6.0a0](https://github.com/hpcflow/matflow/compare/v0.5.0...v0.6.0a0) - 2026.11.19
+
+### ✨ Features
+
+* bump hpcflow version to 0.5.0a0
+* set matflow-configs as the remote import directory
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
+<a name="v0.5.0"></a>
+## [v0.5.0](https://github.com/hpcflow/matflow/compare/v0.5.0a10...v0.5.0) - 2026.11.19
+
+### ✨ Features
+
+* bump hpcflow version to 0.4.0
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.5.0a10"></a>
 ## [v0.5.0a10](https://github.com/hpcflow/matflow/compare/v0.5.0a9...v0.5.0a10) - 2026.11.19
 
