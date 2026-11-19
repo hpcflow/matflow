@@ -1,16 +1,13 @@
 doc:
   - >
     Run an OpenFOAM crystal-plasticity simulation using the Circle_Squash
-    tutorial geometry and configuration.
+    case configuration.
   - >
-    The phase-field files are copied directly from the tutorial's initial
-    directory, preserving the circle/squash microstructure. Workflow boundary
-    conditions are applied to the copied n.* files without changing their
-    internal phase values.
+    Phase-field files are generated from the workflow's volume element and
+    boundary-field inputs.
   - >
-    The tutorial's GrainProperties file is used by default. Supplying the
-    materials parameter instead generates GrainProperties from the workflow's
-    material definitions.
+    The case's default GrainProperties template is used unless materials are
+    supplied.
   - >
     The volume-element origin and mesh boundaries are supplied separately, as
     the tutorial volume element representation does not include a geometric
@@ -44,7 +41,7 @@ tasks:
 
   - schema: visualise_VE_VTK
 
-  - schema: simulate_VE_loading_OpenFOAM
+  - schema: simulate_VE_loading_openfoam_circle_squash
     inputs:
       VE_origin: [-0.05, 0.0, 0.0]
       boundary:
@@ -80,6 +77,5 @@ tasks:
         - patch_name: Back
           type: zeroGradient
       materials: null
-      root_path: /mnt/eps01-rds/jf01-home01/shared/software/apps/crystaldynamicsFoam/nov2026/src/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Circle_Squash
       peak_velocity: 50.0
       velocity_radius: 0.05e-3
