@@ -14,7 +14,7 @@ def write_block_mesh_file(path, volume_element, VE_origin, boundary):
     TEMPLATE = dedent(
         """\
         /*--------------------------------*- C++ -*----------------------------------*\\
-        | =========                 |                                                 |
+        | =========                   |                                                 |
         | \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
         |  \\\\    /   O peration     | Version:  3.10                                  |
         |   \\\\  /    A nd           | Web:      www.OpenFOAM.org                      |

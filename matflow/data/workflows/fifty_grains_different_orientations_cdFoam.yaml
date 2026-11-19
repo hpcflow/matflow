@@ -1,26 +1,18 @@
 doc:
   - >
     Run an OpenFOAM crystal-plasticity simulation using the Fifty Grain Cases
-    different orientations tutorial geometry and configuration.
+    different orientations case configuration.
   - >
-    The phase-field files are copied directly from the tutorial's initial
-    directory, preserving the fifty-grain microstructure. Workflow boundary
-    conditions are applied to the copied n.* files without changing their
-    internal phase values.
+    The tutorial's initial phase fields are read from MatFlow's configured local
+    demo-data directory and generated independently of the source tutorial tree.
   - >
-    The tutorial's GrainProperties file is used by default. Supplying the
-    materials parameter instead generates GrainProperties from the workflow's
-    material definitions.
+    The case's default GrainProperties template is used unless materials are
+    supplied.
 
 tasks:
-  - schema: generate_volume_element_from_voronoi
+  - schema: generate_volume_element_from_fifty_grain_tutorial
     inputs:
-      VE_grid_size: [1, 250, 250]
-      periodic: false
-      microstructure_seeds::from_random:
-        box_size: [0.1, 0.2, 0.2]
-        num_seeds: 50
-        phase_label: Fe-35Ni
+      phase_field_data: <<demo_data_file:fifty_grain_phase_fields.npz>>
       orientations:
         data:
           - [1.1185292252521302, 0.10, 0.7196744993498547]
@@ -82,8 +74,9 @@ tasks:
           euler_definition: bunge
           euler_is_degrees: false
 
-  - schema: simulate_VE_loading_OpenFOAM
+  - schema: simulate_VE_loading_openfoam_fifty_grains
     inputs:
+      phase_field_data: <<demo_data_file:fifty_grain_phase_fields.npz>>
       VE_origin: [-0.05, 0.0, 0.0]
       boundary:
         - patch_name: lowerWall
@@ -99,7 +92,7 @@ tasks:
           face_normals: [-x1]
           type: empty
         - patch_name: frontAndBack
-          face_normals: [+x3, -x3]
+          face_normals: [-x3, +x3]
           type: patch
       boundary_field:
         - patch_name: lowerWall
@@ -113,4 +106,3 @@ tasks:
         - patch_name: frontAndBack
           type: zeroGradient
       materials: null
-      root_path: /mnt/eps01-rds/jf01-home01/shared/software/apps/crystaldynamicsFoam/nov2026/src/crystaldynamicsFoam/tutorials/crystaldynamicsFoam/Fifty_Grain_Cases/Grains_Case_different_orientations

@@ -135,3 +135,15 @@
   doc: >
     The initial velocity field. Workflow peak_velocity and velocity_radius
     values replace the corresponding values in all coded velocity patches.
+- label: open_foam_system_files
+  name:
+    name: controlDict
+- label: open_foam_constant_files
+  name:
+    name: g
+- label: open_foam_initial_fields
+  name:
+    name: rho
+- label: open_foam_circle_initial_fields
+  name:
+    name: T
