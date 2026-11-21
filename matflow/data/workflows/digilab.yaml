@@ -1,0 +1,44 @@
+template_components:
+  task_schemas:
+    - objective: simulate
+      inputs:
+        - parameter: x          
+      outputs:
+        - parameter: y
+      actions:
+        - environments:
+            - scope:
+                type: any
+              environment: digilab_env
+          script: <<script:digilab/simulate.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script
+    - objective: train_model
+      inputs:
+        - parameter: x
+        - parameter: y
+      outputs:
+        - parameter: x # includes new point
+      actions:
+        - environments:
+            - scope:
+                type: any
+              environment: digilab_env
+          script: <<script:digilab/train_recommend.py>>
+          script_data_in: direct
+          script_data_out: direct
+          script_exe: python_script 
+          requires_dir: true       
+
+loops:
+  - tasks: 
+    - simulate
+    - train_model
+    num_iterations: 2
+
+tasks:
+  - schema: simulate
+    inputs:
+      x: [0, 0, 5]
+  - schema: train_model

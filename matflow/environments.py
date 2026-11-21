@@ -490,3 +490,25 @@ def env_configure_moose(
         setup_label="moose",
     )
     return new_env
+
+
+def env_configure_digilab(
+    shell: Literal["bash", "powershell"],
+    ue_username: str,
+    ue_password: str,
+    setup: str | list[str] | None = None,
+    use_current: bool = True,
+):
+    """Configure the digiLab SDK Python environment."""
+    username_key = "UE_USERNAME"
+    password_key = "UE_PASSWORD"
+    mf.set_secret(username_key, ue_username)
+    mf.set_secret(password_key, ue_password)
+    return mf.env_configure_python(
+        shell=shell,
+        setup=setup,
+        secrets=[username_key, password_key],
+        use_current=use_current,
+        names=["digilab"],
+        python_env=False,
+    )[0]
