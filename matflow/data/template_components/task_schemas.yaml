@@ -752,6 +752,12 @@
       default_value: null
     - parameter: use_one_colourbar
       default_value: false
+    - parameter: plot_all_orientations
+      default_value: false
+    - parameter: marker_size
+      default_value: null
+    - parameter: projection
+      default_value: earea
   save_files: [mtex_pole_figures, mtex_IPF_key]
   actions:
     - script: <<script:mtex/plot_orientations.py>>
@@ -773,6 +779,12 @@
     - parameter: IPF_reference_directions
       default_value: ["z"]
     - parameter: use_contours
+    - parameter: plot_all_orientations
+      default_value: false
+    - parameter: marker_size
+      default_value: null
+    - parameter: projection
+      default_value: earea
   save_files: [mtex_inverse_pole_figures, mtex_IPF_key]
   actions:
     - script: <<script:mtex/plot_orientations.py>>

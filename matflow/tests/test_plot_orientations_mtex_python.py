@@ -94,6 +94,9 @@ def test_missing_alignment(orientations: Orientations) -> None:
         ({"IPF_reference_directions": ["bad"]}, "reference direction"),
         ({"colourbar_limits": [1.0, 0.0]}, "colourbar_limits"),
         ({"colourbar_limits": [0.0, np.nan]}, "colourbar_limits"),
+        ({"marker_size": 0}, "marker_size"),
+        ({"marker_size": np.nan}, "marker_size"),
+        ({"projection": "invalid"}, "projection"),
     ],
 )
 def test_invalid_plot_options(
@@ -179,6 +182,36 @@ def test_colourbar_options(
         assert ranges[0] == ranges[1]
 
 
+@pytest.mark.parametrize("plot_all", [False, True])
+@pytest.mark.parametrize("inverse", [False, True])
+def test_plot_all_orientations_and_filename(
+    orientations: Orientations,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    inverse: bool,
+    plot_all: bool,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    plot_name = "plotIPF" if inverse else "plotPF"
+    with patch.object(mtex, plot_name, wraps=getattr(mtex, plot_name)) as plot:
+        plot_orientations(
+            orientations,
+            "cubic",
+            False,
+            pole_figure_directions=None if inverse else [[0, 0, 1]],
+            plot_all_orientations=plot_all,
+            marker_size=0.5,
+            projection="stereographic",
+            filename=tmp_path / "custom.png",
+        )
+    assert plot.call_args.kwargs["all"] is plot_all
+    assert plot.call_args.kwargs["markerSize"] == 0.5
+    assert plot.call_args.kwargs["projection"] == "stereographic"
+    assert_png(tmp_path / "custom.png")
+    assert not (tmp_path / "pole_figure.png").exists()
+    assert not (tmp_path / "inverse_pole_figure.png").exists()
+
+
 def test_figure_closed_after_error(
     orientations: Orientations, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -195,6 +228,7 @@ def test_plot_schema(method: str) -> None:
     schema = mf.task_schemas.get(f"visualise_orientations_{method}_mtex_python")
     inputs = {item.parameter.typ for item in schema.inputs}
     assert "execution_mode" not in inputs
+    assert "projection" in inputs
     action = schema.actions[0]
     assert set(action.script_data_in) == {f"inputs.{name}" for name in inputs}
     assert all(value["format"] == "direct" for value in action.script_data_in.values())
