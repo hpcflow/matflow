@@ -431,6 +431,28 @@
     - path: []
       doc: Whether to use a single colour bar when visualising orientations.
       condition: { value.is_instance: [bool] }
+- type: plot_all_orientations
+  _validation:
+    - path: []
+      doc: >-
+        Whether to plot every orientation in scatter (non-contour) pole and inverse
+        pole figures, rather than the random subset MTEX plots by default.
+      condition: { value.is_instance: [bool] }
+- type: marker_size
+  _validation:
+    - path: []
+      doc: >-
+        Marker size for scatter (non-contour) pole and inverse pole figures. If null,
+        MTEX chooses a size that decreases with the number of plotted points.
+      condition: { value.is_instance: [int, float] }
+- type: projection
+  _validation:
+    - path: []
+      doc: Spherical projection used to plot pole and inverse pole figures.
+      condition:
+        and:
+          - value.is_instance: [str]
+          - value.in: [earea, schmidt, eangle, stereo, stereographic, edist, orthographic, gnomonic, plain]
 - type: stress_units
   _validation:
     - path: []

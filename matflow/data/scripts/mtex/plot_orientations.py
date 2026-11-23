@@ -95,12 +95,24 @@ def plot_orientations(
     IPF_reference_directions: list[str] | None = None,
     colourbar_limits: list[float] | None = None,
     use_one_colourbar: bool = False,
+    plot_all_orientations: bool = False,
+    marker_size: float | None = None,
+    projection: str = "earea",
+    filename: str | os.PathLike[str] | None = None,
 ) -> None:
     """Write pole figures or inverse pole figures and, for scatter plots, an IPF key.
 
     Supplying ``pole_figure_directions`` selects pole figures; otherwise plot inverse
     pole figures for ``IPF_reference_directions`` (z by default). Inputs are passed
     directly by the corresponding schemas; no orientation handoff files are used.
+
+    Scatter plots show a random subset of large orientation sets unless
+    ``plot_all_orientations`` is true. ``marker_size`` overrides MTEX's scatter marker
+    size, which otherwise shrinks with the number of points (to a minimum of 1.5).
+    ``projection`` selects MTEX's spherical projection (equal-area by default).
+    ``filename`` defaults to ``pole_figure.png`` or ``inverse_pole_figure.png``; the
+    task schemas rely on these defaults to save the figure, so ``filename`` is not a
+    schema input.
     """
     ori = _mtex_orientations(orientations, crystal_symmetry)
     reference = _reference_direction(IPF_reference_direction)
@@ -118,14 +130,32 @@ def plot_orientations(
             )
         directions = [mtex.Miller(*h, ori.CS) for h in indices]
         plot = mtex.plotPF
-        filename = "pole_figure.png"
+        default_filename = "pole_figure.png"
     else:
         names = ["z"] if IPF_reference_directions is None else IPF_reference_directions
         if not names:
             raise ValueError("IPF_reference_directions must not be empty.")
         directions = [_reference_direction(name) for name in names]
         plot = mtex.plotIPF
-        filename = "inverse_pole_figure.png"
+        default_filename = "inverse_pole_figure.png"
+    filename = os.fspath(filename) if filename is not None else default_filename
+    if marker_size is not None and not (np.isfinite(marker_size) and marker_size > 0):
+        raise ValueError("marker_size must be a finite, positive number.")
+    if projection not in {
+        "earea",
+        "schmidt",
+        "eangle",
+        "stereo",
+        "stereographic",
+        "edist",
+        "orthographic",
+        "gnomonic",
+        "plain",
+    }:
+        raise ValueError(f"Unknown projection: {projection!r}.")
+    scatter_options = {"all": plot_all_orientations}
+    if marker_size is not None:
+        scatter_options["markerSize"] = float(marker_size)
 
     if colourbar_limits is not None:
         limits = np.asarray(colourbar_limits, dtype=float)
@@ -145,6 +175,7 @@ def plot_orientations(
         options = {
             "antipodal": True,
             "how2plot": mtex.plottingConvention(),
+            "projection": projection,
         }
         if use_contours:
             color_range = (
@@ -157,14 +188,20 @@ def plot_orientations(
             plot(ori, directions, contourf=True, colorRange=color_range, **options)
             figure.colorbar(multiple=not use_one_colourbar)
         elif pole_figure_directions is not None:
-            plot(ori, key.orientation2color(ori), directions, **options)
+            plot(
+                ori,
+                key.orientation2color(ori),
+                directions,
+                **scatter_options,
+                **options,
+            )
         else:
-            plot(ori, directions, **options)
+            plot(ori, directions, **scatter_options, **options)
         if pole_figure_directions is not None:
             _annotate_axes(ori.CS)
         mtex.saveFigure(filename, fig=figure)
 
     if not use_contours:
         with _figure() as figure:
-            key.plot(how2plot=mtex.plottingConvention())
+            key.plot(how2plot=mtex.plottingConvention(), projection=projection)
             mtex.saveFigure("IPF_key.png", fig=figure)
