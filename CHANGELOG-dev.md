@@ -1,4 +1,16 @@
 
+<a name="v0.6.0a2"></a>
+## [v0.6.0a2](https://github.com/hpcflow/matflow/compare/v0.6.0a1...v0.6.0a2) - 2026.11.23
+
+### ✨ Features
+
+* add MTEX orientation plotting options
+
+### 👷 Build changes
+
+* update binary download links file [skip ci]
+
+
 <a name="v0.6.0a1"></a>
 ## [v0.6.0a1](https://github.com/hpcflow/matflow/compare/v0.6.0a0...v0.6.0a1) - 2026.11.20
 
