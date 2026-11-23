@@ -5,14 +5,16 @@ from __future__ import annotations
 
 import copy
 
+from dataclasses import dataclass, field
 from datetime import datetime
 import pickle
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
+from functools import lru_cache
 
 from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats import norm, multivariate_normal, uniform
+from scipy.stats import norm, multivariate_normal, irwinhall
 from scipy.special import log_expit
 from numpy.exceptions import AxisError
 from hpcflow.sdk.log import TimeIt
@@ -24,13 +26,20 @@ from matflow.subset_simulation.markov_chain import (
     DAMarkovChainResult,
     MarkovChainResult,
 )
+from matflow.subset_simulation.utils import plot
 
 
 from .subset_simulation_result import (
     LevelSamplingResult,
     DALevelSamplingResult,
     ACSLevelSamplingResult,
+    SubsetSimulationRepeatsResult,
     SubsetSimulationResult,
+)
+from .utils import (
+    plot_cov_comparison,
+    plot_pf_num_samples,
+    plot_convergence_vs_num_samples,
 )
 
 
@@ -77,6 +86,23 @@ def system_analysis_toy_model(x, dimension: int, target_pf: float):
     y_star = get_y_star(target_pf, dimension)
     g_i = model(x) - y_star
     return g_i
+
+
+def standard_normal_to_uniform(z):
+    """Map N(0,1) variables to Uniform(-sqrt(3), sqrt(3))."""
+    return np.sqrt(12.0) * (norm.cdf(z) - 0.5)
+
+
+@lru_cache(maxsize=None)
+def get_y_star_uniform(p_f, dimension):
+    """Exact threshold for a sum of centered uniform variables."""
+    return np.sqrt(12.0) * (irwinhall.isf(p_f, dimension) - dimension / 2)
+
+
+def system_analysis_uniform_toy_model(x, dimension: int, target_pf: float):
+    """Positive performance values indicate failure."""
+    y_star = get_y_star_uniform(target_pf, dimension)
+    return np.sum(x, axis=-1) - y_star
 
 
 def get_y_star_max_system(target_pf: float, dimension: int) -> float:
@@ -165,7 +191,7 @@ def estimate_cov(indicator, p_i: float) -> float:
 
     if np.isclose(r_0, 0.0):
         # i.e. p_i is 1.0
-        return 0.0
+        return np.float64(0.0)
 
     rho = r / r_0
 
@@ -173,7 +199,6 @@ def estimate_cov(indicator, p_i: float) -> float:
         (1 - (k + 1) * num_chains / N) * rho[k] for k in range(num_states - 1)
     )
     delta = np.sqrt((1 - p_i) / (p_i * N) * (1 + gamma))
-
     return delta
 
 
@@ -1190,21 +1215,20 @@ def run_repeats(
     mimic_matflow=False,
     max_retries=5,
     transformation: Callable | None = None,
-):
+    preamble: str = "",
+) -> SubsetSimulationRepeatsResult:
     seeds = np.random.SeedSequence(seed).generate_state(num_repeats)
-    all_pf = []
-    all_cov = []
-    all_sus_acc = []
-    all_mcmc_acc = []
-    all_num_fine_evals = []
-    all_num_coarse_evals = []
-    all_false_coarse_rejection_rates = []
     num_retries_total = 0
+    results = []
     for repeat_idx in range(num_repeats):
         pc = (100 * (repeat_idx + 1)) // num_repeats
         if pc % 1 == 0:
             print(
-                f"\rrunning {num_repeats} repeats with N={num_samples}...{pc:3d}%", end=""
+                (
+                    f"\r{preamble}running {num_repeats} repeats with N={num_samples}..."
+                    f"{pc:3d}%"
+                ),
+                end="",
             )
         seed_i = seeds[repeat_idx]
         for attempt in range(max_retries):
@@ -1221,7 +1245,8 @@ def run_repeats(
                 mimic_matflow=mimic_matflow,
                 debug=True,
             )
-            if "cov" in result:
+            if result.converged:
+                results.append(result)
                 break
             # rare stochastic failure to converge in `num_levels` levels -- retry this
             # repeat with a fresh seed instead of losing the whole run_repeats call.
@@ -1232,34 +1257,13 @@ def run_repeats(
                 f"Failed to estimate pf in {num_levels} levels after {max_retries} "
                 f"retries (repeat_idx={repeat_idx})."
             )
-        all_pf.append(result["pf"])
-        all_cov.append(result["cov"])
-        all_sus_acc.append(result["subset_accepts"])
-        all_mcmc_acc.append(result["mcmc_accepts"])
-        all_num_fine_evals.append(result["num_fine_evals"])
-        all_num_coarse_evals.append(result["num_coarse_evals"])
-
-        # subset level zero only:
-        if result["false_coarse_rejection_rates"]:
-            all_false_coarse_rejection_rates.append(
-                result["false_coarse_rejection_rates"][0]
-            )
-
     print()
     if num_retries_total:
         print(
             f"(note: {num_retries_total} repeat(s) needed a retry due to "
             f"max-levels-exceeded failures)"
         )
-    return get_stats(
-        all_pf,
-        all_cov,
-        all_sus_acc,
-        all_mcmc_acc,
-        all_num_fine_evals,
-        all_num_coarse_evals,
-        all_false_coarse_rejection_rates,
-    )
+    return SubsetSimulationRepeatsResult.from_results(results)
 
 
 def dist_to_str(dist):
@@ -1453,52 +1457,52 @@ def plot_many_pf_num_samples(
     plt.xscale(xscale)
 
 
-def plot_pf_num_samples(
-    all_results, quantile_range, xlim=None, xscale="linear", ylim=None, yscale="linear"
-):
+# def plot_pf_num_samples(
+#     all_results, quantile_range, xlim=None, xscale="linear", ylim=None, yscale="linear"
+# ):
 
-    converge_label = all_results["converge_label"]
-    fixed_num = all_results["fixed_num"]
-    title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
-    xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
+#     converge_label = all_results["converge_label"]
+#     fixed_num = all_results["fixed_num"]
+#     title = f"{'num_repeats' if converge_label == 'N' else 'num_samples'}={fixed_num!r}"
+#     xlabel = "Num samples, N" if converge_label == "N" else "Num repeats, R"
 
-    all_x = []
-    all_y = []
-    all_lower = []
-    all_upper = []
+#     all_x = []
+#     all_y = []
+#     all_lower = []
+#     all_upper = []
 
-    all_data = all_results["data"]
-    for N, data in all_data.items():
+#     all_data = all_results["data"]
+#     for N, data in all_data.items():
 
-        pf_srt = sorted(data["pf"])
-        _x0 = (1 - quantile_range) / 2
-        _x1 = _x0 + quantile_range
-        lower = np.quantile(pf_srt, _x0)
-        upper = np.quantile(pf_srt, _x1)
+#         pf_srt = sorted(data["pf"])
+#         _x0 = (1 - quantile_range) / 2
+#         _x1 = _x0 + quantile_range
+#         lower = np.quantile(pf_srt, _x0)
+#         upper = np.quantile(pf_srt, _x1)
 
-        all_x.append(N)
-        all_y.append(data["pf_mean"])
-        all_lower.append(lower)
-        all_upper.append(upper)
+#         all_x.append(N)
+#         all_y.append(data["pf_mean"])
+#         all_lower.append(lower)
+#         all_upper.append(upper)
 
-    plt.figure(figsize=(5, 4))
-    plt.fill_between(
-        x=all_x, y1=all_lower, y2=all_upper, alpha=0.5, label=f"CI: {quantile_range}"
-    )
-    plt.scatter(x=all_x, y=all_y, marker="o", label="Mean")
-    plt.hlines(
-        y=1e-4, xmin=min(all_data), xmax=max(all_data), color="gray", label="Target"
-    )
-    plt.xlabel(xlabel)
-    plt.ylabel("Prob. of failure, pf")
-    plt.title(title)
-    plt.legend()
-    if ylim:
-        plt.ylim(ylim)
-    if xlim:
-        plt.xlim(xlim)
-    plt.yscale(yscale)
-    plt.xscale(xscale)
+#     plt.figure(figsize=(5, 4))
+#     plt.fill_between(
+#         x=all_x, y1=all_lower, y2=all_upper, alpha=0.5, label=f"CI: {quantile_range}"
+#     )
+#     plt.scatter(x=all_x, y=all_y, marker="o", label="Mean")
+#     plt.hlines(
+#         y=1e-4, xmin=min(all_data), xmax=max(all_data), color="gray", label="Target"
+#     )
+#     plt.xlabel(xlabel)
+#     plt.ylabel("Prob. of failure, pf")
+#     plt.title(title)
+#     plt.legend()
+#     if ylim:
+#         plt.ylim(ylim)
+#     if xlim:
+#         plt.xlim(xlim)
+#     plt.yscale(yscale)
+#     plt.xscale(xscale)
 
 
 def plot_cov_estimates(all_results, ylim=None, yscale="linear"):
@@ -1572,3 +1576,370 @@ def plot_cov_dist(all_results):
     fig.supylabel("Frequency")
     plt.title(title)
     plt.tight_layout()
+
+
+@dataclass
+class SubsetSimulationProposalScaleConvergence:
+    """Run repeats of subset simulation on a toy model for each in a range of proposal
+    scales."""
+
+    num_repeats: int
+    dimension: int
+    performance: Callable
+    p_0: float
+    num_samples: int
+    num_levels: int
+    sampling_method: Callable
+    scales: list[float]
+    mimic_matflow: bool
+    sampling_method_kwargs: dict[str, Any] = field(default_factory=dict)
+    seed: int | None = None
+
+    results: list[SubsetSimulationRepeatsResult] | None = None
+    transformation: Callable | None = None
+
+    def __post_init__(self):
+        self.scales = list(self.scales)
+
+    def _update_scale(self, scale):
+        kwargs = copy.deepcopy(self.sampling_method_kwargs)
+        if self.sampling_method in (
+            generate_next_level_samples_CS,
+            generate_next_level_samples_ACS,
+        ):
+            kwargs["prop_std"] = scale
+        else:
+            kwargs["proposal"] = norm(scale=scale)
+        return kwargs
+
+    def run(self, seed=None):
+        results = []
+        seeds = np.random.SeedSequence(seed or self.seed).generate_state(len(self.scales))
+        for idx, scale in enumerate(self.scales):
+            reps_res = run_repeats(
+                num_repeats=self.num_repeats,
+                dimension=self.dimension,
+                performance=self.performance,
+                p_0=self.p_0,
+                num_samples=self.num_samples,
+                num_levels=self.num_levels,
+                sampling_method=self.sampling_method,
+                sampling_method_kwargs=self._update_scale(scale=scale),
+                mimic_matflow=self.mimic_matflow,
+                preamble=f"scale={scale:g}: ",
+                seed=seeds[idx],
+                transformation=self.transformation,
+            )
+            results.append(reps_res)
+        self.results = results
+
+    @classmethod
+    def from_file(cls, path):
+        with Path(path).open("rb") as fh:
+            return pickle.load(fh)
+
+    def to_file(self, path):
+        with Path(path).open("wb") as fh:
+            pickle.dump(self, fh)
+
+    @property
+    def pf_means(self):
+        return [res.pf_mean for res in self.results]
+
+    @property
+    def cov_means(self):
+        return [res.cov_mean for res in self.results]
+
+    @property
+    def cov_empiricals(self):
+        return [res.cov_empirical for res in self.results]
+
+    def plot_pf_means(self):
+        plot(
+            x=self.scales,
+            y=self.pf_means,
+            xlabel="Proposal scale",
+            ylabel=f"$P_f$ mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_means(self):
+        plot(
+            x=self.scales,
+            y=self.cov_means,
+            xlabel="Proposal scale",
+            ylabel=f"CoV mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_empiricals(self):
+        plot(
+            x=self.scales,
+            y=self.cov_empiricals,
+            xlabel="Proposal scale",
+            ylabel=f"Empirical CoV ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+
+@dataclass
+class SubsetSimulationNumSamplesConvergence:
+    """Run repeats of subset simulation on a toy model for each in a range of samples per
+    level."""
+
+    num_repeats: int
+    dimension: int
+    performance: Callable
+    p_0: float
+    num_samples: list[int]
+    num_levels: int
+    sampling_method: Callable
+    mimic_matflow: bool
+    sampling_method_kwargs: dict[str, Any] = field(default_factory=dict)
+    seed: int | None = None
+
+    results: list[SubsetSimulationRepeatsResult] | None = None
+    transformation: Callable | None = None
+
+    def __post_init__(self):
+        self.num_samples = list(self.num_samples)
+
+    def run(self, seed=None):
+        results = []
+        seeds = np.random.SeedSequence(seed or self.seed).generate_state(
+            len(self.num_samples)
+        )
+        for idx, num_samples_i in enumerate(self.num_samples):
+            reps_res = run_repeats(
+                num_repeats=self.num_repeats,
+                dimension=self.dimension,
+                performance=self.performance,
+                p_0=self.p_0,
+                num_samples=num_samples_i,
+                num_levels=self.num_levels,
+                sampling_method=self.sampling_method,
+                sampling_method_kwargs=self.sampling_method_kwargs,
+                mimic_matflow=self.mimic_matflow,
+                preamble=f"num_samples={num_samples_i:g}: ",
+                seed=seeds[idx],
+                transformation=self.transformation,
+            )
+            results.append(reps_res)
+        self.results = results
+
+    @classmethod
+    def from_file(cls, path):
+        with Path(path).open("rb") as fh:
+            return pickle.load(fh)
+
+    def to_file(self, path):
+        with Path(path).open("wb") as fh:
+            pickle.dump(self, fh)
+
+    @property
+    def pf_means(self):
+        return [res.pf_mean for res in self.results]
+
+    @property
+    def cov_means(self):
+        return [res.cov_mean for res in self.results]
+
+    @property
+    def cov_std(self):
+        return [res.cov_std for res in self.results]
+
+    @property
+    def cov_empiricals(self):
+        return [res.cov_empirical for res in self.results]
+
+    def plot_pf_means(self):
+        plot(
+            x=self.num_samples,
+            y=self.pf_means,
+            xlabel=R"Num. samples per level, $N$",
+            ylabel=f"$P_f$ mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_comparison(
+        self,
+        *,
+        filename: str | Path | None = None,
+        ax: Axes | None = None,
+        **kwargs,
+    ) -> tuple[Figure, Axes]:
+        if self.results is None:
+            raise RuntimeError("Run the convergence study first.")
+
+        return plot_cov_comparison(
+            x=self.num_samples,
+            cov_mean=self.cov_means,
+            cov_empirical=self.cov_empiricals,
+            xlabel=r"Num. samples per level, $N$",
+            ylabel="Coefficient of variation",
+            filename=filename,
+            ax=ax,
+            **kwargs,
+        )
+
+    def plot_cov_means(self):
+        plot(
+            x=self.num_samples,
+            y=self.cov_means,
+            xlabel=R"Num. samples per level, $N$",
+            ylabel=f"CoV mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_empiricals(self):
+        plot(
+            x=self.num_samples,
+            y=self.cov_empiricals,
+            xlabel=R"Num. samples per level, $N$",
+            ylabel=f"Empirical CoV ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_pf_distribution(
+        self,
+        *,
+        quantile_range: float = 0.95,
+        **kwargs,
+    ):
+        if self.results is None:
+            raise RuntimeError("Run the convergence study first.")
+
+        all_results = {
+            "converge_label": "N",
+            "fixed_num": self.num_repeats,
+            "data": {
+                N: {
+                    "pf": result.pf,
+                    "pf_mean": result.pf_mean,
+                }
+                for N, result in zip(self.num_samples, self.results)
+            },
+        }
+
+        return plot_pf_num_samples(all_results, quantile_range=quantile_range, **kwargs)
+
+    def plot_convergence(
+        self,
+        *,
+        reference_pf=None,
+        quantile_range=0.95,
+        **kwargs,
+    ):
+        if self.results is None:
+            raise RuntimeError("Run the convergence study first.")
+
+        return plot_convergence_vs_num_samples(
+            num_samples=self.num_samples,
+            pf_means=self.pf_means,
+            pf_repeats=[result.pf for result in self.results],
+            cov_means=self.cov_means,
+            cov_empiricals=self.cov_empiricals,
+            cov_std=self.cov_std,
+            reference_pf=reference_pf,
+            quantile_range=quantile_range,
+            **kwargs,
+        )
+
+
+@dataclass
+class SubsetSimulationACSNumChainsPerUpdateConvergence:
+    """Run repeats of subset simulation on a toy model using adaptive conditional sampling
+    for each in a range of the number of chains per update."""
+
+    num_repeats: int
+    num_chains_per_update: list[float]
+    dimension: int
+    performance: Callable
+    p_0: float
+    num_samples: int
+    num_levels: int
+    mimic_matflow: bool
+    sampling_method_kwargs: dict[str, Any] = field(default_factory=dict)
+    seed: int | None = None
+
+    results: list[SubsetSimulationRepeatsResult] | None = None
+    transformation: Callable | None = None
+
+    def __post_init__(self):
+        self.num_chains_per_update = list(self.num_chains_per_update)
+
+    def _update_num_chains_per_update(self, num_chains_per_update):
+        kwargs = copy.deepcopy(self.sampling_method_kwargs)
+        kwargs["chains_per_update"] = num_chains_per_update
+        return kwargs
+
+    def run(self, seed=None):
+        results = []
+        seeds = np.random.SeedSequence(seed or self.seed).generate_state(
+            len(self.num_chains_per_update)
+        )
+        for idx, num_chains in enumerate(self.num_chains_per_update):
+            reps_res = run_repeats(
+                num_repeats=self.num_repeats,
+                dimension=self.dimension,
+                performance=self.performance,
+                p_0=self.p_0,
+                num_samples=self.num_samples,
+                num_levels=self.num_levels,
+                sampling_method=generate_next_level_samples_ACS,
+                sampling_method_kwargs=self._update_num_chains_per_update(num_chains),
+                mimic_matflow=self.mimic_matflow,
+                preamble=f"num_chains_per_update={num_chains:g}: ",
+                seed=seeds[idx],
+                transformation=self.transformation,
+            )
+            results.append(reps_res)
+        self.results = results
+
+    @classmethod
+    def from_file(cls, path):
+        with Path(path).open("rb") as fh:
+            return pickle.load(fh)
+
+    def to_file(self, path):
+        with Path(path).open("wb") as fh:
+            pickle.dump(self, fh)
+
+    @property
+    def pf_means(self):
+        return [res.pf_mean for res in self.results]
+
+    @property
+    def cov_means(self):
+        return [res.cov_mean for res in self.results]
+
+    @property
+    def cov_empiricals(self):
+        return [res.cov_empirical for res in self.results]
+
+    def plot_pf_means(self):
+        plot(
+            x=self.num_chains_per_update,
+            y=self.pf_means,
+            xlabel="Number of chains per update",
+            ylabel=f"$P_f$ mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_means(self):
+        plot(
+            x=self.num_chains_per_update,
+            y=self.cov_means,
+            xlabel="Number of chains per update",
+            ylabel=f"CoV mean ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
+
+    def plot_cov_empiricals(self):
+        plot(
+            x=self.num_chains_per_update,
+            y=self.cov_empiricals,
+            xlabel="Number of chains per update",
+            ylabel=f"Empirical CoV ({self.num_repeats} reps.)",
+            fontsize=10,
+        )
