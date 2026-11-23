@@ -43,14 +43,14 @@ def generate_fifty_grain_volume_element(
     }
     if orientation_type == "quat":
         orientation_data_dict["quaternions"] = orientation_data
-        orientation_data_dict["quat_component_ordering"] = (
-            orientations.representation.quat_order.name.lower().replace("_", "-")
-        )
+        orientation_data_dict[
+            "quat_component_ordering"
+        ] = orientations.representation.quat_order.name.lower().replace("_", "-")
     else:
         orientation_data_dict["euler_angles"] = orientation_data
-        orientation_data_dict["euler_degrees"] = (
-            orientations.representation.euler_is_degrees
-        )
+        orientation_data_dict[
+            "euler_degrees"
+        ] = orientations.representation.euler_is_degrees
     orientation_data_dict = validate_orientations(orientation_data_dict)
 
     num_phases = phase_fields.shape[0]

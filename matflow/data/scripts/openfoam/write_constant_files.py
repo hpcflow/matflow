@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 FILES = {
-    'g': r"""/*--------------------------------*- C++ -*----------------------------------*\
+    "g": r"""/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
@@ -24,7 +24,7 @@ value           (0 0 0);
 
 // ************************************************************************* //
 """,
-    'LaserProperties': r"""/*--------------------------------*- C++ -*----------------------------------*\
+    "LaserProperties": r"""/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
@@ -60,7 +60,7 @@ debug no;
 
 Radius_Flavour	3.0;
 """,
-    'momentumTransport': r"""/*--------------------------------*- C++ -*----------------------------------*\
+    "momentumTransport": r"""/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
@@ -81,7 +81,7 @@ simulationType  laminar;
 
 // ************************************************************************* //
 """,
-    'phaseProperties': r"""/*--------------------------------*- C++ -*----------------------------------*\
+    "phaseProperties": r"""/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
@@ -109,7 +109,7 @@ Mm 5.58e-2;
 LatentHeatVap 7.45e6;
 // ************************************************************************* //
 """,
-    'physicalProperties': r"""/*--------------------------------*- C++ -*----------------------------------*\
+    "physicalProperties": r"""/*--------------------------------*- C++ -*----------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org

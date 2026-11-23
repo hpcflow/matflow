@@ -2,7 +2,8 @@ from pathlib import Path
 from string import Template
 
 
-TEMPLATE = Template(r"""/*--------------------------------*- C++ -*----------------------------------*\
+TEMPLATE = Template(
+    r"""/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  3.0.1                                 |
@@ -143,7 +144,8 @@ operator==(veloc);
 
 
 // ************************************************************************* //
-""")
+"""
+)
 
 
 def write_circle_squash_initial_velocity(path, peak_velocity, velocity_radius):
