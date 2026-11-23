@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, fields, is_dataclass
-from typing import Any, ClassVar, TYPE_CHECKING
+from collections.abc import Callable
+from dataclasses import dataclass, field, fields
+from typing import Any, ClassVar, TYPE_CHECKING, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -324,3 +325,121 @@ class SubsetSimulationResult(ParameterValue):
             f"    num_failed_per_level={self.num_failed_per_level!r},\n"
             f")"
         )
+
+
+@dataclass
+class SubsetSimulationRepeatsResult:
+    #: List of result objects
+    results: list[SubsetSimulationResult] = field(repr=False)
+
+    #: Mean probability of failure estimate
+    pf_mean: float
+
+    #: Standard deviation of probability of failure estimates
+    pf_std: float
+
+    #: Empirical coefficient of variation: standard deviation of all pf estimates,
+    #: normalised by the mean of all pf estimates
+    cov_empirical: float
+
+    #: Mean of all estimated coefficients of variation
+    cov_mean: float
+
+    #: Standard deviation of all estimated coefficients of variation.
+    cov_std: float
+
+    @classmethod
+    def from_results(cls, results):
+        all_pf = [res.pf for res in results]
+        all_cov = [res.cov for res in results]
+        pf_mean = np.mean(all_pf).item()
+        pf_std = np.std(all_pf).item()
+        return cls(
+            results=results,
+            pf_mean=pf_mean,
+            pf_std=pf_std,
+            cov_mean=np.mean(all_cov).item(),
+            cov_std=np.std(all_cov).item(),
+            cov_empirical=pf_std / pf_mean,
+        )
+
+    @property
+    def num_repeats(self) -> int:
+        return len(self.results)
+
+    @property
+    def pf(self) -> list[float]:
+        return [res.pf for res in self.results]
+
+    def __repr__(self) -> str:
+        cls_name = type(self).__name__
+        return (
+            f"{cls_name}(\n"
+            f"    num_repeats={self.num_repeats}\n"
+            f"    pf_mean={self.pf_mean:.4e},\n"
+            f"    pf_std={self.pf_std:.4e},\n"
+            f"    cov_empirical={self.cov_empirical:.4},\n"
+            f"    cov_mean={self.cov_mean:.4},\n"
+            f"    cov_std={self.cov_std:.4},\n"
+            f")"
+        )
+
+    @property
+    def all_num_levels(self):
+        return [res.num_conditional_levels for res in self.results]
+
+    @property
+    def all_component_acceptance_rates(self) -> NDArray:
+        all_rates = np.ones((self.num_repeats, max(self.all_num_levels))) * np.nan
+        for res_idx, res in enumerate(self.results):
+            rates_i = res.component_acceptance_rates
+            all_rates[res_idx, : len(rates_i)] = rates_i
+        return all_rates
+
+    @property
+    def level_average_component_acceptance_rates(self) -> NDArray:
+        """Get the component acceptance rate for each conditional level, averaged across
+        all repeats."""
+        return np.nanmean(self.all_component_acceptance_rates, axis=0)
+
+    @property
+    def all_subset_acceptance_rates(self) -> NDArray:
+        all_rates = np.ones((self.num_repeats, max(self.all_num_levels))) * np.nan
+        for res_idx, res in enumerate(self.results):
+            rates_i = res.subset_acceptance_rates
+            all_rates[res_idx, : len(rates_i)] = rates_i
+        return all_rates
+
+    @property
+    def level_average_subset_acceptance_rates(self) -> NDArray:
+        """Get the subset acceptance rate for each conditional level, averaged across
+        all repeats."""
+        return np.nanmean(self.all_subset_acceptance_rates, axis=0)
+
+    @property
+    def all_outer_move_rates(self) -> NDArray:
+        all_rates = np.ones((self.num_repeats, max(self.all_num_levels))) * np.nan
+        for res_idx, res in enumerate(self.results):
+            rates_i = res.outer_move_rates
+            all_rates[res_idx, : len(rates_i)] = rates_i
+        return all_rates
+
+    @property
+    def level_average_outer_move_rates(self) -> NDArray:
+        """Get the outer move rate rate for each conditional level, averaged across
+        all repeats."""
+        return np.nanmean(self.all_outer_move_rates, axis=0)
+
+    @property
+    def all_mean_jump_distances(self) -> NDArray:
+        all_rates = np.ones((self.num_repeats, max(self.all_num_levels))) * np.nan
+        for res_idx, res in enumerate(self.results):
+            rates_i = res.mean_jump_distances
+            all_rates[res_idx, : len(rates_i)] = rates_i
+        return all_rates
+
+    @property
+    def level_average_mean_jump_distances(self) -> NDArray:
+        """Get the mean jump distance for each conditional level, averaged across
+        all repeats."""
+        return np.nanmean(self.all_mean_jump_distances, axis=0)
