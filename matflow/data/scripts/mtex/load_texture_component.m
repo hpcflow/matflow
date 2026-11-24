@@ -5,14 +5,16 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path, outputs_JSO
     all_args = jsondecode(fileread(inputs_JSON_path));
 
     num_grains = all_args.num_grains;
-    num_components = all_args.num_components;
+    resolution = all_args.resolution;
     odf_fname = all_args.odf_fname;
     index = all_args.index;
     filename = all_args.filename
 
     CS = crystalSymmetry('cubic');
 
-    components = equispacedSO3Grid(CS, 'points', num_components);
+    components = equispacedSO3Grid(CS, 'resolution', resolution*degree);
+    
+    N = numel(components);
 
     n_halfwidths = length(components)
 
