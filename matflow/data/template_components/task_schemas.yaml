@@ -184,6 +184,36 @@
             type: any
           environment: damask_parse_env
 
+- objective: generate_volume_element
+  doc: Generate a volume element from microstructure seeds using a Laguerre diagram.
+  method: from_laguerre
+  inputs:
+    - parameter: microstructure_seeds
+    - parameter: VE_grid_size
+    - parameter: homog_label
+      default_value: SX
+    - parameter: orientations
+      default_value: null
+    - parameter: scale_morphology
+      default_value: null
+    - parameter: weights
+      default_value: null
+    - parameter: scale_update_size
+      default_value: true
+    - parameter: periodic
+      default_value: true
+  outputs:
+    - parameter: volume_element
+  actions:
+    - script: <<script:damask/generate_volume_element_laguerre.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
 - objective: visualise_VE
   doc: Visualise a volume element.
   method: VTK
