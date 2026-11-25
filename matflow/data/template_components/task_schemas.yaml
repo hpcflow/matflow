@@ -197,22 +197,18 @@
       default_value: script
       propagation_mode: explicit
     - parameter: filename
-    - parameter: num_grains
+    - parameter: num_orientations
     - parameter: resolution
     - parameter: index
       default_value: 1
-    - parameter: odf_fname
-      default_value: "cubic_ODF_samples.mat"
   outputs:
     - parameter: orientations
-    - parameter: odf_parameters
   actions:
     - requires_dir: true
       script: <<script:mtex/load_texture_component.m>>
       script_data_in: json
       script_data_out:
         orientations: hdf5
-        odf_parameters: json
       script_exe: run_mtex
       environments:
         - scope:

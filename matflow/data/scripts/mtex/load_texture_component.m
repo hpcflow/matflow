@@ -1,13 +1,13 @@
-function load_texture_component(inputs_JSON_path, outputs_HDF5_path, outputs_JSON_path)
+function load_texture_component(inputs_JSON_path, outputs_HDF5_path)
 
     rng(str2double(getenv('MATFLOW_RUN_RANDOM_SEED')));
 
     all_args = jsondecode(fileread(inputs_JSON_path));
 
-    num_grains = all_args.num_grains;
     resolution = all_args.resolution;
     index = all_args.index;
     filename = all_args.filename
+    numOrientations = all_args.num_orientations;
 
     CS = crystalSymmetry('cubic');
 
@@ -15,27 +15,23 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path, outputs_JSO
     
     N = numel(components);
 
-    n_halfwidths = length(components)
-
     data = table2array(readtable(filename));
 
-    halfwidths = data(index,1:n_halfwidths);
-    weights = data(index,n_halfwidths+1:end);
+    halfwidths = data(index,1:N);
+    weights = data(index,N+1:end);
 
-    odf = weights(:,end) * uniformODF(CS);
+    ODF = weights(:,end) * uniformODF(CS);
     
-    for n = 1:n_halfwidths;
+    for n = 1:N;
     
         if halfwidths(n) ~= 0;
     
-            odf = odf + weights(n) * unimodalODF(components(n),CS,'halfwidth',halfwidths(n)*degree);
+            ODF = ODF + weights(n) * unimodalODF(components(n),CS,'halfwidth',halfwidths(n)*degree);
         end
     end
 
-    odf = SO3FunRBF(odf);
-
     rng("shuffle");
-    orientations = odf.discreteSample(num_grains);
+    orientations = discreteSample(ODF, numOrientations);
     export_orientations_HDF5(orientations, outputs_HDF5_path);
 
 end
