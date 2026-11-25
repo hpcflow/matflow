@@ -1,0 +1,82 @@
+doc:
+  - >
+    Run an OpenFOAM crystal-plasticity simulation using the Circle_Squash
+    case configuration.
+  - >
+    Phase-field files are generated from the workflow's volume element and
+    boundary-field inputs.
+  - >
+    The case's default GrainProperties template is used unless materials are
+    supplied.
+  - >
+    The volume-element origin and mesh boundaries are supplied separately, as
+    the tutorial volume element representation does not include a geometric
+    origin.
+
+tasks:
+  - schema: generate_volume_element_from_voronoi
+    inputs:
+      VE_grid_size: [1, 240, 240]
+      periodic: false
+      microstructure_seeds:
+        box_size: [0.1, 0.2, 0.2]
+        phase_label:
+          - Fe-35Ni
+          - Material-1
+        position:
+          - [0.05, 0.05, 0.1]
+          - [0.05, 0.15, 0.1]
+      orientations:
+        data:
+          - [0.26, 0.0, 0.0]
+          - [0.0, 0.0, 0.0]
+        unit_cell_alignment:
+          x: a
+          y: b
+          z: c
+        representation:
+          type: euler
+          euler_definition: bunge # WRONG! (but currently inconsequential)
+          euler_is_degrees: false
+
+  - schema: visualise_VE_VTK
+
+  - schema: simulate_VE_loading_openfoam_circle_squash
+    inputs:
+      phase_field_data: <<demo_data_file:circle_squash_phase_fields.npz>>
+      VE_origin: [-0.05, 0.0, 0.0]
+      boundary:
+        - patch_name: lowerWall # user-specified name for the patch, use camelCase
+          face_normals: [+x2] # {+/-}{x1,x2,x3} for the normal of the face, when looking from in the middle of the block
+          type: wall # select from available patch types
+        - patch_name: atmosphere
+          face_normals: [-x2]
+          type: patch
+        - patch_name: rightWall
+          face_normals: [+x1]
+          type: empty
+        - patch_name: leftWall
+          face_normals: [-x1]
+          type: empty
+        - patch_name: Front
+          face_normals: [-x3]
+          type: patch
+        - patch_name: Back
+          face_normals: [+x3]
+          type: patch
+      boundary_field:
+        - patch_name: lowerWall
+          type: zeroGradient
+        - patch_name: atmosphere
+          type: zeroGradient
+        - patch_name: rightWall
+          type: empty
+        - patch_name: leftWall
+          type: empty
+        - patch_name: Front
+          type: zeroGradient
+        - patch_name: Back
+          type: zeroGradient
+      materials: null
+      peak_velocity: 50.0
+      velocity_radius: 0.05e-3

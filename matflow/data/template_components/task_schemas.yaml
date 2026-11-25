@@ -184,6 +184,24 @@
             type: any
           environment: damask_parse_env
 
+- objective: generate_volume_element
+  doc: Generate the Fifty Grain tutorial volume element from its phase fields.
+  method: from_fifty_grain_tutorial
+  inputs:
+    - parameter: orientations
+    - parameter: phase_field_data
+  outputs:
+    - parameter: volume_element
+  actions:
+    - script: <<script:openfoam/generate_fifty_grain_volume_element.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: damask_parse_env
+
 - objective: visualise_VE
   doc: Visualise a volume element.
   method: VTK
@@ -3325,3 +3343,119 @@
         - scope:
             type: any
           environment: damask_parse_env
+
+- objective: simulate_VE_loading
+  method: openfoam_circle_squash
+  doc: Generate and run the Circle Squash OpenFOAM case.
+  inputs:
+    - parameter: volume_element
+    - parameter: phase_field_data
+    - parameter: materials
+      default_value: null
+    - parameter: orientations
+    - parameter: VE_origin
+    - parameter: boundary
+    - parameter: boundary_field
+    - parameter: peak_velocity
+    - parameter: velocity_radius
+  actions:
+    - environments:
+        - scope:
+            type: processing
+          environment: openfoam_env
+        - scope:
+            type: main
+          environment: openfoam_env
+      input_file_generators:
+        - input_file: open_foam_phase_bool_files
+          from_inputs: [phase_field_data, boundary_field]
+          script: <<script:openfoam/write_circle_squash_phase_fields.py>>
+        - input_file: open_foam_grain_properties_file
+          from_inputs: [volume_element, orientations, materials]
+          script: <<script:openfoam/write_grain_properties_circle_squash.py>>
+        - input_file: open_foam_block_mesh_file
+          from_inputs: [volume_element, VE_origin, boundary]
+          script: <<script:openfoam/write_block_mesh_file.py>>
+        - input_file: open_foam_initial_velocity_file
+          from_inputs: [peak_velocity, velocity_radius]
+          script: <<script:openfoam/write_circle_squash_initial_velocity.py>>
+        - input_file: open_foam_system_files
+          from_inputs: []
+          script: <<script:openfoam/write_circle_squash_system_files.py>>
+        - input_file: open_foam_constant_files
+          from_inputs: []
+          script: <<script:openfoam/write_circle_squash_constant_files.py>>
+        - input_file: open_foam_circle_initial_fields
+          from_inputs: []
+          script: <<script:openfoam/write_circle_squash_initial_fields.py>>
+      commands:
+        - command: mkdir system constant 0
+        - command: mv controlDict decomposeParDict fvSchemes fvSolution setFieldsDict blockMeshDict system/.
+        - command: mv g LaserProperties momentumTransport phaseProperties GrainProperties constant/.
+        - command: mv n.* U T 0/.
+        - command: <<executable:blockmesh>>
+        - command: <<executable:decomposepar>>
+        - command: <<executable:crystaldynamicsfoam>>
+        - command: <<executable:reconstructpar>> -newTimes
+        - command: <<executable:foamToIPF>>
+  save_files:
+    - "path:[0-9]*/**/*"
+    - "path:constant/**/*"
+    - "path:system/**/*"
+
+- objective: simulate_VE_loading
+  method: openfoam_fifty_grains
+  doc: Generate and run the Fifty Grain Cases OpenFOAM case.
+  inputs:
+    - parameter: volume_element
+    - parameter: phase_field_data
+    - parameter: materials
+      default_value: null
+    - parameter: orientations
+    - parameter: VE_origin
+    - parameter: boundary
+    - parameter: boundary_field
+  actions:
+    - environments:
+        - scope:
+            type: processing
+          environment: openfoam_env
+        - scope:
+            type: main
+          environment: openfoam_env
+      input_file_generators:
+        - input_file: open_foam_phase_bool_files
+          from_inputs: [phase_field_data, boundary_field]
+          script: <<script:openfoam/write_fifty_grain_phase_fields.py>>
+        - input_file: open_foam_grain_properties_file
+          from_inputs: [volume_element, orientations, materials]
+          script: <<script:openfoam/write_grain_properties.py>>
+        - input_file: open_foam_block_mesh_file
+          from_inputs: [volume_element, VE_origin, boundary]
+          script: <<script:openfoam/write_block_mesh_file.py>>
+        - input_file: open_foam_initial_velocity_file
+          from_inputs: []
+          script: <<script:openfoam/write_fifty_grains_initial_velocity.py>>
+        - input_file: open_foam_system_files
+          from_inputs: []
+          script: <<script:openfoam/write_system_files.py>>
+        - input_file: open_foam_constant_files
+          from_inputs: []
+          script: <<script:openfoam/write_constant_files.py>>
+        - input_file: open_foam_initial_fields
+          from_inputs: []
+          script: <<script:openfoam/write_initial_fields.py>>
+      commands:
+        - command: mkdir system constant 0
+        - command: mv controlDict decomposeParDict fvSchemes fvSolution setFieldsDict blockMeshDict system/.
+        - command: mv g LaserProperties momentumTransport phaseProperties physicalProperties GrainProperties constant/.
+        - command: mv n.* U rho T 0/.
+        - command: <<executable:blockmesh>>
+        - command: <<executable:decomposepar>>
+        - command: <<executable:crystaldynamicsfoam>>
+        - command: <<executable:reconstructpar>> -newTimes
+        - command: <<executable:foamToIPF>>
+  save_files:
+    - "path:[0-9]*/**/*"
+    - "path:constant/**/*"
+    - "path:system/**/*"

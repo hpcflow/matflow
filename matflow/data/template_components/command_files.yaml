@@ -113,3 +113,37 @@
   name:
     name: (.*\.dic2d)
     is_regex: true
+
+- label: open_foam_phase_bool_files
+  name:
+    name: (n\.\d+)
+    is_regex: true
+  doc: >
+    Each file (named according to phase ID) contains a flattened boolean array
+    describing where that phase exists within the volume element.
+- label: open_foam_grain_properties_file
+  name:
+    name: GrainProperties
+  doc: >
+    A file that contains grain orientations and material properties.
+- label: open_foam_block_mesh_file
+  name:
+    name: blockMeshDict
+- label: open_foam_initial_velocity_file
+  name:
+    name: U
+  doc: >
+    The initial velocity field. Workflow peak_velocity and velocity_radius
+    values replace the corresponding values in all coded velocity patches.
+- label: open_foam_system_files
+  name:
+    name: controlDict
+- label: open_foam_constant_files
+  name:
+    name: g
+- label: open_foam_initial_fields
+  name:
+    name: rho
+- label: open_foam_circle_initial_fields
+  name:
+    name: T
