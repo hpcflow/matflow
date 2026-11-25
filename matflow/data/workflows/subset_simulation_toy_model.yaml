@@ -18,13 +18,15 @@ tasks:
   - schema: sample_direct_MC
     inputs:
       dimension: 200
-    repeats: 100 # num_samples
+    repeats:
+      number: 100 # num_samples
+      generate_seed_sequence: false
     groups:
       - name: all
   - schema: system_analysis_toy_model
     inputs:
       dimension: 200
-      target_pf: 1.0e-4
+      target_pf: 1e-4
     groups:
       - name: all
   - schema: collate_results # [outer loop]
@@ -39,11 +41,15 @@ tasks:
           step: 1
   - schema: generate_next_state # [inner loop]
     inputs:
-      prop_std: 0.5
+      proposal:
+        type: norm
+        scale: 1.0
+    groups:
+      - name: all
   - schema: system_analysis_toy_model # [inner loop]
     inputs:
       dimension: 200
-      target_pf: 1.0e-4
+      target_pf: 1e-4
   - schema: increment_chain # [inner loop]
     groups:
       - name: all

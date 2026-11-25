@@ -1,6 +1,10 @@
 import numpy as np
 from scipy.stats import norm, uniform
-from damask import Grid
+
+try:
+    from damask import GeomGrid as grid_cls
+except ImportError:
+    from damask import Grid as grid_cls
 from damask_parse.utils import validate_volume_element, validate_orientations
 
 
@@ -103,7 +107,7 @@ def generate_volume_element_voronoi_variates(
     ori_numbers = uniform_vars[3 * num_grains :].reshape((num_grains, 3))
     quats = quat_sample_random(ori_numbers)
 
-    grid_obj = Grid.from_Voronoi_tessellation(
+    grid_obj = grid_cls.from_Voronoi_tessellation(
         cells=np.array(VE_grid_size),
         size=np.array(VE_size),
         seeds=seeds,
@@ -145,7 +149,7 @@ def generate_volume_element_voronoi_variates(
         "size": grid_obj.size.astype(float).tolist(),
         "grid_size": grid_obj.cells.tolist(),
         "orientations": oris,
-        "element_material_idx": grid_obj.material,
+        "element_material_idx": grid_obj.material.astype(np.int32, copy=False),
         "constituent_material_idx": np.arange(num_grains),
         "constituent_material_fraction": np.ones(num_grains),
         "constituent_phase_label": const_phase_lab,

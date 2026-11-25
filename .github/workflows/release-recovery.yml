@@ -1,0 +1,72 @@
+name: Recover stable release
+run-name: Recover stable release ${{ inputs.recovery-tag }}
+concurrency: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      recovery-tag:
+        description: Existing unpublished stable release tag
+        required: true
+        type: string
+        default: v0.4.0
+      recovery-previous-tag:
+        description: Previous stable release tag (exclusive release notes boundary)
+        required: true
+        type: string
+        default: v0.3.0
+      confirm-publication:
+        description: Publish the selected version to GitHub, PyPI, and the documentation website
+        required: true
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  confirm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit publication confirmation from main
+        env:
+          CONFIRMED: ${{ inputs.confirm-publication }}
+          TAG: ${{ inputs.recovery-tag }}
+          PREVIOUS_TAG: ${{ inputs.recovery-previous-tag }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$CONFIRMED" != true || "$REF" != refs/heads/main || -z "$TAG" || -z "$PREVIOUS_TAG" ]]; then
+            echo "::error::Select main, supply both tags, and confirm publication before dispatching recovery."
+            exit 1
+          fi
+
+  release:
+    needs: confirm
+    uses: hpcflow/github-support/.github/workflows/release-impl.yml@main
+    with:
+      recovery-tag: ${{ inputs.recovery-tag }}
+      recovery-previous-tag: ${{ inputs.recovery-previous-tag }}
+      gh-run-attempt: ${{ github.run_attempt }}
+      pr-merged: "false"
+      pr-title: Recover stable release
+      pr-base-ref: main
+      pr-head-ref: develop
+      pre_release_branch: develop
+      release_branch: main
+      app_name: MatFlow
+      benchmark_make_workflow: ./matflow/data/workflows/tension_DAMASK_Al_N_repeats.yaml
+      docs_url_prefix: 
+      executable_name: matflow
+      pyinstaller_dir: pyinstaller
+      pypi-url: https://upload.pypi.org/legacy/
+      repository: hpcflow/matflow
+      version_file: matflow/_version.py
+      website_source_org: hpcflow
+      website_source_repo: docs.matflow.io
+    secrets:
+      general-token: ${{ secrets.GITHUB_TOKEN }}
+      commit-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN }}
+      pypi-token: ${{ secrets.PYPI }}
+      website-token: ${{ secrets.HPCFLOW_ACTIONS_TOKEN }}
+    permissions:
+      id-token: write
+      contents: write

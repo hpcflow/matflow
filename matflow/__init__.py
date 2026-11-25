@@ -38,6 +38,7 @@ app: sdk_app.App = sdk_app.App(
     jinja_templates_dir="data.jinja_templates",  # relative to root package
     workflows_dir="data.workflows",  # relative to root package
     config_options=config_options,
+    remote_import_dir="github://hpcflow:matflow-configs@main",
     data_manifest_dir="matflow.data.data_manifests",
     data_dir="github://hpcflow:matflow-data@main/data",
     program_dir="github://hpcflow:matflow-data@main/programs",

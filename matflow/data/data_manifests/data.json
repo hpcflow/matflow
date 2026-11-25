@@ -29,6 +29,9 @@
     "quaternions.txt": {
         "zip_file": "quaternions.zip"
     },
+    "seeds.txt": {
+        "zip_file": "seeds.zip"
+    },
     "load_cases.npz": {
         "zip_file": "load_cases_npz.zip"
     },
@@ -40,5 +43,14 @@
     },
     "clustering_quaternions": {
         "zip_file": "clustering_quaternions.zip"
-    }
+    },
+    "3D_EBSD_example_data": {
+        "zip_file": "3D_EBSD_example_data.zip"
+    },
+    "Zr_cooling_data": {
+        "zip_file": "Zr_cooling_data.zip"
+    },
+    "posterior.txt": {
+        "zip_file": "posterior.zip"
+    }    
 }

@@ -1,6 +1,229 @@
 Task schemas
 ------------
 
+Generating multiple load cases
+==============================
+
+The built-in ``generate_load_cases`` task generates a list of independent uniaxial
+``LoadCase`` objects with identical loading parameters:
+
+.. code-block:: yaml
+
+    name: multiple_load_cases
+    tasks:
+      - schema: generate_load_cases_uniaxial
+        inputs:
+          num_load_cases: 3
+          total_time: 100
+          num_increments: 200
+          direction: x
+          target_def_grad_rate: 1.0e-3
+
+``num_load_cases`` must be a positive integer. The ``load_case`` schema output has
+``multiplicity: "<<input:num_load_cases>>"``, allowing downstream tasks to source
+the individual load cases. With a multiplicity of one, the output remains a
+single-member list, in accordance with the framework's multiplicity semantics.
+
+Assigning orientations to Dream3D volume elements
+================================================
+
+``generate_volume_element_from_statistics`` defaults to
+``assign_orientations_directly: true``. When an ``orientations`` input is supplied,
+the returned volume element uses those orientations directly for the first phase
+in ``phase_statistics``. Rows are assigned in order of increasing grain ID, skipping
+grains of other phases. Extra rows are unused; fewer rows than first-phase grains
+raise an error. Other phases retain their Dream3D-generated orientations.
+
+Quaternion ordering, Euler-angle units and unit-cell alignment are converted to
+the volume element's conventions without resampling. Without an ``orientations``
+input, the task continues to use Dream3D-generated orientations.
+
+To restore the previous ODF-based assignment, set:
+
+.. code-block:: yaml
+
+    - schema: generate_volume_element_from_statistics
+      inputs:
+        assign_orientations_directly: false
+        # Other volume-generation inputs...
+
+Direct assignment changes only the returned volume element used by downstream
+tasks, including DAMASK simulations. Retained Dream3D and XDMF files remain the
+native Dream3D output, with Dream3D's ODF-based orientations, and are not rewritten.
+Locally specified ODFs still control those native files, but do not override the
+directly assigned orientations in the returned volume element.
+
+Sampling EBSD textures with Python MTEX
+======================================
+
+The ``sample_texture_from_CTF_file_mtex_python`` and
+``sample_texture_from_CRC_file_mtex_python`` schemas estimate an orientation density
+from one EBSD phase and sample ``num_orientations`` orientations from it. They require
+the Python edition of MTEX (``mtex>=1.0``) in ``python_env``; MATLAB is not needed.
+The existing ``*_mtex`` schemas still use MATLAB.
+
+.. code-block:: yaml
+
+    tasks:
+      - schema: sample_texture_from_CTF_file_mtex_python
+        inputs:
+          CTF_file_path: C:\data\texture.ctf
+          specimen_symmetry: '1'
+          EBSD_phase: Al
+          num_orientations: 1000
+          num_orientation_sets: 3
+          kernel_halfwidth_deg: 10.0
+
+For CRC data, use ``sample_texture_from_CRC_file_mtex_python`` and
+``CRC_file_path`` instead. The matching ``.cpr`` file must be beside the ``.crc``
+file, with the same stem.
+
+``num_orientation_sets`` defaults to null for both CTF and CRC files. It can be
+null or a positive integer. The density is estimated once, then independently
+sampled for each set using the run's seeded random generator. Each set contains
+``num_orientations`` orientations. When the count is null, one set is returned
+without printing progress. Otherwise, progress is printed to standard output as
+completed/total set counts, starting at zero and updating after each completed set.
+For workflow runs, it appears in the jobscript's output log under
+``artifacts/submissions``; this log may also contain standard error.
+The ``orientations`` output has multiplicity ``<<input:num_orientation_sets>>``:
+its value is a single orientation set when the count is null, or a list of sets
+otherwise, including when the count is 1. Downstream tasks sourcing ``orientations``
+receive individual sets.
+
+All inputs and the ``orientations`` output are passed directly to/from the script,
+without JSON/HDF5 handoff files. There is no ``execution_mode`` input.
+Sampling uses ``MATFLOW_RUN_RANDOM_SEED`` for reproducibility within Python MTEX;
+samples are not expected to match MATLAB bit for bit. ``kernel_halfwidth_deg``
+sets the density-estimation kernel halfwidth in degrees and defaults to ``10.0``,
+preserving the previous smoothing choice. It must be finite, greater than zero,
+and at most 180 degrees. The halfwidth is passed explicitly to MTEX, so it no
+longer warns about selecting a default for correlated EBSD pixels.
+
+Use ``EBSD_euler_correction`` to specify the import correction explicitly, using
+three Bunge Euler angles in degrees. It maps the file's Euler-angle frame into
+the map frame and takes precedence over ``EBSD_reference_frame_transformation``.
+For example, to apply a 180-degree rotation about x in either implementation:
+
+.. code-block:: yaml
+
+    EBSD_euler_correction:
+      euler_angles_deg: [0, 180, 0]
+
+``[90, 180, 270]`` specifies a 180-degree rotation about y; ``[0, 0, 0]``
+explicitly disables correction. A null ``EBSD_euler_correction`` retains the
+legacy selection below. This correction happens before ``EBSD_rotation``.
+Choose it from knowledge of the acquisition and specimen reference frames;
+agreement between two libraries alone does not establish physical correctness.
+
+``EBSD_reference_frame_transformation`` defaults to ``euler_to_spatial`` (also
+accepted as ``convertEuler2SpatialReferenceFrame``), using the reader's Oxford
+Euler correction. ``spatial_to_euler`` (or
+``convertSpatial2EulerReferenceFrame``) leaves the Euler angles unchanged, as does
+a null transformation: spatial coordinates are not part of this task's output.
+The distinction matters because passing ``None`` as the reader's correction asks
+MTEX to apply its default Oxford correction, while an explicit identity rotation
+leaves the file's Euler angles unchanged.
+This legacy selection depends on the installed MTEX version: MATLAB MTEX 6.1.1
+uses an x-axis half-turn, whereas MATLAB 7.2 and Python MTEX 1.0 use a y-axis
+half-turn for untilted Oxford inputs. Library defaults may also interpret
+acquisition metadata differently. Use an explicit correction for reproducible
+frame alignment across implementations and versions.
+
+``EBSD_rotation`` optionally applies a rigid map rotation specified by three
+``euler_angles_deg``. By default, both map positions and orientations are rotated.
+``keep_XY: true`` keeps map positions fixed and rotates orientations;
+``keep_euler: true`` keeps orientations fixed and rotates map positions. The flags
+cannot both be true. Since this task samples only orientations, ``keep_euler: true``
+does not change the sampled texture.
+
+The returned orientations use scalar-first inverse MTEX quaternions and the
+crystal frame's unit-cell alignment. A frame whose Cartesian axes cannot all be
+described by MatFlow lattice directions is rejected explicitly.
+
+MATLAB MTEX compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``sample_texture_from_CTF_file_mtex`` and
+``sample_texture_from_CRC_file_mtex`` schemas accept the same sampling inputs,
+including ``kernel_halfwidth_deg`` with the same default and valid range,
+reference-frame aliases, explicit ``EBSD_euler_correction``, and rotation flags.
+Explicit corrections work with both MATLAB MTEX 6.1.1 and 7.2; older readers
+apply the rotation after import, while newer readers receive ``EulerCorrection``.
+``spatial_to_euler`` (or
+``convertSpatial2EulerReferenceFrame``) leaves Euler angles unchanged in both
+implementations; ``euler_to_spatial`` applies the Oxford correction. They retain
+JSON input/HDF5 output and the ``script``, ``compile``, and ``precompiled``
+execution modes. Their output continues to use scalar-first inverse MTEX
+quaternions and crystal alignment. Both implementations use the run's random
+seed, but do not produce identical samples.
+
+The MATLAB schemas sample one orientation set per task. ``num_orientation_sets``
+is currently supported only by the Python MTEX schemas.
+
+Both implementations read ``MATFLOW_RUN_NUM_THREADS`` from the run's
+``num_threads`` resource (default 1). Python sets MTEX's ``threads`` preference;
+MATLAB sets its computational thread limit using ``maxNumCompThreads``. MATLAB
+MTEX's separate NFFT/MEX libraries may have their own threading limits.
+
+Use ``execution_mode: script`` or recompile with ``execution_mode: compile`` to
+use the updated MATLAB behavior. Existing precompiled executables must be rebuilt
+from the updated scripts; changing the schema does not update those binaries.
+
+Plotting orientations with Python MTEX
+=====================================
+
+The ``visualise_orientations_pole_figure_mtex_python`` and
+``visualise_orientations_inverse_pole_figure_mtex_python`` schemas are Python
+alternatives to the corresponding MATLAB ``*_mtex`` schemas. They require Python
+MTEX (``mtex>=1.0``) in ``python_env`` and pass inputs directly to the script,
+without JSON/HDF5 handoff files or an ``execution_mode`` input.
+
+For example, append these tasks after an orientation-sampling task:
+
+.. code-block:: yaml
+
+    - schema: visualise_orientations_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        pole_figure_directions: [[0, 0, 1], [1, 0, 1], [1, 1, 1]]
+        use_contours: false
+        IPF_reference_direction: z
+
+    - schema: visualise_orientations_inverse_pole_figure_mtex_python
+      inputs:
+        crystal_symmetry: cubic
+        IPF_reference_directions: [x, y, z]
+        use_contours: true
+
+Each task consumes a single ``orientations`` value. When a sampling task produces
+multiple orientation sets, output multiplicity creates one plotting element per
+set automatically.
+
+Both quaternion component orders are supported. MatFlow's inverse quaternions
+are converted back to MTEX's crystal-to-specimen convention, with the input
+unit-cell alignment preserved. Euler-angle inputs are not supported and raise
+an explicit error. As in the MATLAB tasks, the crystal frame is constructed from
+``crystal_symmetry`` and the alignment, using MTEX's default lattice parameters.
+
+``use_contours: false`` draws scatter plots; pole-figure markers use IPF colours
+for ``IPF_reference_direction`` (x, y or z, default z). Inverse-pole-figure markers
+are uncoloured, as in the MATLAB task, with one panel per
+``IPF_reference_directions`` entry (default ``[z]``). Both scatter tasks also save
+an IPF colour key. ``use_contours: true`` instead draws filled density contours
+and colourbars, without a colour-key image. For pole figures,
+``colourbar_limits`` optionally supplies two finite, increasing values, and
+``use_one_colourbar: true`` uses a shared colour scale and a single bar. These
+colourbar options apply only to contour plots.
+
+The files are saved as ``pole_figure.png`` or ``inverse_pole_figure.png`` and,
+for scatter plots, ``IPF_key.png``. The existing file labels
+``mtex_pole_figures``, ``mtex_inverse_pole_figures`` and ``mtex_IPF_key`` are
+retained, so the images are saved as workflow artifacts just as for MATLAB.
+Rendering is headless, uses x pointing east, and closes its figures after saving.
+``MATFLOW_RUN_NUM_THREADS`` controls MTEX's thread preference, as for Python
+texture sampling. Figure styling and density contours may differ from MATLAB.
+
 Action command strings
 ======================
 

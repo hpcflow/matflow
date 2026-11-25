@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -9,9 +9,13 @@ except ImportError:
     from damask import Grid as grid_cls
 from damask_parse.utils import validate_volume_element, validate_orientations
 
-if TYPE_CHECKING:
-    from matflow.param_classes.orientations import Orientations
-    from matflow.param_classes.seeds import MicrostructureSeeds
+# NOTE: hpcflow resolves `parameter::class_method` inputs by looking up
+# `ParameterValue.__subclasses__()` in the *script execution process*. If the relevant
+# `ParameterValue` subclasses are not imported in that process, the lookup fails and
+# inputs arrive as raw dicts. Importing these classes at runtime ensures they are
+# registered as subclasses before hpcflow instantiates input values.
+from matflow.param_classes.orientations import Orientations
+from matflow.param_classes.seeds import MicrostructureSeeds
 
 
 def generate_volume_element_voronoi(
@@ -116,7 +120,7 @@ def generate_volume_element_voronoi(
         "size": grid_obj.size.astype(float).tolist(),
         "grid_size": grid_obj.cells.tolist(),
         "orientations": oris,
-        "element_material_idx": grid_obj.material,
+        "element_material_idx": grid_obj.material.astype(np.int32, copy=False),
         "constituent_material_idx": np.arange(num_grains),
         "constituent_material_fraction": np.ones(num_grains),
         "constituent_phase_label": const_phase_lab,

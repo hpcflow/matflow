@@ -63,7 +63,10 @@
     you can pull the relevant file using the following syntax
     (example shown for Manchester's CSF3)::
 
-      matflow config import github://hpcflow:matflow-configs@main/manchester-CSF3.yaml
+      matflow config import --remote manchester-CSF3.yaml
+
+    The ``--remote`` flag resolves the path within the MatFlow configs repository.
+    Omit it to import a local file or a full remote URL.
 
     After pulling a config file using the above command, you still need to edit it to set the path to
     your :ref:`MatFlow environments<matflow-environments>` file.

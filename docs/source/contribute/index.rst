@@ -98,7 +98,7 @@ To do this, run::
 This will update the hpcflow dependency to point to your local copy.
 
 If this does not work, try doing it manually:
-First modify the ``matflow-new/pyproject.toml`` file replacing::
+First modify the ``matflow/pyproject.toml`` file replacing::
 
    hpcflow = "^0.2.0a14"
 
