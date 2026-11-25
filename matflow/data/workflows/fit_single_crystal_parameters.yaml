@@ -2,10 +2,15 @@ doc:
   - >
     Fit single crystal parameters using an experimental uniaxial tension stress-strain
     curve and an iterative Levenberg-Marquardt fitting process.
+    Stop when the best accepted simulation has a mean absolute stress error of at
+    most 2 MPa, or after seven iterations. Reaching the cap does not imply convergence.
 
 loops:
-  - num_iterations: 2
+  - num_iterations: 7
     tasks: [3, 4]
+    termination:
+      path: outputs.is_converged
+      condition: { value.equal_to: true }
 
 tasks:
   - schema: generate_microstructure_seeds_from_random
@@ -85,17 +90,22 @@ tasks:
             transforms: [{ mean_along_axes: 1 }]
     sequences:
       - path: inputs.single_crystal_parameters.perturbations
+        # 1.05 requests a 5% increase; bounds clip or reverse that perturbation.
         values:
           - null
           - multiplicative: 1.05
             path: [Al, h_0_sl-sl]
+            bounds: [100e6, 1000e6]
           - multiplicative: 1.05
             path: [Al, xi_0_sl, 0]
+            bounds: [10e6, 100e6]
           - multiplicative: 1.05
             path: [Al, xi_inf_sl, 0]
+            bounds: [50e6, 300e6]
     groups:
       - name: fit_single_crystal_parameters
 
   - schema: fit_single_crystal_parameters
     inputs:
       initial_damping: [2.0, 1.0, 0.5]
+      fitting_error_tolerance: 2.0e6 # Pa (2 MPa)
