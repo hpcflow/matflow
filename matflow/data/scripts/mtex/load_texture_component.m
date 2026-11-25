@@ -32,6 +32,7 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path)
 
     rng("shuffle");
     orientations = discreteSample(ODF, numOrientations);
+    disp(orientations);
     export_orientations_HDF5(orientations, outputs_HDF5_path);
 
 end

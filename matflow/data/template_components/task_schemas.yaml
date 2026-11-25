@@ -203,13 +203,14 @@
       default_value: 1
   outputs:
     - parameter: orientations
+  disable_array_outputs:
+    - orientations.data
   actions:
     - requires_dir: true
       script: <<script:mtex/load_texture_component.m>>
-      script_data_in: json
-      script_data_out:
-        orientations: hdf5
       script_exe: run_mtex
+      script_data_in: json
+      script_data_out: hdf5
       environments:
         - scope:
             type: any
