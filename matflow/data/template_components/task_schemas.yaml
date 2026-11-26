@@ -220,6 +220,35 @@
           condition:
             value.equal_to: script
 
+- objective: load_texture_component
+  doc: >
+    Generate ODF samples for a cubic material by loading texture components using Python MTEX (mtex>=1.0).
+    Choose discreteSample (default) or optimalSample with sampling_method.
+    Inputs and outputs are passed directly to and from the Python script.
+  implementation: mtex_python
+  inputs:
+    - parameter: file_path
+    - parameter: index
+      default_value : 1
+    - parameter: specimen_symmetry
+    - parameter: crystal_symmetry
+    - parameter: num_orientations
+    - parameter: sampling_method
+      default_value: discreteSample
+    - parameter: grid_resolution
+  outputs:
+    - parameter: orientations
+      multiplicity: <<input:num_orientation_sets>>
+  actions:
+    - script: <<script:mtex/load_texture_component.py>>
+      script_data_in: direct
+      script_data_out: direct
+      script_exe: python_script
+      environments:
+        - scope:
+            type: any
+          environment: python_env
+
 - objective: generate_volume_element
   doc: Generate a volume element from microstructure seeds using a Voronoi diagram.
   method: from_voronoi

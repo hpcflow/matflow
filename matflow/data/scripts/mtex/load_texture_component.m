@@ -6,7 +6,7 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path)
 
     resolution = all_args.resolution;
     index = all_args.index;
-    filename = all_args.filename
+    filename = all_args.filename;
     numOrientations = all_args.num_orientations;
 
     CS = crystalSymmetry('cubic');
@@ -22,10 +22,8 @@ function load_texture_component(inputs_JSON_path, outputs_HDF5_path)
 
     ODF = weights(:,end) * uniformODF(CS);
     
-    for n = 1:N;
-    
-        if halfwidths(n) ~= 0;
-    
+    for n = 1:N
+        if halfwidths(n) ~= 0
             ODF = ODF + weights(n) * unimodalODF(components(n),CS,'halfwidth',halfwidths(n)*degree);
         end
     end
