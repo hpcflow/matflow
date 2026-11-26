@@ -238,7 +238,6 @@
     - parameter: grid_resolution
   outputs:
     - parameter: orientations
-      multiplicity: <<input:num_orientation_sets>>
   actions:
     - script: <<script:mtex/load_texture_component.py>>
       script_data_in: direct

@@ -28,7 +28,7 @@ def load_texture_component(
 
     N = len(components)
 
-    print(N)
+    print('Number of texture components:',N)
 
     component_data = np.loadtxt(file_path,delimiter=',')
 
